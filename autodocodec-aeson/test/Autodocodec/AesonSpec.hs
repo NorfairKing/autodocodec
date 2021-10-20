@@ -9,7 +9,7 @@ import Autodocodec.Aeson
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.GenValidity
-import Data.GenValidity.Text
+import Data.GenValidity.Text ()
 import Data.Text (Text)
 import Test.Syd
 import Test.Syd.Validity

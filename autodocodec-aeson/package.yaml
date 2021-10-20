@@ -38,4 +38,5 @@ tests:
     - genvalidity-sydtest
     - genvalidity-text
     - sydtest
+    - sydtest-aeson
     - text

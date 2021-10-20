@@ -15,4 +15,5 @@ library:
   source-dirs: src
   dependencies:
   - bytestring
+  - scientific
   - text

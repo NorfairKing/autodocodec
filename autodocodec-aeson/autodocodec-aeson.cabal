@@ -42,6 +42,7 @@ test-suite autodocodec-aeson-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Autodocodec.Aeson.DocumentSpec
       Autodocodec.AesonSpec
       Paths_autodocodec_aeson
   hs-source-dirs:
@@ -59,5 +60,6 @@ test-suite autodocodec-aeson-test
     , genvalidity-sydtest
     , genvalidity-text
     , sydtest
+    , sydtest-aeson
     , text
   default-language: Haskell2010

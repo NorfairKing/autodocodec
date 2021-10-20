@@ -18,3 +18,10 @@ parseJSONVia = flip go
       NullCodec -> pure ()
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
+      NumberCodec -> parseJSON value
+      ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
+      PureCodec a -> pure a
+
+    goObject :: JSON.Object -> ObjectCodec a a -> JSON.Parser a
+    goObject object = \case
+      PureObjectCodec a -> pure a

@@ -20,6 +20,7 @@ extra-deps:
   commit: 0125c6d6d17d44753c793adc8dcaa4284fef2b7d
   subdirs:
     - sydtest
+    - sydtest-aeson
     - sydtest-discover
 - envparse-0.4.1@sha256:989902e6368532548f61de1fa245ad2b39176cddd8743b20071af519a709ce30,2842
 
