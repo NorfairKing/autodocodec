@@ -1,0 +1,86 @@
+{
+    "gitignore": {
+        "branch": "master",
+        "description": "Nix function for filtering local git sources",
+        "homepage": "",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "211907489e9f198594c0eb0ca9256a1949c9d412",
+        "sha256": "06j7wpvj54khw0z10fjyi31kpafkr6hi1k0di13k1xp8kywvfyx8",
+        "type": "tarball",
+        "url": "https://github.com/hercules-ci/gitignore.nix/archive/211907489e9f198594c0eb0ca9256a1949c9d412.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "niv": {
+        "branch": "master",
+        "description": "Easy dependency management for Nix projects",
+        "homepage": "https://github.com/nmattia/niv",
+        "owner": "nmattia",
+        "repo": "niv",
+        "rev": "94080ae8286024820c570a2a24ed7c36d7ad04a9",
+        "sha256": "0wlk52zwlrq727x3z1vg9d9qq4zw62ab5jzg4068iqb6hyb0cr0w",
+        "type": "tarball",
+        "url": "https://github.com/nmattia/niv/archive/94080ae8286024820c570a2a24ed7c36d7ad04a9.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "nixos-21.05",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "aa576357673d609e618d87db43210e49d4bb1789",
+        "sha256": "1868s3mp0lwg1jpxsgmgijzddr90bjkncf6k6zhdjqihf0i1n2np",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/aa576357673d609e618d87db43210e49d4bb1789.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "pre-commit-hooks": {
+        "branch": "master",
+        "description": "Seamless integration of https://pre-commit.com git hooks with Nix.",
+        "homepage": "",
+        "owner": "cachix",
+        "repo": "pre-commit-hooks.nix",
+        "rev": "2e7fac06108b4fc81f5ff9ed9a02bc4f6ede7001",
+        "sha256": "17xlb7cb1n6cyw8my6ks4iacrz49a6wfqrdj2gvjc52qc91wxvj7",
+        "type": "tarball",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/2e7fac06108b4fc81f5ff9ed9a02bc4f6ede7001.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "safe-coloured-text": {
+        "branch": "master",
+        "description": null,
+        "homepage": "https://cs-syd.eu/posts/2021-03-07-safe-coloured-text",
+        "owner": "NorfairKing",
+        "repo": "safe-coloured-text",
+        "rev": "d5788740052925aebf1dec1cf1669f66d3a35120",
+        "sha256": "0mrrfnvvwvdq2cf2figvan8z4jk0bypa0xmg11n3af6vsjryih43",
+        "type": "tarball",
+        "url": "https://github.com/NorfairKing/safe-coloured-text/archive/d5788740052925aebf1dec1cf1669f66d3a35120.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "sydtest": {
+        "branch": "master",
+        "description": "A modern testing framework for Haskell with good defaults and advanced testing features.",
+        "homepage": "",
+        "owner": "NorfairKing",
+        "repo": "sydtest",
+        "rev": "0125c6d6d17d44753c793adc8dcaa4284fef2b7d",
+        "sha256": "1mxvwngv7md0z7jddn4ffpqffs6qp8ka3ffbw3v545q5aijnkbhy",
+        "type": "tarball",
+        "url": "https://github.com/NorfairKing/sydtest/archive/0125c6d6d17d44753c793adc8dcaa4284fef2b7d.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "validity": {
+        "branch": "master",
+        "description": "Validity and validity-based testing",
+        "homepage": "https://www.youtube.com/watch?v=eIs9qNh17SM",
+        "owner": "NorfairKing",
+        "repo": "validity",
+        "rev": "549f92de456dd7fbf21b84f2f6fdca9a3c6506d9",
+        "sha256": "1gbs61kcpyd8nha1g13dsmkhslkbmhxyjfb5fmg2nwqayxvdha58",
+        "type": "tarball",
+        "url": "https://github.com/NorfairKing/validity/archive/549f92de456dd7fbf21b84f2f6fdca9a3c6506d9.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}

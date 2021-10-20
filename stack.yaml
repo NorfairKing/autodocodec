@@ -1,0 +1,27 @@
+resolver: nightly-2021-05-10
+packages:
+- autodocodec
+- autodocodec-aeson
+  # - autodocodec-yaml
+extra-deps:
+
+- github: NorfairKing/validity
+  commit: 549f92de456dd7fbf21b84f2f6fdca9a3c6506d9
+  subdirs:
+  - validity
+  - genvalidity
+  - genvalidity-sydtest
+- github: NorfairKing/safe-coloured-text
+  commit: b8333a8956975beab54d00fceaa835ee97c3347d
+  subdirs:
+    - safe-coloured-text
+    - safe-coloured-text-terminfo
+- github: NorfairKing/sydtest
+  commit: 0125c6d6d17d44753c793adc8dcaa4284fef2b7d
+  subdirs:
+    - sydtest
+    - sydtest-discover
+- envparse-0.4.1@sha256:989902e6368532548f61de1fa245ad2b39176cddd8743b20071af519a709ce30,2842
+
+nix:
+  shell-file: shell.nix

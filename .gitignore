@@ -1,0 +1,4 @@
+.stack-work
+*.yaml.lock
+result*
+.pre-commit-config.yaml
