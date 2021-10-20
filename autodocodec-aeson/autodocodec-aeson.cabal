@@ -23,12 +23,16 @@ source-repository head
 library
   exposed-modules:
       Autodocodec.Aeson
+      Autodocodec.Aeson.Decode
+      Autodocodec.Aeson.Document
+      Autodocodec.Aeson.Encode
   other-modules:
       Paths_autodocodec_aeson
   hs-source-dirs:
       src
   build-depends:
       aeson
+    , autodocodec
     , base >=4.7 && <5
     , bytestring
     , text
@@ -51,6 +55,9 @@ test-suite autodocodec-aeson-test
     , autodocodec-aeson
     , base >=4.7 && <5
     , bytestring
+    , genvalidity
+    , genvalidity-sydtest
+    , genvalidity-text
     , sydtest
     , text
   default-language: Haskell2010

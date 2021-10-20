@@ -10,3 +10,9 @@ class HasCodec a where
 
 field :: HasCodec output => Text -> ObjectCodec output output
 field k = KeyCodec k codec
+
+instance HasCodec Bool where
+  codec = boolCodec
+
+instance HasCodec Text where
+  codec = textCodec
