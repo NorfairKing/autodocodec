@@ -17,6 +17,7 @@ library:
   - aeson
   - autodocodec
   - bytestring
+  - scientific
   - text
 
 tests:

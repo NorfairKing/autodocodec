@@ -5,7 +5,6 @@
 
 module Autodocodec.Codec where
 
-import Control.Applicative
 import Data.Scientific
 import Data.Text (Text)
 
@@ -23,19 +22,23 @@ data Codec input output where
     (newInput -> oldInput) ->
     Codec oldInput oldOutput ->
     Codec newInput newOutput
-  -- | To implement 'pure'
-  PureCodec ::
-    output ->
-    Codec input output
-  -- | To implement '<*>'
-  ApCodec ::
-    Codec input (oldOutput -> output) ->
-    Codec input oldOutput ->
-    Codec input output
+  -- -- | To implement 'pure'
+  -- PureCodec ::
+  --   output ->
+  --   Codec input output
+  -- -- | To implement '<*>'
+  -- --
+  -- -- This really doesn't make much sense, but we need it to have an alternative instance.
+  -- -- TODO maybe get rid of it altogether and just implement it with errors?
+  -- ApCodec ::
+  --   Codec input (oldOutput -> output) ->
+  --   Codec input oldOutput ->
+  --   Codec input output
+
   -- | To implement '<|>'
-  AltCodecs ::
-    [Codec input output] ->
-    Codec input output
+  -- AltCodecs ::
+  --   [Codec input output] ->
+  --   Codec input output
 
 fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
 fmapCodec f = BimapCodec f id
@@ -49,28 +52,28 @@ bimapCodec = BimapCodec
 instance Functor (Codec input) where
   fmap = fmapCodec
 
-pureCodec :: a -> Codec void a
-pureCodec = PureCodec
-
-apCodec :: Codec input (oldOutput -> output) -> Codec input oldOutput -> Codec input output
-apCodec = ApCodec
-
-instance Applicative (Codec input) where
-  pure = pureCodec
-  (<*>) = apCodec
-
-emptyCodec :: Codec input output
-emptyCodec = AltCodecs []
-
-orCodec :: Codec input output -> Codec input output -> Codec input output
-orCodec c1 c2 = AltCodecs [c1, c2]
-
-choice :: [Codec input output] -> Codec input output
-choice = AltCodecs
-
-instance Alternative (Codec input) where
-  empty = emptyCodec
-  (<|>) = orCodec
+-- pureCodec :: a -> Codec void a
+-- pureCodec = PureCodec
+--
+-- apCodec :: Codec input (oldOutput -> output) -> Codec input oldOutput -> Codec input output
+-- apCodec = ApCodec
+--
+-- instance Applicative (Codec input) where
+--   pure = pureCodec
+--   (<*>) = apCodec
+--
+-- emptyCodec :: Codec input output
+-- emptyCodec = AltCodecs []
+--
+-- orCodec :: Codec input output -> Codec input output -> Codec input output
+-- orCodec c1 c2 = AltCodecs [c1, c2]
+--
+-- choice :: [Codec input output] -> Codec input output
+-- choice = AltCodecs
+--
+-- instance Alternative (Codec input) where
+--   empty = emptyCodec
+--   (<|>) = orCodec
 
 data ObjectCodec input output where
   KeyCodec :: Text -> Codec input output -> ObjectCodec input output

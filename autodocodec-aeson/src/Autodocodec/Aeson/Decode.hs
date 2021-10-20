@@ -10,18 +10,28 @@ import Data.Aeson.Types as JSON
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
 
-parseJSONVia :: Codec a a -> JSON.Value -> JSON.Parser a
+parseJSONVia :: Codec void a -> JSON.Value -> JSON.Parser a
 parseJSONVia = flip go
   where
-    go :: JSON.Value -> Codec a a -> JSON.Parser a
+    go :: JSON.Value -> Codec void a -> JSON.Parser a
     go value = \case
       NullCodec -> pure ()
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
       NumberCodec -> parseJSON value
       ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
-      PureCodec a -> pure a
+      BimapCodec f _ c -> f <$> go value c
+    -- PureCodec a -> pure a
+    -- ApCodec cf ca -> go value cf <*> go value ca
+    -- AltCodecs cs -> case cs of
+    --   [] -> fail "Empty alternatives."
+    --   (c : rest) -> go value c <|> go value (AltCodecs rest)
 
-    goObject :: JSON.Object -> ObjectCodec a a -> JSON.Parser a
-    goObject object = \case
+    goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a
+    goObject object_ = \case
+      KeyCodec k c -> do
+        value <- object_ JSON..: k
+        go value c
+      BimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a
+      ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca
