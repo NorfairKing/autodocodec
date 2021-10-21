@@ -22,7 +22,7 @@ parseJSONVia = flip go
       NumberCodec -> parseJSON value
       ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
       BimapCodec f _ c -> f <$> go value c
-      ChoiceCodec cs _ -> goChoice value cs
+    -- ChoiceCodec cs _ -> goChoice value cs
 
     goChoice :: JSON.Value -> [Codec void a] -> JSON.Parser a
     goChoice value = \case

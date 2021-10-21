@@ -23,7 +23,7 @@ toJSONVia = flip go
       NumberCodec -> toJSON (a :: Scientific)
       ObjectCodec oc -> JSON.Object (goObject a oc)
       BimapCodec _ g c -> go (g a) c
-      ChoiceCodec _ c -> go a (c a)
+    -- ChoiceCodec _ c -> go a (c a)
     -- ApCodec _ _ -> error "Cannot toJSON Ap with non-object codecs."
     -- PureCodec _ -> error "Cannot toJSON a pure codec."
     -- AltCodecs _ -> error "Cannot toJSON an Alt codec."

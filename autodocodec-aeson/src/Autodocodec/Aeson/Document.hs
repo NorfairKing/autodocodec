@@ -24,7 +24,6 @@ data JSONSchema
   | NumberSchema
   | -- | ValueSchema JSON.Value
     ObjectSchema !JSONObjectSchema
-  | ChoiceSchema ![JSONSchema]
   deriving (Show, Eq, Generic)
 
 data JSONObjectSchema
@@ -33,32 +32,25 @@ data JSONObjectSchema
   | ApObjectSchema !JSONObjectSchema !JSONObjectSchema
   deriving (Show, Eq, Generic)
 
-instance HasCodec JSONSchema where
-  codec = undefined
-
--- ChoiceCodec
---   ( [ bimapCodec
---         (const BoolSchema :: Text -> JSONSchema)
---         (const "boolean" :: JSONSchema -> Text)
---         (object (field "type" .== ("boolean" :: Text)))
---     ] ::
---       [Codec JSONSchema JSONSchema]
---   )
---   ( ( \case
---         BoolSchema ->
---           bimapCodec
---             (const BoolSchema :: Text -> JSONSchema)
---             (const "boolean" :: JSONSchema -> Text)
---             (object (field "type" .== "boolean"))
---     ) ::
---       JSONSchema -> Codec JSONSchema JSONSchema
---   )
-
 instance ToJSON JSONSchema where
-  toJSON = toJSONViaCodec
+  toJSON = \case
+    AnySchema -> JSON.object []
+    NullSchema -> JSON.object ["type" JSON..= ("null" :: Text)]
+    BoolSchema -> JSON.object ["type" JSON..= ("boolean" :: Text)]
+    StringSchema -> JSON.object ["type" JSON..= ("string" :: Text)]
+    NumberSchema -> JSON.object ["type" JSON..= ("number" :: Text)]
+    ObjectSchema _ -> JSON.object ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
 
 instance FromJSON JSONSchema where
-  parseJSON = parseJSONViaCodec
+  parseJSON = JSON.withObject "JSONSchema" $ \o -> do
+    t <- o JSON..: "type"
+    case t :: Text of
+      "null" -> pure NullSchema
+      "boolean" -> pure BoolSchema
+      "string" -> pure StringSchema
+      "number" -> pure NumberSchema
+      "object" -> pure $ ObjectSchema AnyObjectSchema
+      _ -> fail "unknown schema type."
 
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
@@ -75,7 +67,6 @@ jsonSchemaVia = go
       -- EqCodec _ c -> go c -- TODO maybe we want to show the specific value?
       ObjectCodec oc -> ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
-      ChoiceCodec cs _ -> ChoiceSchema (map go cs)
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case

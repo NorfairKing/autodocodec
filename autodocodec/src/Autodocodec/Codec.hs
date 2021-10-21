@@ -39,7 +39,7 @@ data Codec input output where
   -- AltCodecs ::
   --   [Codec input output] ->
   --   Codec input output
-  ChoiceCodec :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
+  -- ChoiceCodec :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
 
 fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
 fmapCodec f = BimapCodec f id
@@ -76,8 +76,8 @@ instance Functor (Codec input) where
 --   empty = emptyCodec
 --   (<|>) = orCodec
 
-choice :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
-choice = ChoiceCodec
+-- choice :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
+-- choice = ChoiceCodec
 
 data ObjectCodec input output where
   KeyCodec :: Text -> Codec input output -> ObjectCodec input output
