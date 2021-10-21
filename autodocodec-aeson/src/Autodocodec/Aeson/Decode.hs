@@ -4,6 +4,8 @@
 module Autodocodec.Aeson.Decode where
 
 import Autodocodec
+import Control.Applicative
+import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 
@@ -21,6 +23,13 @@ parseJSONVia = flip go
       NumberCodec -> parseJSON value
       ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
       BimapCodec f _ c -> f <$> go value c
+      ChoiceCodec cs _ -> goChoice value cs
+
+    goChoice :: JSON.Value -> [Codec void a] -> JSON.Parser a
+    goChoice value = \case
+      [] -> fail "No choices left." -- TODO better error
+      (c : cs) -> go value c <|> goChoice value cs
+
     -- PureCodec a -> pure a
     -- ApCodec cf ca -> go value cf <*> go value ca
     -- AltCodecs cs -> case cs of
@@ -32,6 +41,10 @@ parseJSONVia = flip go
       KeyCodec k c -> do
         value <- object_ JSON..: k
         go value c
+      -- EqObjectCodec o oc -> do
+      --   o' <- goObject object_ oc
+      --   guard (o == o')
+      --   pure o'
       BimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a
       ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca

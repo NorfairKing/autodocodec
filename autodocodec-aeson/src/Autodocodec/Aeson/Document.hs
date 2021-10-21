@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -10,7 +11,8 @@ module Autodocodec.Aeson.Document where
 import Autodocodec
 import Autodocodec.Aeson.Decode
 import Autodocodec.Aeson.Encode
-import Data.Aeson as JSON
+import Data.Aeson (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson as JSON
 import Data.Text (Text)
 import GHC.Generics (Generic)
 
@@ -20,7 +22,9 @@ data JSONSchema
   | BoolSchema
   | StringSchema
   | NumberSchema
-  | ObjectSchema !JSONObjectSchema
+  | -- | ValueSchema JSON.Value
+    ObjectSchema !JSONObjectSchema
+  | ChoiceSchema ![JSONSchema]
   deriving (Show, Eq, Generic)
 
 data JSONObjectSchema
@@ -30,7 +34,24 @@ data JSONObjectSchema
   deriving (Show, Eq, Generic)
 
 instance HasCodec JSONSchema where
-  codec = undefined
+  codec =
+    ChoiceCodec
+      ( [ bimapCodec
+            (const BoolSchema :: Text -> JSONSchema)
+            (const "boolean" :: JSONSchema -> Text)
+            (object (field "type" .== ("boolean" :: Text)))
+        ] ::
+          [Codec JSONSchema JSONSchema]
+      )
+      ( ( \case
+            BoolSchema ->
+              bimapCodec
+                (const BoolSchema :: Text -> JSONSchema)
+                (const "boolean" :: JSONSchema -> Text)
+                (object (field "type" .== "boolean"))
+        ) ::
+          JSONSchema -> Codec JSONSchema JSONSchema
+      )
 
 instance ToJSON JSONSchema where
   toJSON = toJSONViaCodec
@@ -50,8 +71,10 @@ jsonSchemaVia = go
       BoolCodec -> BoolSchema
       StringCodec -> StringSchema
       NumberCodec -> NumberSchema
+      -- EqCodec _ c -> go c -- TODO maybe we want to show the specific value?
       ObjectCodec oc -> ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
+      ChoiceCodec cs _ -> ChoiceSchema (map go cs)
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case
