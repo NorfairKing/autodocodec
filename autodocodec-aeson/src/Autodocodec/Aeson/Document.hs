@@ -34,24 +34,25 @@ data JSONObjectSchema
   deriving (Show, Eq, Generic)
 
 instance HasCodec JSONSchema where
-  codec =
-    ChoiceCodec
-      ( [ bimapCodec
-            (const BoolSchema :: Text -> JSONSchema)
-            (const "boolean" :: JSONSchema -> Text)
-            (object (field "type" .== ("boolean" :: Text)))
-        ] ::
-          [Codec JSONSchema JSONSchema]
-      )
-      ( ( \case
-            BoolSchema ->
-              bimapCodec
-                (const BoolSchema :: Text -> JSONSchema)
-                (const "boolean" :: JSONSchema -> Text)
-                (object (field "type" .== "boolean"))
-        ) ::
-          JSONSchema -> Codec JSONSchema JSONSchema
-      )
+  codec = undefined
+
+-- ChoiceCodec
+--   ( [ bimapCodec
+--         (const BoolSchema :: Text -> JSONSchema)
+--         (const "boolean" :: JSONSchema -> Text)
+--         (object (field "type" .== ("boolean" :: Text)))
+--     ] ::
+--       [Codec JSONSchema JSONSchema]
+--   )
+--   ( ( \case
+--         BoolSchema ->
+--           bimapCodec
+--             (const BoolSchema :: Text -> JSONSchema)
+--             (const "boolean" :: JSONSchema -> Text)
+--             (object (field "type" .== "boolean"))
+--     ) ::
+--       JSONSchema -> Codec JSONSchema JSONSchema
+--   )
 
 instance ToJSON JSONSchema where
   toJSON = toJSONViaCodec

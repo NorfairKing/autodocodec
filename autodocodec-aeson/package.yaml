@@ -36,8 +36,10 @@ tests:
     - autodocodec-aeson
     - bytestring
     - genvalidity
+    - genvalidity-scientific
     - genvalidity-sydtest
     - genvalidity-text
+    - scientific
     - sydtest
     - sydtest-aeson
     - text

@@ -3,6 +3,7 @@
 module Autodocodec.Class where
 
 import Autodocodec.Codec
+import Data.Scientific
 import Data.Text (Text)
 
 class HasCodec a where
@@ -16,3 +17,6 @@ instance HasCodec Bool where
 
 instance HasCodec Text where
   codec = textCodec
+
+instance HasCodec Scientific where
+  codec = scientificCodec

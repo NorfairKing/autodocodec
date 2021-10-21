@@ -58,8 +58,10 @@ test-suite autodocodec-aeson-test
     , base >=4.7 && <5
     , bytestring
     , genvalidity
+    , genvalidity-scientific
     , genvalidity-sydtest
     , genvalidity-text
+    , scientific
     , sydtest
     , sydtest-aeson
     , text

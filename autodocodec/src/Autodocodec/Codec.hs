@@ -81,7 +81,7 @@ choice = ChoiceCodec
 
 data ObjectCodec input output where
   KeyCodec :: Text -> Codec input output -> ObjectCodec input output
-  EqObjectCodec :: (Show newInput, Eq newInput) => newInput -> ObjectCodec oldInput output -> ObjectCodec newInput output
+  -- EqObjectCodec :: (Show newInput, Eq newInput) => newInput -> ObjectCodec oldInput output -> ObjectCodec newInput output
   PureObjectCodec :: output -> ObjectCodec input output
   BimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
   ApObjectCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
@@ -111,14 +111,17 @@ apObjectCodec = ApObjectCodec
 (.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
 (.=) = flip comapObjectCodec
 
-(.==) :: (Show newInput, Eq newInput) => ObjectCodec oldInput output -> newInput -> ObjectCodec newInput output
-(.==) = flip EqObjectCodec
+-- (.==) :: (Show newInput, Eq newInput) => ObjectCodec oldInput output -> newInput -> ObjectCodec newInput output
+-- (.==) = flip EqObjectCodec
 
 boolCodec :: Codec Bool Bool
 boolCodec = BoolCodec
 
 textCodec :: Codec Text Text
 textCodec = StringCodec
+
+scientificCodec :: Codec Scientific Scientific
+scientificCodec = NumberCodec
 
 object :: ObjectCodec value value -> Codec value value
 object = ObjectCodec
