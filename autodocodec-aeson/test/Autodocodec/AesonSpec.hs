@@ -26,6 +26,7 @@ spec = do
   aesonCodecSpec @Bool
   aesonCodecSpec @Text
   aesonCodecSpec @Scientific
+  aesonCodecSpec @(Either Text Bool)
   aesonCodecSpec @Example
 
 data Example = Example

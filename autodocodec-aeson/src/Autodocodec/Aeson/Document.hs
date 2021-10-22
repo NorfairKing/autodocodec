@@ -9,8 +9,6 @@
 module Autodocodec.Aeson.Document where
 
 import Autodocodec
-import Autodocodec.Aeson.Decode
-import Autodocodec.Aeson.Encode
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import Data.Text (Text)
@@ -24,12 +22,14 @@ data JSONSchema
   | NumberSchema
   | -- | ValueSchema JSON.Value
     ObjectSchema !JSONObjectSchema
+  | ChoiceSchema ![JSONSchema]
   deriving (Show, Eq, Generic)
 
 data JSONObjectSchema
   = AnyObjectSchema
   | KeySchema !Text !JSONSchema
   | ApObjectSchema !JSONObjectSchema !JSONObjectSchema
+  | ChoiceObjectSchema ![JSONObjectSchema]
   deriving (Show, Eq, Generic)
 
 instance ToJSON JSONSchema where
@@ -39,6 +39,7 @@ instance ToJSON JSONSchema where
     BoolSchema -> JSON.object ["type" JSON..= ("boolean" :: Text)]
     StringSchema -> JSON.object ["type" JSON..= ("string" :: Text)]
     NumberSchema -> JSON.object ["type" JSON..= ("number" :: Text)]
+    ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
     ObjectSchema _ -> JSON.object ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
 
 instance FromJSON JSONSchema where
@@ -64,9 +65,9 @@ jsonSchemaVia = go
       BoolCodec -> BoolSchema
       StringCodec -> StringSchema
       NumberCodec -> NumberSchema
-      -- EqCodec _ c -> go c -- TODO maybe we want to show the specific value?
       ObjectCodec oc -> ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
+      SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case
@@ -74,3 +75,4 @@ jsonSchemaVia = go
       BimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> AnyObjectSchema
       ApObjectCodec oc1 oc2 -> ApObjectSchema (goObject oc1) (goObject oc2)
+      SelectObjectCodec oc1 oc2 -> ChoiceObjectSchema [goObject oc1, goObject oc2]

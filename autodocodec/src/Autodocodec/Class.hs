@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Autodocodec.Class where
 
@@ -20,3 +21,10 @@ instance HasCodec Text where
 
 instance HasCodec Scientific where
   codec = scientificCodec
+
+instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
+  codec =
+    object $
+      SelectObjectCodec
+        (field "Left")
+        (field "Right")

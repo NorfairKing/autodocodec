@@ -18,6 +18,7 @@ spec :: Spec
 spec = do
   jsonSchemaSpec @Bool "bool"
   jsonSchemaSpec @Text "text"
+  jsonSchemaSpec @(Either Bool Text) "either-bool-text"
 
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 jsonSchemaSpec filePath = do

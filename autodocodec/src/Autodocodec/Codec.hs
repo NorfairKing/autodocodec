@@ -1,10 +1,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Autodocodec.Codec where
 
+import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Scientific
 import Data.Text (Text)
 
@@ -40,6 +43,17 @@ data Codec input output where
   --   [Codec input output] ->
   --   Codec input output
   -- ChoiceCodec :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
+  SelectCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+
+choiceCodec :: NonEmpty (Codec input output) -> Codec input output
+choiceCodec (c1 :| rest) = case NE.nonEmpty rest of
+  Nothing -> c1
+  Just ne ->
+    let f = \case
+          Left a -> a
+          Right a -> a
+        g = Right
+     in bimapCodec f g (SelectCodec c1 (choiceCodec ne))
 
 fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
 fmapCodec f = BimapCodec f id
@@ -85,6 +99,7 @@ data ObjectCodec input output where
   PureObjectCodec :: output -> ObjectCodec input output
   BimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
   ApObjectCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
+  SelectObjectCodec :: ObjectCodec input1 output1 -> ObjectCodec input2 output2 -> ObjectCodec (Either input1 input2) (Either output1 output2)
 
 fmapObjectCodec :: (oldOutput -> newOutput) -> ObjectCodec input oldOutput -> ObjectCodec input newOutput
 fmapObjectCodec f = BimapObjectCodec f id

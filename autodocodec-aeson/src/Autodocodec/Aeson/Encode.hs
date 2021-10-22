@@ -23,15 +23,16 @@ toJSONVia = flip go
       NumberCodec -> toJSON (a :: Scientific)
       ObjectCodec oc -> JSON.Object (goObject a oc)
       BimapCodec _ g c -> go (g a) c
-    -- ChoiceCodec _ c -> go a (c a)
-    -- ApCodec _ _ -> error "Cannot toJSON Ap with non-object codecs."
-    -- PureCodec _ -> error "Cannot toJSON a pure codec."
-    -- AltCodecs _ -> error "Cannot toJSON an Alt codec."
+      SelectCodec c1 c2 -> case a of
+        Left a1 -> go a1 c1
+        Right a2 -> go a2 c2
 
     goObject :: a -> ObjectCodec a void -> JSON.Object
     goObject a = \case
       KeyCodec k c -> k JSON..= go a c
-      -- EqObjectCodec o oc -> goObject o oc
       PureObjectCodec _ -> error "Cannot toJSON a pure object codec."
       BimapObjectCodec _ g oc -> goObject (g a) oc
       ApObjectCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
+      SelectObjectCodec oc1 oc2 -> case a of
+        Left a1 -> goObject a1 oc1
+        Right a2 -> goObject a2 oc2
