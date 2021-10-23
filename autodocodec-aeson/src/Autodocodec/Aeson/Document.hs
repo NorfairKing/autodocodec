@@ -16,6 +16,8 @@ import qualified Data.List.NonEmpty as NE
 import Data.Text (Text)
 import GHC.Generics (Generic)
 
+-- TODO think about putting this value in a separate package or directly in autodocodec
+--
 -- http://json-schema.org/understanding-json-schema/reference/index.html
 data JSONSchema
   = AnySchema

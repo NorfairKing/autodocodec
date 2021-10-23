@@ -15,6 +15,7 @@ library:
   source-dirs: src
   dependencies:
   - autodocodec
+  - autodocodec-aeson
   - safe-coloured-text
   - yaml
 

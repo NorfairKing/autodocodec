@@ -30,6 +30,7 @@ library
       src
   build-depends:
       autodocodec
+    , autodocodec-aeson
     , base >=4.7 && <5
     , safe-coloured-text
     , yaml
