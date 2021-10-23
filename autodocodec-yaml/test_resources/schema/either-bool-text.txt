@@ -1,4 +1,5 @@
-[37mLeft[m: [31m# required[m
-  [33m<boolean>[m
-[37mRight[m: [31m# required[m
-  [33m<string>[m
+[ [37mLeft[m: [31m# required[m
+    [33m<boolean>[m
+, [37mRight[m: [31m# required[m
+    [33m<string>[m
+]

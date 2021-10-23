@@ -1,2 +1,3 @@
-[33mnull[m
-[33m<string>[m
+[ [33mnull[m
+, [33m<string>[m
+]

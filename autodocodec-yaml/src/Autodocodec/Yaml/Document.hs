@@ -36,9 +36,18 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       NumberSchema -> [[fore yellow "<number>"]]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
-         in addListMarker $ go s -- TODO add the dash
+         in addListMarker $ go s
       ObjectSchema s -> goObject s
-      ChoiceSchema s -> concatMap go s -- TODO add the list
+      ChoiceSchema s ->
+        let addListAround = \case
+              [] -> [["[]"]]
+              [s_] -> (addInFrontOfFirstInList ["[ "] (go s_)) ++ [["]"]]
+              (s_ : rest) ->
+                concat $
+                  addInFrontOfFirstInList ["[ "] (go s_) :
+                  map (addInFrontOfFirstInList [", "] . go) rest
+                    ++ [[["]"]]]
+         in addListAround s
     goObject :: JSONObjectSchema -> [[Chunk]]
     goObject = \case
       AnyObjectSchema -> [["<object>"]]
