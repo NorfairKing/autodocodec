@@ -10,12 +10,15 @@ import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Scientific
 import Data.Text (Text)
+import qualified Data.Text as T
 
 data Codec input output where
   NullCodec :: Codec () ()
   BoolCodec :: Codec Bool Bool
   StringCodec :: Codec Text Text
   NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
+  -- TODO use a vector here because that's what aeson uses.
+  ArrayCodec :: Codec input output -> Codec [input] [output]
   ObjectCodec ::
     ObjectCodec value value ->
     Codec value value
@@ -26,6 +29,13 @@ data Codec input output where
     Codec oldInput oldOutput ->
     Codec newInput newOutput
   SelectCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+  -- For parsing with potential errors
+  -- TODO: maybe we want to get rid of bimap and implement it in terms of this?
+  EitherCodec ::
+    (oldOutput -> Either String newOutput) ->
+    (newInput -> oldInput) ->
+    Codec oldInput oldOutput ->
+    Codec newInput newOutput
 
 choiceCodec :: NonEmpty (Codec input output) -> Codec input output
 choiceCodec (c1 :| rest) = case NE.nonEmpty rest of
@@ -88,6 +98,9 @@ boolCodec = BoolCodec
 
 textCodec :: Codec Text Text
 textCodec = StringCodec
+
+stringCodec :: Codec String String
+stringCodec = BimapCodec T.unpack T.pack StringCodec
 
 scientificCodec :: Codec Scientific Scientific
 scientificCodec = NumberCodec

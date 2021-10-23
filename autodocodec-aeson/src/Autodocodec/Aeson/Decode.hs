@@ -7,6 +7,7 @@ import Autodocodec
 import Control.Applicative
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
+import Data.Foldable
 
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
@@ -20,8 +21,14 @@ parseJSONVia = flip go
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
       NumberCodec -> parseJSON value
+      ArrayCodec c -> withArray "TODO" (\a -> toList <$> mapM (`go` c) a) value
       ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
       BimapCodec f _ c -> f <$> go value c
+      EitherCodec f _ c -> do
+        old <- go value c
+        case f old of
+          Left err -> fail err -- TODO better error message location?
+          Right new -> pure new
       SelectCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
 
     goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a

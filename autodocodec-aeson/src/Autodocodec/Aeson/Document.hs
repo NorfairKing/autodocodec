@@ -23,6 +23,7 @@ data JSONSchema
   | BoolSchema
   | StringSchema
   | NumberSchema
+  | ArraySchema JSONSchema
   | ObjectSchema !JSONObjectSchema
   | ChoiceSchema ![JSONSchema]
   deriving (Show, Eq, Generic)
@@ -40,7 +41,7 @@ instance ToJSON JSONSchema where
     BoolSchema -> JSON.object ["type" JSON..= ("boolean" :: Text)]
     StringSchema -> JSON.object ["type" JSON..= ("string" :: Text)]
     NumberSchema -> JSON.object ["type" JSON..= ("number" :: Text)]
-    ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
+    ArraySchema s -> JSON.object ["type" JSON..= ("array" :: Text), "items" JSON..= s]
     ObjectSchema os ->
       let go = \case
             AnyObjectSchema -> ([], [])
@@ -62,6 +63,7 @@ instance ToJSON JSONSchema where
                   "properties" JSON..= ps,
                   "required" JSON..= rps
                 ]
+    ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
@@ -105,9 +107,11 @@ jsonSchemaVia = go
       BoolCodec -> BoolSchema
       StringCodec -> StringSchema
       NumberCodec -> NumberSchema
+      ArrayCodec c -> ArraySchema (go c)
       ObjectCodec oc -> ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
       SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
+      EitherCodec _ _ c -> go c
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case

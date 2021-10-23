@@ -22,7 +22,9 @@ import Test.Syd.Validity.Utils
 spec :: Spec
 spec = do
   jsonSchemaSpec @Bool "bool"
+  jsonSchemaSpec @Char "char"
   jsonSchemaSpec @Text "text"
+  jsonSchemaSpec @String "string"
   jsonSchemaSpec @Scientific "scientific"
   jsonSchemaSpec @(Either Bool Text) "either-bool-text"
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
