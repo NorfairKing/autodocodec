@@ -48,6 +48,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                   map (addInFrontOfFirstInList [", "] . go) rest
                     ++ [[["]"]]]
          in addListAround s
+      CommentSchema c s -> [chunk $ "# " <> c] : go s
     goObject :: JSONObjectSchema -> [[Chunk]]
     goObject = \case
       AnyObjectSchema -> [["<object>"]]

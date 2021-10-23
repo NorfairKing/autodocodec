@@ -37,6 +37,7 @@ data Codec input output where
     (newInput -> oldInput) ->
     Codec oldInput oldOutput ->
     Codec newInput newOutput
+  CommentCodec :: Text -> Codec input output -> Codec input output
 
 -- Jsut for debugging
 showCodecABit :: Codec input output -> String
@@ -53,7 +54,7 @@ showCodecABit = ($ "") . go 0
       BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
       SelectCodec c1 c2 -> showParen (d > 10) $ showString "SelectCodec " . go 11 c1 . showString " " . go 11 c2
       ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
-
+      CommentCodec comment c -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . go 11 c
     goObject :: Int -> ObjectCodec input output -> ShowS
     goObject d = \case
       RequiredKeyCodec k c -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . go 11 c
@@ -133,8 +134,11 @@ apObjectCodec = ApObjectCodec
 (.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
 (.=) = flip comapObjectCodec
 
--- (.==) :: (Show newInput, Eq newInput) => ObjectCodec oldInput output -> newInput -> ObjectCodec newInput output
--- (.==) = flip EqObjectCodec
+(<?>) :: Codec input output -> Text -> Codec input output
+(<?>) = flip CommentCodec
+
+(<??>) :: Codec input output -> [Text] -> Codec input output
+(<??>) c ls = CommentCodec (T.unlines ls) c
 
 boolCodec :: Codec Bool Bool
 boolCodec = BoolCodec

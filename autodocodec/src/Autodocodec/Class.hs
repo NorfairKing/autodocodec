@@ -51,19 +51,19 @@ instance HasCodec Scientific where
   codec = scientificCodec
 
 instance HasCodec Int where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Int"
 
 instance HasCodec Int8 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Int8"
 
 instance HasCodec Int16 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Int16"
 
 instance HasCodec Int32 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Int32"
 
 instance HasCodec Int64 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Int64"
 
 instance HasCodec Word where
   codec = boundedIntegerCodec

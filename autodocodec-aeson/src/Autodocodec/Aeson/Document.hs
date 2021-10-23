@@ -26,9 +26,10 @@ data JSONSchema
   | BoolSchema
   | StringSchema
   | NumberSchema
-  | ArraySchema JSONSchema
+  | ArraySchema !JSONSchema
   | ObjectSchema !JSONObjectSchema
   | ChoiceSchema ![JSONSchema]
+  | CommentSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
 
 data JSONObjectSchema
@@ -75,6 +76,7 @@ instance ToJSON JSONSchema where
                   "required" JSON..= rps
                 ]
     ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
+    CommentSchema _ s -> toJSON s -- TODO this is probably wrong.
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
@@ -139,6 +141,7 @@ jsonSchemaVia = go
       BimapCodec _ _ c -> go c
       SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
       ExtraParserCodec _ _ c -> go c
+      CommentCodec t c -> CommentSchema t (go c)
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case
