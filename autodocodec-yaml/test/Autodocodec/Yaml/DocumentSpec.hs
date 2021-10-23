@@ -64,9 +64,9 @@ instance HasCodec Example where
   codec =
     object $
       Example
-        <$> field "text" .= exampleText
-        <*> field "bool" .= exampleBool
-        <*> field "maybe" .= exampleRequiredMaybe
+        <$> requiredField "text" .= exampleText
+        <*> requiredField "bool" .= exampleBool
+        <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec

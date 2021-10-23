@@ -23,8 +23,8 @@ class HasCodec a where
   listCodec :: Codec [a] [a]
   listCodec = ArrayCodec codec
 
-field :: HasCodec output => Text -> ObjectCodec output output
-field k = RequiredKeyCodec k codec
+requiredField :: HasCodec output => Text -> ObjectCodec output output
+requiredField k = RequiredKeyCodec k codec
 
 optionalField :: HasCodec output => Text -> ObjectCodec (Maybe output) (Maybe output)
 optionalField k = OptionalKeyCodec k codec
@@ -86,8 +86,8 @@ instance HasCodec a => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     SelectCodec
-      (object (field "Left"))
-      (object (field "Right"))
+      (object (requiredField "Left"))
+      (object (requiredField "Right"))
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodec
