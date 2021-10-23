@@ -48,7 +48,9 @@ spec = do
 
 data Example = Example
   { exampleText :: !Text,
-    exampleBool :: !Bool
+    exampleBool :: !Bool,
+    exampleRequiredMaybe :: !(Maybe Text),
+    exampleOptional :: !(Maybe Text)
   }
   deriving (Show, Eq, Generic)
 
@@ -64,6 +66,8 @@ instance HasCodec Example where
       Example
         <$> field "text" .= exampleText
         <*> field "bool" .= exampleBool
+        <*> field "maybe" .= exampleRequiredMaybe
+        <*> optionalField "optional" .= exampleOptional
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

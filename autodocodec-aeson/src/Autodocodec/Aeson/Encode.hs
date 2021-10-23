@@ -31,7 +31,10 @@ toJSONVia = flip go
 
     goObject :: a -> ObjectCodec a void -> JSON.Object
     goObject a = \case
-      KeyCodec k c -> k JSON..= go a c
+      RequiredKeyCodec k c -> k JSON..= go a c
+      OptionalKeyCodec k c -> case a of
+        Nothing -> mempty
+        Just b -> k JSON..= go b c
       PureObjectCodec _ -> error "Cannot toJSON a pure object codec."
       BimapObjectCodec _ g oc -> goObject (g a) oc
       ApObjectCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2

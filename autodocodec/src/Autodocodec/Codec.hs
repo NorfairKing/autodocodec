@@ -56,7 +56,8 @@ showCodecABit = ($ "") . go 0
 
     goObject :: Int -> ObjectCodec input output -> ShowS
     goObject d = \case
-      KeyCodec k c -> showParen (d > 10) $ showString "KeyCodec " . showsPrec d k . showString " " . go 11 c
+      RequiredKeyCodec k c -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . go 11 c
+      OptionalKeyCodec k c -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . go 11 c
       PureObjectCodec _ -> showString "PureObjectCodec" -- TODO add show instance?
       BimapObjectCodec _ _ oc -> showParen (d > 10) $ showString "BimapObjectCodec " . goObject 11 oc
       ApObjectCodec oc1 oc2 -> showParen (d > 10) $ showString "KeyCodec " . goObject 11 oc1 . showString " " . goObject 11 oc2
@@ -101,7 +102,8 @@ instance Functor (Codec input) where
   fmap = fmapCodec
 
 data ObjectCodec input output where
-  KeyCodec :: Text -> Codec input output -> ObjectCodec input output
+  RequiredKeyCodec :: Text -> Codec input output -> ObjectCodec input output
+  OptionalKeyCodec :: Text -> Codec input output -> ObjectCodec (Maybe input) (Maybe output)
   PureObjectCodec :: output -> ObjectCodec input output
   BimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
   ApObjectCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput

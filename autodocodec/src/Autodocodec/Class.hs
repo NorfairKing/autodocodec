@@ -24,7 +24,10 @@ class HasCodec a where
   listCodec = ArrayCodec codec
 
 field :: HasCodec output => Text -> ObjectCodec output output
-field k = KeyCodec k codec
+field k = RequiredKeyCodec k codec
+
+optionalField :: HasCodec output => Text -> ObjectCodec (Maybe output) (Maybe output)
+optionalField k = OptionalKeyCodec k codec
 
 instance HasCodec Bool where
   codec = boolCodec

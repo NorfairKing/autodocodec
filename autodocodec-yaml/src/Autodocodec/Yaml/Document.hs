@@ -51,5 +51,9 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
     goObject :: JSONObjectSchema -> [[Chunk]]
     goObject = \case
       AnyObjectSchema -> [["<object>"]]
-      KeySchema k ss -> addInFrontOfFirstInList [fore white $ chunk k, ":", " "] ([fore red "# required"] : go ss)
+      KeySchema r k ss ->
+        let requirementComment = case r of
+              Required -> fore red "required"
+              Optional -> fore blue "optional"
+         in addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment] : go ss)
       BothObjectSchema os1 os2 -> goObject os1 ++ goObject os2

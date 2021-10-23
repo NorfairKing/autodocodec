@@ -5,6 +5,7 @@ module Autodocodec.Aeson.Decode where
 
 import Autodocodec
 import Control.Applicative
+import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.Foldable
@@ -35,9 +36,12 @@ parseJSONVia = flip go
 
     goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a
     goObject object_ = \case
-      KeyCodec k c -> do
+      RequiredKeyCodec k c -> do
         value <- object_ JSON..: k
         go value c
+      OptionalKeyCodec k c -> do
+        mValue <- object_ JSON..:? k
+        forM mValue $ \value -> go value c
       BimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a
       ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca

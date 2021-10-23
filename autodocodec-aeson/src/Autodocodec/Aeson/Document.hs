@@ -13,6 +13,7 @@ import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
+import Data.Maybe
 import Data.Text (Text)
 import GHC.Generics (Generic)
 
@@ -32,8 +33,11 @@ data JSONSchema
 
 data JSONObjectSchema
   = AnyObjectSchema
-  | KeySchema !Text !JSONSchema
+  | KeySchema !KeyRequirement !Text !JSONSchema
   | BothObjectSchema !JSONObjectSchema !JSONObjectSchema
+  deriving (Show, Eq, Generic)
+
+data KeyRequirement = Required | Optional
   deriving (Show, Eq, Generic)
 
 instance ToJSON JSONSchema where
@@ -47,7 +51,12 @@ instance ToJSON JSONSchema where
     ObjectSchema os ->
       let go = \case
             AnyObjectSchema -> ([], [])
-            KeySchema k s -> ([(k, s)], [k])
+            KeySchema r k s ->
+              ( [(k, s)],
+                case r of
+                  Required -> [k]
+                  Optional -> []
+              )
             BothObjectSchema os1 os2 ->
               let (ps1, rps1) = go os1
                   (ps2, rps2) = go os2
@@ -85,9 +94,20 @@ instance FromJSON JSONSchema where
         case mP of
           Nothing -> pure $ ObjectSchema AnyObjectSchema
           Just props -> do
-            -- _ <- fromMaybe [] <$> o JSON..:? "required"
+            requiredProps <- fromMaybe [] <$> o JSON..:? "required"
             -- TODO distinguish between required and optional properties
-            let keySchemas = map (\(k, s) -> KeySchema k s) props
+            let keySchemas =
+                  map
+                    ( \(k, s) ->
+                        KeySchema
+                          ( if k `elem` requiredProps
+                              then Required
+                              else Optional
+                          )
+                          k
+                          s
+                    )
+                    props
             let go (ks :| rest) = case NE.nonEmpty rest of
                   Nothing -> ks
                   Just ne -> BothObjectSchema ks (go ne)
@@ -122,7 +142,8 @@ jsonSchemaVia = go
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case
-      KeyCodec k c -> KeySchema k (go c)
+      RequiredKeyCodec k c -> KeySchema Required k (go c)
+      OptionalKeyCodec k c -> KeySchema Optional k (go c)
       BimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> AnyObjectSchema
       ApObjectCodec oc1 oc2 -> BothObjectSchema (goObject oc1) (goObject oc2)
