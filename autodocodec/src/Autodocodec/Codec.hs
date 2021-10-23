@@ -25,24 +25,6 @@ data Codec input output where
     (newInput -> oldInput) ->
     Codec oldInput oldOutput ->
     Codec newInput newOutput
-  -- -- | To implement 'pure'
-  -- PureCodec ::
-  --   output ->
-  --   Codec input output
-  -- -- | To implement '<*>'
-  -- --
-  -- -- This really doesn't make much sense, but we need it to have an alternative instance.
-  -- -- TODO maybe get rid of it altogether and just implement it with errors?
-  -- ApCodec ::
-  --   Codec input (oldOutput -> output) ->
-  --   Codec input oldOutput ->
-  --   Codec input output
-
-  -- | To implement '<|>'
-  -- AltCodecs ::
-  --   [Codec input output] ->
-  --   Codec input output
-  -- ChoiceCodec :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
   SelectCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
 
 choiceCodec :: NonEmpty (Codec input output) -> Codec input output
@@ -67,39 +49,11 @@ bimapCodec = BimapCodec
 instance Functor (Codec input) where
   fmap = fmapCodec
 
--- pureCodec :: a -> Codec void a
--- pureCodec = PureCodec
---
--- apCodec :: Codec input (oldOutput -> output) -> Codec input oldOutput -> Codec input output
--- apCodec = ApCodec
---
--- instance Applicative (Codec input) where
---   pure = pureCodec
---   (<*>) = apCodec
---
--- emptyCodec :: Codec input output
--- emptyCodec = AltCodecs []
---
--- orCodec :: Codec input output -> Codec input output -> Codec input output
--- orCodec c1 c2 = AltCodecs [c1, c2]
---
--- choice :: [Codec input output] -> Codec input output
--- choice = AltCodecs
---
--- instance Alternative (Codec input) where
---   empty = emptyCodec
---   (<|>) = orCodec
-
--- choice :: [Codec oldInput output] -> (input -> Codec input oldOutput) -> Codec input output
--- choice = ChoiceCodec
-
 data ObjectCodec input output where
   KeyCodec :: Text -> Codec input output -> ObjectCodec input output
-  -- EqObjectCodec :: (Show newInput, Eq newInput) => newInput -> ObjectCodec oldInput output -> ObjectCodec newInput output
   PureObjectCodec :: output -> ObjectCodec input output
   BimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
   ApObjectCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
-  SelectObjectCodec :: ObjectCodec input1 output1 -> ObjectCodec input2 output2 -> ObjectCodec (Either input1 input2) (Either output1 output2)
 
 fmapObjectCodec :: (oldOutput -> newOutput) -> ObjectCodec input oldOutput -> ObjectCodec input newOutput
 fmapObjectCodec f = BimapObjectCodec f id

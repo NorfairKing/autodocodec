@@ -31,7 +31,6 @@ data JSONObjectSchema
   = AnyObjectSchema
   | KeySchema !Text !JSONSchema
   | BothObjectSchema !JSONObjectSchema !JSONObjectSchema
-  | ChoiceObjectSchema ![JSONObjectSchema]
   deriving (Show, Eq, Generic)
 
 instance ToJSON JSONSchema where
@@ -44,29 +43,25 @@ instance ToJSON JSONSchema where
     ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
     ObjectSchema os ->
       let go = \case
-            AnyObjectSchema -> []
-            KeySchema k s -> [([(k, s)], [k])]
-            BothObjectSchema os1 os2 -> do
-              (ps1, rps1) <- go os1
-              (ps2, rps2) <- go os2
-              pure $ (ps1 ++ ps2, rps1 ++ rps2)
-            ChoiceObjectSchema cs -> concatMap go cs
-          schemaForTup (ps, rps) = case rps of
-            [] ->
+            AnyObjectSchema -> ([], [])
+            KeySchema k s -> ([(k, s)], [k])
+            BothObjectSchema os1 os2 ->
+              let (ps1, rps1) = go os1
+                  (ps2, rps2) = go os2
+               in (ps1 ++ ps2, rps1 ++ rps2)
+       in case go os of
+            ([], _) -> JSON.object ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
+            (ps, []) ->
               JSON.object
                 [ "type" JSON..= ("object" :: Text),
                   "properties" JSON..= ps
                 ]
-            _ ->
+            (ps, rps) ->
               JSON.object
                 [ "type" JSON..= ("object" :: Text),
                   "properties" JSON..= ps,
                   "required" JSON..= rps
                 ]
-       in case go os of
-            [] -> JSON.object ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
-            [tup] -> schemaForTup tup
-            tups -> JSON.object ["anyOf" JSON..= map schemaForTup tups]
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
@@ -120,4 +115,3 @@ jsonSchemaVia = go
       BimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> AnyObjectSchema
       ApObjectCodec oc1 oc2 -> BothObjectSchema (goObject oc1) (goObject oc2)
-      SelectObjectCodec oc1 oc2 -> ChoiceObjectSchema [goObject oc1, goObject oc2]

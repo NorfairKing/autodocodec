@@ -24,7 +24,6 @@ instance HasCodec Scientific where
 
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
-    object $
-      SelectObjectCodec
-        (field "Left")
-        (field "Right")
+    SelectCodec
+      (object (field "Left"))
+      (object (field "Right"))

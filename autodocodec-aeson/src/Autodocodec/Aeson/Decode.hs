@@ -32,4 +32,3 @@ parseJSONVia = flip go
       BimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a
       ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca
-      SelectObjectCodec oc1 oc2 -> (Left <$> goObject object_ oc1) <|> (Right <$> goObject object_ oc2)

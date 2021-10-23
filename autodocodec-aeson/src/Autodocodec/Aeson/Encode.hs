@@ -33,6 +33,3 @@ toJSONVia = flip go
       PureObjectCodec _ -> error "Cannot toJSON a pure object codec."
       BimapObjectCodec _ g oc -> goObject (g a) oc
       ApObjectCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
-      SelectObjectCodec oc1 oc2 -> case a of
-        Left a1 -> goObject a1 oc1
-        Right a2 -> goObject a2 oc2
