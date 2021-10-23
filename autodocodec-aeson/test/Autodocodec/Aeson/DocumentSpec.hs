@@ -12,8 +12,10 @@ import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.Int
 import Data.Scientific
 import Data.Text (Text)
+import Data.Word
 import GHC.Generics (Generic)
 import Test.Syd
 import Test.Syd.Aeson
@@ -26,8 +28,19 @@ spec = do
   jsonSchemaSpec @Text "text"
   jsonSchemaSpec @String "string"
   jsonSchemaSpec @Scientific "scientific"
+  jsonSchemaSpec @Int "int"
+  jsonSchemaSpec @Int8 "int8"
+  jsonSchemaSpec @Int16 "int16"
+  jsonSchemaSpec @Int32 "int32"
+  jsonSchemaSpec @Int64 "int64"
+  jsonSchemaSpec @Word "word"
+  jsonSchemaSpec @Word8 "word8"
+  jsonSchemaSpec @Word16 "word16"
+  jsonSchemaSpec @Word32 "word32"
+  jsonSchemaSpec @Word64 "word64"
   jsonSchemaSpec @(Either Bool Text) "either-bool-text"
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
+  jsonSchemaSpec @[Text] "list-text"
   jsonSchemaSpec @Example "example"
 
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec

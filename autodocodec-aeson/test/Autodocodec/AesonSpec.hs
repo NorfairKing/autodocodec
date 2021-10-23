@@ -16,8 +16,10 @@ import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.Int
 import Data.Scientific
 import Data.Text (Text)
+import Data.Word
 import GHC.Generics (Generic)
 import Test.Syd
 import Test.Syd.Validity
@@ -31,6 +33,16 @@ spec = do
   -- aesonCodecSpec @String
   aesonCodecSpec @Text
   aesonCodecSpec @Scientific
+  aesonCodecSpec @Int
+  aesonCodecSpec @Int8
+  aesonCodecSpec @Int16
+  aesonCodecSpec @Int32
+  aesonCodecSpec @Int64
+  aesonCodecSpec @Word
+  aesonCodecSpec @Word8
+  aesonCodecSpec @Word16
+  aesonCodecSpec @Word32
+  aesonCodecSpec @Word64
   aesonCodecSpec @(Either Text Bool)
   aesonCodecSpec @Example
 

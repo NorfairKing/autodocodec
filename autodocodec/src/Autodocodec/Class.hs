@@ -37,17 +37,47 @@ instance HasCodec Char where
      in EitherCodec parseChar (: []) stringCodec
   listCodec = stringCodec
 
-instance HasCodec String where
-  codec = listCodec
-
 instance HasCodec Text where
   codec = textCodec
 
 instance HasCodec Scientific where
   codec = scientificCodec
 
+instance HasCodec Int where
+  codec = boundedIntegerCodec
+
+instance HasCodec Int8 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Int16 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Int32 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Int64 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Word where
+  codec = boundedIntegerCodec
+
+instance HasCodec Word8 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Word16 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Word32 where
+  codec = boundedIntegerCodec
+
+instance HasCodec Word64 where
+  codec = boundedIntegerCodec
+
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     SelectCodec
       (object (field "Left"))
       (object (field "Right"))
+
+instance HasCodec a => HasCodec [a] where
+  codec = listCodec

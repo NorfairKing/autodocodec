@@ -8,7 +8,7 @@ module Autodocodec.Codec where
 
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
-import Data.Scientific
+import Data.Scientific as Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -107,3 +107,10 @@ scientificCodec = NumberCodec
 
 object :: ObjectCodec value value -> Codec value value
 object = ObjectCodec
+
+boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
+boundedIntegerCodec = EitherCodec go fromIntegral NumberCodec
+  where
+    go s = case Scientific.toBoundedInteger s of
+      Nothing -> Left $ "Number too big: " <> show s
+      Just i -> Right i

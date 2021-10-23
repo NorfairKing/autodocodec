@@ -73,6 +73,11 @@ instance FromJSON JSONSchema where
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
       Just "number" -> pure NumberSchema
+      Just "array" -> do
+        mI <- o JSON..:? "items"
+        case mI of
+          Nothing -> pure $ ArraySchema AnySchema
+          Just is -> pure $ ArraySchema is
       Just "object" -> do
         mP <- o JSON..: "properties"
         case mP of
