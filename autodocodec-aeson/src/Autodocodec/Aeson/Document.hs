@@ -30,7 +30,7 @@ data JSONSchema
 data JSONObjectSchema
   = AnyObjectSchema
   | KeySchema !Text !JSONSchema
-  | ApObjectSchema !JSONObjectSchema !JSONObjectSchema
+  | BothObjectSchema !JSONObjectSchema !JSONObjectSchema
   | ChoiceObjectSchema ![JSONObjectSchema]
   deriving (Show, Eq, Generic)
 
@@ -46,7 +46,7 @@ instance ToJSON JSONSchema where
       let go = \case
             AnyObjectSchema -> []
             KeySchema k s -> [([(k, s)], [k])]
-            ApObjectSchema os1 os2 -> do
+            BothObjectSchema os1 os2 -> do
               (ps1, rps1) <- go os1
               (ps2, rps2) <- go os2
               pure $ (ps1 ++ ps2, rps1 ++ rps2)
@@ -86,7 +86,7 @@ instance FromJSON JSONSchema where
             let keySchemas = map (\(k, s) -> KeySchema k s) props
             let go (ks :| rest) = case NE.nonEmpty rest of
                   Nothing -> ks
-                  Just ne -> ApObjectSchema ks (go ne)
+                  Just ne -> BothObjectSchema ks (go ne)
             pure $
               ObjectSchema $ case NE.nonEmpty keySchemas of
                 Nothing -> AnyObjectSchema
@@ -119,5 +119,5 @@ jsonSchemaVia = go
       KeyCodec k c -> KeySchema k (go c)
       BimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> AnyObjectSchema
-      ApObjectCodec oc1 oc2 -> ApObjectSchema (goObject oc1) (goObject oc2)
+      ApObjectCodec oc1 oc2 -> BothObjectSchema (goObject oc1) (goObject oc2)
       SelectObjectCodec oc1 oc2 -> ChoiceObjectSchema [goObject oc1, goObject oc2]
