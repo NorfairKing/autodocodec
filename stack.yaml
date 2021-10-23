@@ -2,7 +2,7 @@ resolver: nightly-2021-05-10
 packages:
 - autodocodec
 - autodocodec-aeson
-  # - autodocodec-yaml
+- autodocodec-yaml
 extra-deps:
 
 - github: NorfairKing/validity
