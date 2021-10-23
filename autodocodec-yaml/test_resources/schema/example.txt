@@ -1,2 +1,4 @@
-text: <string>
-bool: <boolean>
+[37mtext[m: [31m# required[m
+  [33m<string>[m
+[37mbool[m: [31m# required[m
+  [33m<boolean>[m

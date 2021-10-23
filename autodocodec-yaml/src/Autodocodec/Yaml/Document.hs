@@ -29,18 +29,18 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
 
     go :: JSONSchema -> [[Chunk]]
     go = \case
-      AnySchema -> [["<any>"]]
-      NullSchema -> [["null"]]
-      BoolSchema -> [["<boolean>"]]
-      StringSchema -> [["<string>"]]
-      NumberSchema -> [["<number>"]]
+      AnySchema -> [[fore yellow "<any>"]]
+      NullSchema -> [[fore yellow "null"]]
+      BoolSchema -> [[fore yellow "<boolean>"]]
+      StringSchema -> [[fore yellow "<string>"]]
+      NumberSchema -> [[fore yellow "<number>"]]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
-         in indent $ addListMarker $ go s -- TODO add the dash
+         in addListMarker $ go s -- TODO add the dash
       ObjectSchema s -> goObject s
       ChoiceSchema s -> concatMap go s -- TODO add the list
     goObject :: JSONObjectSchema -> [[Chunk]]
     goObject = \case
       AnyObjectSchema -> [["<object>"]]
-      KeySchema k ss -> addInFrontOfFirstInList [chunk k, ":", " "] (go ss)
+      KeySchema k ss -> addInFrontOfFirstInList [fore white $ chunk k, ":", " "] ([fore red "# required"] : go ss)
       BothObjectSchema os1 os2 -> goObject os1 ++ goObject os2

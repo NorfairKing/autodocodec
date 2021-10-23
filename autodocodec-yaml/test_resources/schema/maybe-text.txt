@@ -1,2 +1,2 @@
-null
-<string>
+[33mnull[m
+[33m<string>[m
