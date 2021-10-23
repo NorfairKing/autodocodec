@@ -17,14 +17,14 @@ toJSONVia = flip go
   where
     go :: a -> Codec a void -> JSON.Value
     go a = \case
-      NullCodec -> toJSON (a :: ())
+      NullCodec -> JSON.Null
       BoolCodec -> toJSON (a :: Bool)
       StringCodec -> toJSON (a :: Text)
       NumberCodec -> toJSON (a :: Scientific)
       ArrayCodec c -> toJSON (map (`go` c) a)
       ObjectCodec oc -> JSON.Object (goObject a oc)
       BimapCodec _ g c -> go (g a) c
-      EitherCodec _ g c -> go (g a) c
+      ExtraParserCodec _ g c -> go (g a) c
       SelectCodec c1 c2 -> case a of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2

@@ -17,14 +17,16 @@ parseJSONVia = flip go
   where
     go :: JSON.Value -> Codec void a -> JSON.Parser a
     go value = \case
-      NullCodec -> pure ()
+      NullCodec -> case value of
+        Null -> pure ()
+        _ -> fail $ "Expected Null, but got: " <> show value
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
       NumberCodec -> parseJSON value
       ArrayCodec c -> withArray "TODO" (\a -> toList <$> mapM (`go` c) a) value
       ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
       BimapCodec f _ c -> f <$> go value c
-      EitherCodec f _ c -> do
+      ExtraParserCodec f _ c -> do
         old <- go value c
         case f old of
           Left err -> fail err -- TODO better error message location?

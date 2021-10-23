@@ -116,7 +116,7 @@ jsonSchemaVia = go
       ObjectCodec oc -> ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
       SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
-      EitherCodec _ _ c -> go c
+      ExtraParserCodec _ _ c -> go c
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case

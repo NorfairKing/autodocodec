@@ -8,6 +8,7 @@ import Autodocodec.Codec
 import Data.Int
 import Data.Scientific
 import Data.Text (Text)
+import qualified Data.Text.Lazy as LT
 import Data.Word
 
 class HasCodec a where
@@ -34,11 +35,14 @@ instance HasCodec Char where
           [] -> Left "Expected exactly 1 character, but got none."
           [c] -> Right c
           _ -> Left "Expected exactly 1 character, but got more."
-     in EitherCodec parseChar (: []) stringCodec
+     in ExtraParserCodec parseChar (: []) stringCodec
   listCodec = stringCodec
 
 instance HasCodec Text where
   codec = textCodec
+
+instance HasCodec LT.Text where
+  codec = bimapCodec LT.fromStrict LT.toStrict textCodec
 
 instance HasCodec Scientific where
   codec = scientificCodec
@@ -72,6 +76,9 @@ instance HasCodec Word32 where
 
 instance HasCodec Word64 where
   codec = boundedIntegerCodec
+
+instance HasCodec a => HasCodec (Maybe a) where
+  codec = maybeCodec codec
 
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =

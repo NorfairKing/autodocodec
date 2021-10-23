@@ -31,11 +31,61 @@ data Codec input output where
   SelectCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
   -- For parsing with potential errors
   -- TODO: maybe we want to get rid of bimap and implement it in terms of this?
-  EitherCodec ::
+  -- TODO: this should get a better name.
+  ExtraParserCodec ::
     (oldOutput -> Either String newOutput) ->
     (newInput -> oldInput) ->
     Codec oldInput oldOutput ->
     Codec newInput newOutput
+
+-- Jsut for debugging
+showCodecABit :: Codec input output -> String
+showCodecABit = ($ "") . go 0
+  where
+    go :: Int -> Codec input output -> ShowS
+    go d = \case
+      NullCodec -> showString "NullCodec"
+      BoolCodec -> showString "BoolCodec"
+      StringCodec -> showString "StringCodec"
+      NumberCodec -> showString "NumberCodec"
+      ArrayCodec c -> showParen (d > 10) $ showString "ArrayCodec " . go 11 c
+      ObjectCodec oc -> showParen (d > 10) $ showString "ObjectCodec " . goObject 11 oc
+      BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
+      SelectCodec c1 c2 -> showParen (d > 10) $ showString "SelectCodec " . go 11 c1 . showString " " . go 11 c2
+      ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
+
+    goObject :: Int -> ObjectCodec input output -> ShowS
+    goObject d = \case
+      KeyCodec k c -> showParen (d > 10) $ showString "KeyCodec " . showsPrec d k . showString " " . go 11 c
+      PureObjectCodec _ -> showString "PureObjectCodec" -- TODO add show instance?
+      BimapObjectCodec _ _ oc -> showParen (d > 10) $ showString "BimapObjectCodec " . goObject 11 oc
+      ApObjectCodec oc1 oc2 -> showParen (d > 10) $ showString "KeyCodec " . goObject 11 oc1 . showString " " . goObject 11 oc2
+
+fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
+fmapCodec f = BimapCodec f id
+
+comapCodec :: (newInput -> oldInput) -> Codec oldInput output -> Codec newInput output
+comapCodec g = BimapCodec id g
+
+bimapCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> Codec oldInput oldOutput -> Codec newInput newOutput
+bimapCodec = BimapCodec
+
+selectCodec ::
+  Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+selectCodec = SelectCodec
+
+eitherCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+eitherCodec = SelectCodec
+
+maybeCodec :: Codec input output -> Codec (Maybe input) (Maybe output)
+maybeCodec = bimapCodec f g . SelectCodec NullCodec
+  where
+    f = \case
+      Left () -> Nothing
+      Right r -> Just r
+    g = \case
+      Nothing -> Left ()
+      Just r -> Right r
 
 choiceCodec :: NonEmpty (Codec input output) -> Codec input output
 choiceCodec (c1 :| rest) = case NE.nonEmpty rest of
@@ -46,15 +96,6 @@ choiceCodec (c1 :| rest) = case NE.nonEmpty rest of
           Right a -> a
         g = Right
      in bimapCodec f g (SelectCodec c1 (choiceCodec ne))
-
-fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
-fmapCodec f = BimapCodec f id
-
-comapCodec :: (newInput -> oldInput) -> Codec oldInput output -> Codec newInput output
-comapCodec g = BimapCodec id g
-
-bimapCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> Codec oldInput oldOutput -> Codec newInput newOutput
-bimapCodec = BimapCodec
 
 instance Functor (Codec input) where
   fmap = fmapCodec
@@ -109,7 +150,7 @@ object :: ObjectCodec value value -> Codec value value
 object = ObjectCodec
 
 boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
-boundedIntegerCodec = EitherCodec go fromIntegral NumberCodec
+boundedIntegerCodec = ExtraParserCodec go fromIntegral NumberCodec
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number too big: " <> show s
