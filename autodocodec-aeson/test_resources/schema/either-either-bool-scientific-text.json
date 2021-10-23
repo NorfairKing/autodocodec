@@ -1,0 +1,61 @@
+{
+    "anyOf": [
+        {
+            "required": [
+                "Left"
+            ],
+            "type": "object",
+            "properties": [
+                [
+                    "Left",
+                    {
+                        "anyOf": [
+                            {
+                                "required": [
+                                    "Left"
+                                ],
+                                "type": "object",
+                                "properties": [
+                                    [
+                                        "Left",
+                                        {
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "Right"
+                                ],
+                                "type": "object",
+                                "properties": [
+                                    [
+                                        "Right",
+                                        {
+                                            "type": "number"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            ]
+        },
+        {
+            "required": [
+                "Right"
+            ],
+            "type": "object",
+            "properties": [
+                [
+                    "Right",
+                    {
+                        "type": "string"
+                    }
+                ]
+            ]
+        }
+    ]
+}

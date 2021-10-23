@@ -1,0 +1,32 @@
+{
+    "anyOf": [
+        {
+            "required": [
+                "Left"
+            ],
+            "type": "object",
+            "properties": [
+                [
+                    "Left",
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            ]
+        },
+        {
+            "required": [
+                "Right"
+            ],
+            "type": "object",
+            "properties": [
+                [
+                    "Right",
+                    {
+                        "type": "string"
+                    }
+                ]
+            ]
+        }
+    ]
+}
