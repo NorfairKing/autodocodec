@@ -41,7 +41,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       ChoiceSchema s ->
         let addListAround = \case
               [] -> [["[]"]]
-              [s_] -> (addInFrontOfFirstInList ["[ "] (go s_)) ++ [["]"]]
+              [s_] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
               (s_ : rest) ->
                 concat $
                   addInFrontOfFirstInList ["[ "] (go s_) :
