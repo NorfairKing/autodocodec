@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Autodocodec.Aeson.Decode where
 
@@ -9,6 +10,7 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.Foldable
+import qualified Data.Text as T
 
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
@@ -24,8 +26,8 @@ parseJSONVia = flip go
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
       NumberCodec -> parseJSON value
-      ArrayCodec c -> withArray "TODO" (\a -> toList <$> mapM (`go` c) a) value
-      ObjectCodec c -> withObject "TODO" (\o -> goObject o c) value
+      ArrayCodec mname c -> withArray (maybe "Unnamed" T.unpack mname) (\a -> toList <$> mapM (`go` c) a) value
+      ObjectCodec mname c -> withObject (maybe "Unnamed" T.unpack mname) (\o -> goObject o c) value
       BimapCodec f _ c -> f <$> go value c
       ExtraParserCodec f _ c -> do
         old <- go value c

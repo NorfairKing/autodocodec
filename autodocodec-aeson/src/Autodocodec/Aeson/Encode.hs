@@ -21,8 +21,8 @@ toJSONVia = flip go
       BoolCodec -> toJSON (a :: Bool)
       StringCodec -> toJSON (a :: Text)
       NumberCodec -> toJSON (a :: Scientific)
-      ArrayCodec c -> toJSON (map (`go` c) a)
-      ObjectCodec oc -> JSON.Object (goObject a oc)
+      ArrayCodec _ c -> toJSON (map (`go` c) a)
+      ObjectCodec _ oc -> JSON.Object (goObject a oc)
       BimapCodec _ g c -> go (g a) c
       ExtraParserCodec _ g c -> go (g a) c
       SelectCodec c1 c2 -> case a of

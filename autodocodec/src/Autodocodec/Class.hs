@@ -21,7 +21,7 @@ class HasCodec a where
   --
   -- This is really only useful for cases like 'Char' and 'String'
   listCodec :: Codec [a] [a]
-  listCodec = ArrayCodec codec
+  listCodec = ArrayCodec Nothing codec
 
 requiredField :: HasCodec output => Text -> ObjectCodec output output
 requiredField k = RequiredKeyCodec k codec
@@ -66,19 +66,19 @@ instance HasCodec Int64 where
   codec = boundedIntegerCodec <?> "Int64"
 
 instance HasCodec Word where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Word"
 
 instance HasCodec Word8 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Word8"
 
 instance HasCodec Word16 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Word16"
 
 instance HasCodec Word32 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Word32"
 
 instance HasCodec Word64 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegerCodec <?> "Word64"
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec
@@ -86,8 +86,8 @@ instance HasCodec a => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     SelectCodec
-      (object (requiredField "Left"))
-      (object (requiredField "Right"))
+      (object "Left" (requiredField "Left"))
+      (object "Right" (requiredField "Right"))
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodec

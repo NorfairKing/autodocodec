@@ -1,3 +1,4 @@
+# Example
 [37mtext[m: # [31mrequired[m
   [33m<string>[m
 [37mbool[m: # [31mrequired[m

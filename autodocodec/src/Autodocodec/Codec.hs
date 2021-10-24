@@ -18,8 +18,12 @@ data Codec input output where
   StringCodec :: Codec Text Text
   NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
   -- TODO use a vector here because that's what aeson uses.
-  ArrayCodec :: Codec input output -> Codec [input] [output]
+  ArrayCodec ::
+    Maybe Text ->
+    Codec input output ->
+    Codec [input] [output]
   ObjectCodec ::
+    Maybe Text ->
     ObjectCodec value value ->
     Codec value value
   -- | To implement 'fmap', and to map a codec in both directions.
@@ -49,8 +53,8 @@ showCodecABit = ($ "") . go 0
       BoolCodec -> showString "BoolCodec"
       StringCodec -> showString "StringCodec"
       NumberCodec -> showString "NumberCodec"
-      ArrayCodec c -> showParen (d > 10) $ showString "ArrayCodec " . go 11 c
-      ObjectCodec oc -> showParen (d > 10) $ showString "ObjectCodec " . goObject 11 oc
+      ArrayCodec name c -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . go 11 c
+      ObjectCodec name oc -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . goObject 11 oc
       BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
       SelectCodec c1 c2 -> showParen (d > 10) $ showString "SelectCodec " . go 11 c1 . showString " " . go 11 c2
       ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
@@ -152,8 +156,8 @@ stringCodec = BimapCodec T.unpack T.pack StringCodec
 scientificCodec :: Codec Scientific Scientific
 scientificCodec = NumberCodec
 
-object :: ObjectCodec value value -> Codec value value
-object = ObjectCodec
+object :: Text -> ObjectCodec value value -> Codec value value
+object name = ObjectCodec (Just name)
 
 boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
 boundedIntegerCodec = ExtraParserCodec go fromIntegral NumberCodec

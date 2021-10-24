@@ -136,8 +136,8 @@ jsonSchemaVia = go
       BoolCodec -> BoolSchema
       StringCodec -> StringSchema
       NumberCodec -> NumberSchema
-      ArrayCodec c -> ArraySchema (go c)
-      ObjectCodec oc -> ObjectSchema (goObject oc)
+      ArrayCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
+      ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
       BimapCodec _ _ c -> go c
       SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
       ExtraParserCodec _ _ c -> go c

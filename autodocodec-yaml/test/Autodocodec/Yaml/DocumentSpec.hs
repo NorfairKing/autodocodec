@@ -62,7 +62,7 @@ instance GenValid Example where
 
 instance HasCodec Example where
   codec =
-    object $
+    object "Example" $
       Example
         <$> requiredField "text" .= exampleText
         <*> requiredField "bool" .= exampleBool
