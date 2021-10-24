@@ -46,7 +46,26 @@ spec = do
   yamlSchemaSpec @(Either Bool Text) "either-bool-text"
   yamlSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   yamlSchemaSpec @[Text] "list-text"
+  yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
+
+data Fruit = Apple | Orange | Banana | Melon
+  deriving (Show, Eq, Generic)
+
+instance Validity Fruit
+
+instance GenValid Fruit where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance HasCodec Fruit where
+  codec =
+    choiceCodec
+      [ literalTextValue Apple "Apple",
+        literalTextValue Orange "Orange",
+        literalTextValue Banana "Banana",
+        literalTextValue Melon "Melon"
+      ]
 
 data Example = Example
   { exampleText :: !Text,
@@ -72,24 +91,6 @@ instance HasCodec Example where
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
         <*> requiredField "fruit" .= exampleFruit
-
-data Fruit = Apple | Orange | Banana | Melon
-  deriving (Show, Eq, Generic)
-
-instance Validity Fruit
-
-instance GenValid Fruit where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-instance HasCodec Fruit where
-  codec =
-    choiceCodec
-      [ literalTextValue Apple "Apple",
-        literalTextValue Orange "Orange",
-        literalTextValue Banana "Banana",
-        literalTextValue Melon "Melon"
-      ]
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

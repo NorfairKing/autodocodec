@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -49,11 +50,37 @@ spec = do
   aesonCodecSpec @(Either Text Bool)
   aesonCodecSpec @(Either (Either Text Scientific) Bool)
   aesonCodecSpec @[Text]
+  aesonCodecSpec @Fruit
   aesonCodecSpec @Example
+
+data Fruit = Apple | Orange | Banana | Melon
+  deriving (Show, Eq, Generic)
+
+instance Validity Fruit
+
+instance GenValid Fruit where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance HasCodec Fruit where
+  codec =
+    choiceCodec
+      [ literalTextValue Apple "Apple",
+        literalTextValue Orange "Orange",
+        literalTextValue Banana "Banana",
+        literalTextValue Melon "Melon"
+      ]
+
+instance FromJSON Fruit
+
+instance ToJSON Fruit
 
 data Example = Example
   { exampleText :: !Text,
-    exampleBool :: !Bool
+    exampleBool :: !Bool,
+    exampleRequiredMaybe :: !(Maybe Text),
+    exampleOptional :: !(Maybe Text),
+    exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
 
@@ -69,12 +96,18 @@ instance HasCodec Example where
       Example
         <$> requiredField "text" .= exampleText
         <*> requiredField "bool" .= exampleBool
+        <*> requiredField "maybe" .= exampleRequiredMaybe
+        <*> optionalField "optional" .= exampleOptional
+        <*> requiredField "fruit" .= exampleFruit
 
 instance ToJSON Example where
   toJSON Example {..} =
     JSON.object
       [ "text" JSON..= exampleText,
-        "bool" JSON..= exampleBool
+        "bool" JSON..= exampleBool,
+        "maybe" JSON..= exampleRequiredMaybe,
+        "optional" JSON..= exampleOptional,
+        "fruit" JSON..= exampleFruit
       ]
 
 instance FromJSON Example where
@@ -82,6 +115,9 @@ instance FromJSON Example where
     Example
       <$> o JSON..: "text"
       <*> o JSON..: "bool"
+      <*> o JSON..: "maybe"
+      <*> o JSON..:? "optional"
+      <*> o JSON..: "fruit"
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec = do
