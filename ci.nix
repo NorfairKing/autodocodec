@@ -16,9 +16,9 @@ let
       };
       p = import ./nix/pkgs.nix { inherit sources; inherit pkgsf; };
     in
-    p.yamlparseApplicativeRelease.overrideAttrs (old: { name = "yamlparse-applicative-release-${version}"; });
+    p.autodocodecRelease.overrideAttrs (old: { name = "autodocodec-release-${version}"; });
 in
 {
-  release = (import ./nix/pkgs.nix { inherit sources; }).yamlparseApplicativeRelease;
+  release = (import ./nix/pkgs.nix { inherit sources; }).autodocodecRelease;
   pre-commit-check = (import ./nix/pre-commit.nix { }).run;
 } // builtins.mapAttrs mkReleaseForVersion versions

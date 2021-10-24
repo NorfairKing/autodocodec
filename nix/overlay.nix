@@ -2,27 +2,28 @@ final:
 previous:
 with final.haskell.lib;
 {
-  yamlparseApplicativePackages =
+  autodocodecPackages =
     let
-      yamlparseApplicativePkg = name:
+      autodocodecPkg = name:
         doBenchmark (buildStrictly (final.haskellPackages.callCabal2nixWithOptions name (final.gitignoreSource (../. + "/${name}")) "--no-hpack" { }));
     in
     final.lib.genAttrs [
-      "yamlparse-applicative"
-      "yamlparse-applicative-demo"
+      "autodocodec"
+      "autodocodec-aeson"
+      "autodocodec-yaml"
     ]
-      yamlparseApplicativePkg;
+      autodocodecPkg;
 
-  yamlparseApplicativeRelease =
+  autodocodecRelease =
     final.symlinkJoin {
-      name = "yamlparse-applicative-release";
-      paths = final.lib.attrValues final.yamlparseApplicativePackages;
+      name = "autodocodec-release";
+      paths = final.lib.attrValues final.autodocodecPackages;
     };
 
   haskellPackages = previous.haskellPackages.override (
     old: {
       overrides = final.lib.composeExtensions (old.overrides or (_: _: { })) (
-        self: super: final.yamlparseApplicativePackages
+        self: super: final.autodocodecPackages
       );
     }
   );

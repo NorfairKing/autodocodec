@@ -6,18 +6,18 @@ packages:
 extra-deps:
 
 - github: NorfairKing/validity
-  commit: 549f92de456dd7fbf21b84f2f6fdca9a3c6506d9
+  commit: bafcaf3799fa76edd5968923f6efde25085815f9
   subdirs:
   - validity
   - genvalidity
   - genvalidity-sydtest
 - github: NorfairKing/safe-coloured-text
-  commit: b8333a8956975beab54d00fceaa835ee97c3347d
+  commit: 7f157485e55528648a95edf3508a122b2e55779e
   subdirs:
     - safe-coloured-text
     - safe-coloured-text-terminfo
 - github: NorfairKing/sydtest
-  commit: 0125c6d6d17d44753c793adc8dcaa4284fef2b7d
+  commit: 89566d227e693d776d53624656ce49efc81194c3
   subdirs:
     - sydtest
     - sydtest-aeson

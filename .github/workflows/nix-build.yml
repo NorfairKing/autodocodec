@@ -13,7 +13,7 @@ jobs:
         sudo rm -rf /opt
     - uses: cachix/cachix-action@v8
       with:
-        name: yamlparse
+        name: autodocodec
         extraPullNames: validity,safe-coloured-text,sydtest
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
     - run: nix-build default.nix
