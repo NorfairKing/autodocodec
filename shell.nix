@@ -4,7 +4,7 @@ let
   pre-commit = import ./nix/pre-commit.nix { inherit sources; };
 in
 pkgs.haskell.lib.buildStackProject {
-  name = "yamlparse-applicative-shell";
+  name = "autodocodec-shell";
   buildInputs = with pkgs; [
     (import sources.niv { }).niv
     zlib
