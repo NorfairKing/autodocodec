@@ -42,46 +42,48 @@ data KeyRequirement = Required | Optional
   deriving (Show, Eq, Generic)
 
 instance ToJSON JSONSchema where
-  toJSON = \case
-    AnySchema -> JSON.object []
-    NullSchema -> JSON.object ["type" JSON..= ("null" :: Text)]
-    BoolSchema -> JSON.object ["type" JSON..= ("boolean" :: Text)]
-    StringSchema -> JSON.object ["type" JSON..= ("string" :: Text)]
-    NumberSchema -> JSON.object ["type" JSON..= ("number" :: Text)]
-    ArraySchema s -> JSON.object ["type" JSON..= ("array" :: Text), "items" JSON..= s]
-    ObjectSchema os ->
-      let go = \case
-            AnyObjectSchema -> ([], [])
-            KeySchema r k s ->
-              ( [(k, s)],
-                case r of
-                  Required -> [k]
-                  Optional -> []
-              )
-            BothObjectSchema os1 os2 ->
-              let (ps1, rps1) = go os1
-                  (ps2, rps2) = go os2
-               in (ps1 ++ ps2, rps1 ++ rps2)
-       in case go os of
-            ([], _) -> JSON.object ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
-            (ps, []) ->
-              JSON.object
-                [ "type" JSON..= ("object" :: Text),
-                  "properties" JSON..= ps
-                ]
-            (ps, rps) ->
-              JSON.object
-                [ "type" JSON..= ("object" :: Text),
-                  "properties" JSON..= ps,
-                  "required" JSON..= rps
-                ]
-    ChoiceSchema jcs -> JSON.object ["anyOf" JSON..= jcs]
-    CommentSchema _ s -> toJSON s -- TODO this is probably wrong.
+  toJSON = JSON.object . go
+    where
+      go = \case
+        AnySchema -> []
+        NullSchema -> ["type" JSON..= ("null" :: Text)]
+        BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
+        StringSchema -> ["type" JSON..= ("string" :: Text)]
+        NumberSchema -> ["type" JSON..= ("number" :: Text)]
+        ArraySchema s -> ["type" JSON..= ("array" :: Text), "items" JSON..= s]
+        ObjectSchema os ->
+          let goO = \case
+                AnyObjectSchema -> ([], [])
+                KeySchema r k s ->
+                  ( [(k, s)],
+                    case r of
+                      Required -> [k]
+                      Optional -> []
+                  )
+                BothObjectSchema os1 os2 ->
+                  let (ps1, rps1) = goO os1
+                      (ps2, rps2) = goO os2
+                   in (ps1 ++ ps2, rps1 ++ rps2)
+           in case goO os of
+                ([], _) -> ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
+                (ps, []) ->
+                  [ "type" JSON..= ("object" :: Text),
+                    "properties" JSON..= ps
+                  ]
+                (ps, rps) ->
+                  [ "type" JSON..= ("object" :: Text),
+                    "properties" JSON..= ps,
+                    "required" JSON..= rps
+                  ]
+        ChoiceSchema jcs -> ["anyOf" JSON..= jcs]
+        CommentSchema comment s -> ("$comment" JSON..= comment) : go s -- TODO this is probably wrong.
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
     mt <- o JSON..:? "type"
-    case mt :: Maybe Text of
+    mc <- o JSON..:? "$comment"
+    let commentFunc = maybe id CommentSchema mc
+    fmap commentFunc $ case mt :: Maybe Text of
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema

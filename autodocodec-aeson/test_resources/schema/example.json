@@ -1,4 +1,5 @@
 {
+    "$comment": "Example",
     "required": [
         "text",
         "bool"
