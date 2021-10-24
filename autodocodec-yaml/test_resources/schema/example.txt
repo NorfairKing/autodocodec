@@ -9,3 +9,13 @@
   ]
 [37moptional[m: # [34moptional[m
   [33m<string>[m
+[37mfruit[m: # [31mrequired[m
+  [ Apple
+
+  , Orange
+
+  , Banana
+
+  , Melon
+
+  ]

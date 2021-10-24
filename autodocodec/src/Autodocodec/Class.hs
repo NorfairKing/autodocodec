@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Autodocodec.Class where
@@ -31,6 +32,14 @@ optionalField k = OptionalKeyCodec k codec
 
 instance HasCodec Bool where
   codec = boolCodec
+
+instance HasCodec Ordering where
+  codec =
+    choiceCodec
+      [ literalTextValue LT "LT",
+        literalTextValue EQ "EQ",
+        literalTextValue GT "GT"
+      ]
 
 instance HasCodec Char where
   codec =

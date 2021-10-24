@@ -8,6 +8,9 @@ module Autodocodec.Yaml.Document where
 
 import Autodocodec
 import Autodocodec.Aeson
+import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding.Error as TE
+import Data.Yaml as Yaml
 import Text.Colour
 
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]
@@ -38,6 +41,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s
       ObjectSchema s -> goObject s
+      ValueSchema v -> [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
               [] -> [["[]"]]

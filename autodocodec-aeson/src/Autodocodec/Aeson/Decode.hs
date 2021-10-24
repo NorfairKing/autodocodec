@@ -28,6 +28,11 @@ parseJSONVia = flip go
       NumberCodec -> parseJSON value
       ArrayCodec mname c -> withArray (maybe "Unnamed" T.unpack mname) (\a -> toList <$> mapM (`go` c) a) value
       ObjectCodec mname c -> withObject (maybe "Unnamed" T.unpack mname) (\o -> goObject o c) value
+      EqCodec expected c -> do
+        actual <- go value c
+        if expected == actual
+          then pure actual
+          else fail $ unwords ["Expected", show expected, "but got", show actual]
       BimapCodec f _ c -> f <$> go value c
       ExtraParserCodec f _ c -> do
         old <- go value c

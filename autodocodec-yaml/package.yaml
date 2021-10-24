@@ -17,6 +17,7 @@ library:
   - autodocodec
   - autodocodec-aeson
   - safe-coloured-text
+  - text
   - yaml
 
 tests:

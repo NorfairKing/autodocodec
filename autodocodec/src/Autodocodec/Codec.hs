@@ -19,27 +19,35 @@ data Codec input output where
   NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
   -- TODO use a vector here because that's what aeson uses.
   ArrayCodec ::
-    Maybe Text ->
-    Codec input output ->
+    !(Maybe Text) ->
+    !(Codec input output) ->
     Codec [input] [output]
   ObjectCodec ::
-    Maybe Text ->
-    ObjectCodec value value ->
+    !(Maybe Text) ->
+    !(ObjectCodec value value) ->
+    Codec value value
+  EqCodec ::
+    (Show value, Eq value) =>
+    !value ->
+    !(Codec value value) ->
     Codec value value
   -- | To implement 'fmap', and to map a codec in both directions.
   BimapCodec ::
-    (oldOutput -> newOutput) ->
-    (newInput -> oldInput) ->
-    Codec oldInput oldOutput ->
+    !(oldOutput -> newOutput) ->
+    !(newInput -> oldInput) ->
+    !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
-  SelectCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+  SelectCodec ::
+    !(Codec input1 output1) ->
+    !(Codec input2 output2) ->
+    Codec (Either input1 input2) (Either output1 output2)
   -- For parsing with potential errors
   -- TODO: maybe we want to get rid of bimap and implement it in terms of this?
   -- TODO: this should get a better name.
   ExtraParserCodec ::
-    (oldOutput -> Either String newOutput) ->
-    (newInput -> oldInput) ->
-    Codec oldInput oldOutput ->
+    !(oldOutput -> Either String newOutput) ->
+    !(newInput -> oldInput) ->
+    !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
   CommentCodec :: Text -> Codec input output -> Codec input output
 
@@ -55,6 +63,7 @@ showCodecABit = ($ "") . go 0
       NumberCodec -> showString "NumberCodec"
       ArrayCodec name c -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . go 11 c
       ObjectCodec name oc -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . goObject 11 oc
+      EqCodec value c -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . go 11 c
       BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
       SelectCodec c1 c2 -> showParen (d > 10) $ showString "SelectCodec " . go 11 c1 . showString " " . go 11 c2
       ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
@@ -165,3 +174,9 @@ boundedIntegerCodec = ExtraParserCodec go fromIntegral NumberCodec
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number too big: " <> show s
       Just i -> Right i
+
+literalText :: Text -> Codec Text Text
+literalText text = EqCodec text textCodec
+
+literalTextValue :: a -> Text -> Codec a a
+literalTextValue value text = bimapCodec (const value) (const text) (literalText text)

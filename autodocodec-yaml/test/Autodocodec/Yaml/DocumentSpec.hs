@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -25,6 +26,7 @@ import Text.Colour
 spec :: Spec
 spec = do
   yamlSchemaSpec @Bool "bool"
+  yamlSchemaSpec @Ordering "ordering"
   yamlSchemaSpec @Char "char"
   yamlSchemaSpec @Text "text"
   yamlSchemaSpec @LT.Text "lazy-text"
@@ -50,7 +52,8 @@ data Example = Example
   { exampleText :: !Text,
     exampleBool :: !Bool,
     exampleRequiredMaybe :: !(Maybe Text),
-    exampleOptional :: !(Maybe Text)
+    exampleOptional :: !(Maybe Text),
+    exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
 
@@ -68,6 +71,25 @@ instance HasCodec Example where
         <*> requiredField "bool" .= exampleBool
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
+        <*> requiredField "fruit" .= exampleFruit
+
+data Fruit = Apple | Orange | Banana | Melon
+  deriving (Show, Eq, Generic)
+
+instance Validity Fruit
+
+instance GenValid Fruit where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance HasCodec Fruit where
+  codec =
+    choiceCodec
+      [ literalTextValue Apple "Apple",
+        literalTextValue Orange "Orange",
+        literalTextValue Banana "Banana",
+        literalTextValue Melon "Melon"
+      ]
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

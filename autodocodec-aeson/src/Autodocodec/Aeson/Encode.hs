@@ -23,6 +23,7 @@ toJSONVia = flip go
       NumberCodec -> toJSON (a :: Scientific)
       ArrayCodec _ c -> toJSON (map (`go` c) a)
       ObjectCodec _ oc -> JSON.Object (goObject a oc)
+      EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       ExtraParserCodec _ g c -> go (g a) c
       SelectCodec c1 c2 -> case a of

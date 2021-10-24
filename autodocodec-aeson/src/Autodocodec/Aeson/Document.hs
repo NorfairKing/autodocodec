@@ -9,6 +9,7 @@
 module Autodocodec.Aeson.Document where
 
 import Autodocodec
+import Autodocodec.Aeson.Encode
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import Data.List.NonEmpty (NonEmpty (..))
@@ -28,6 +29,7 @@ data JSONSchema
   | NumberSchema
   | ArraySchema !JSONSchema
   | ObjectSchema !JSONObjectSchema
+  | ValueSchema !JSON.Value
   | ChoiceSchema ![JSONSchema]
   | CommentSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
@@ -51,6 +53,7 @@ instance ToJSON JSONSchema where
         StringSchema -> ["type" JSON..= ("string" :: Text)]
         NumberSchema -> ["type" JSON..= ("number" :: Text)]
         ArraySchema s -> ["type" JSON..= ("array" :: Text), "items" JSON..= s]
+        ValueSchema v -> ["const" JSON..= v]
         ObjectSchema os ->
           let goO = \case
                 AnyObjectSchema -> ([], [])
@@ -140,10 +143,19 @@ jsonSchemaVia = go
       NumberCodec -> NumberSchema
       ArrayCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
       ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
+      EqCodec value c -> ValueSchema (toJSONVia c value)
       BimapCodec _ _ c -> go c
-      SelectCodec c1 c2 -> ChoiceSchema [go c1, go c2]
+      SelectCodec c1 c2 -> ChoiceSchema (goChoice [go c1, go c2])
       ExtraParserCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
+
+    goChoice :: [JSONSchema] -> [JSONSchema]
+    goChoice = concatMap goSingle
+      where
+        goSingle :: JSONSchema -> [JSONSchema]
+        goSingle = \case
+          ChoiceSchema ss -> goChoice ss
+          s -> [s]
 
     goObject :: ObjectCodec input output -> JSONObjectSchema
     goObject = \case
