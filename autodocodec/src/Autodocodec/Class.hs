@@ -34,12 +34,13 @@ instance HasCodec Bool where
   codec = boolCodec
 
 instance HasCodec Ordering where
-  codec =
-    choiceCodec
-      [ literalTextValue LT "LT",
-        literalTextValue EQ "EQ",
-        literalTextValue GT "GT"
-      ]
+  codec = undefined
+
+-- choiceCodec
+--   [ literalTextValue LT "LT",
+--     literalTextValue EQ "EQ",
+--     literalTextValue GT "GT"
+--   ]
 
 instance HasCodec Char where
   codec =
@@ -94,7 +95,7 @@ instance HasCodec a => HasCodec (Maybe a) where
 
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
-    SelectCodec
+    eitherCodec
       (ObjectCodec Nothing (requiredField "Left"))
       (ObjectCodec Nothing (requiredField "Right"))
 

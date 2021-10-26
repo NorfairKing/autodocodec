@@ -59,13 +59,14 @@ instance GenValid Fruit where
   shrinkValid = shrinkValidStructurally
 
 instance HasCodec Fruit where
-  codec =
-    choiceCodec
-      [ literalTextValue Apple "Apple",
-        literalTextValue Orange "Orange",
-        literalTextValue Banana "Banana",
-        literalTextValue Melon "Melon"
-      ]
+  codec = undefined
+
+-- choiceCodec
+--   [ literalTextValue Apple "Apple",
+--     literalTextValue Orange "Orange",
+--     literalTextValue Banana "Banana",
+--     literalTextValue Melon "Melon"
+--   ]
 
 data Example = Example
   { exampleText :: !Text,

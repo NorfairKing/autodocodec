@@ -15,6 +15,7 @@ import qualified Data.Text as T
 data Codec input output where
   NullCodec :: Codec () ()
   BoolCodec :: Codec Bool Bool
+  -- | This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec :: Codec Text Text
   NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
   -- TODO use a vector here because that's what aeson uses.
@@ -37,7 +38,7 @@ data Codec input output where
     !(newInput -> oldInput) ->
     !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
-  SelectCodec ::
+  EitherCodec ::
     !(Codec input1 output1) ->
     !(Codec input2 output2) ->
     Codec (Either input1 input2) (Either output1 output2)
@@ -65,7 +66,7 @@ showCodecABit = ($ "") . go 0
       ObjectCodec name oc -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . goObject 11 oc
       EqCodec value c -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . go 11 c
       BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
-      SelectCodec c1 c2 -> showParen (d > 10) $ showString "SelectCodec " . go 11 c1 . showString " " . go 11 c2
+      EitherCodec c1 c2 -> showParen (d > 10) $ showString "EitherCodec " . go 11 c1 . showString " " . go 11 c2
       ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
       CommentCodec comment c -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . go 11 c
     goObject :: Int -> ObjectCodec input output -> ShowS
@@ -85,15 +86,11 @@ comapCodec g = BimapCodec id g
 bimapCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> Codec oldInput oldOutput -> Codec newInput newOutput
 bimapCodec = BimapCodec
 
-selectCodec ::
-  Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
-selectCodec = SelectCodec
-
 eitherCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
-eitherCodec = SelectCodec
+eitherCodec = EitherCodec
 
 maybeCodec :: Codec input output -> Codec (Maybe input) (Maybe output)
-maybeCodec = bimapCodec f g . SelectCodec NullCodec
+maybeCodec = bimapCodec f g . EitherCodec NullCodec
   where
     f = \case
       Left () -> Nothing
@@ -101,16 +98,6 @@ maybeCodec = bimapCodec f g . SelectCodec NullCodec
     g = \case
       Nothing -> Left ()
       Just r -> Right r
-
-choiceCodec :: NonEmpty (Codec input output) -> Codec input output
-choiceCodec (c1 :| rest) = case NE.nonEmpty rest of
-  Nothing -> c1
-  Just ne ->
-    let f = \case
-          Left a -> a
-          Right a -> a
-        g = Right
-     in bimapCodec f g (SelectCodec c1 (choiceCodec ne))
 
 instance Functor (Codec input) where
   fmap = fmapCodec
@@ -180,3 +167,6 @@ literalText text = EqCodec text textCodec
 
 literalTextValue :: a -> Text -> Codec a a
 literalTextValue value text = bimapCodec (const value) (const text) (literalText text)
+
+selectiveCodec :: Codec (Either input1 input2) (Either output1 output2) -> Codec (input1 -> input2) (output1 -> output2) -> Codec input2 output2
+selectiveCodec = undefined

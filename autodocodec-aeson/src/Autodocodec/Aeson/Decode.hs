@@ -39,7 +39,7 @@ parseJSONVia = flip go
         case f old of
           Left err -> fail err -- TODO better error message location?
           Right new -> pure new
-      SelectCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
+      EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
       CommentCodec _ c -> go value c
 
     goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a
