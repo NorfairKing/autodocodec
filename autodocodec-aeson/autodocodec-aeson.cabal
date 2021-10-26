@@ -37,6 +37,7 @@ library
     , bytestring
     , scientific
     , text
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite autodocodec-aeson-test

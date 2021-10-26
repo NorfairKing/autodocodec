@@ -17,6 +17,7 @@ import Data.GenValidity
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.Maybe
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -96,13 +97,15 @@ instance HasCodec Example where
 
 instance ToJSON Example where
   toJSON Example {..} =
-    JSON.object
-      [ "text" JSON..= exampleText,
-        "bool" JSON..= exampleBool,
-        "maybe" JSON..= exampleRequiredMaybe,
-        "optional" JSON..= exampleOptional,
-        "fruit" JSON..= exampleFruit
-      ]
+    JSON.object $
+      concat
+        [ [ "text" JSON..= exampleText,
+            "bool" JSON..= exampleBool,
+            "maybe" JSON..= exampleRequiredMaybe,
+            "fruit" JSON..= exampleFruit
+          ],
+          ["optional" JSON..= opt | opt <- maybeToList exampleOptional]
+        ]
 
 instance FromJSON Example where
   parseJSON = JSON.withObject "Example" $ \o ->

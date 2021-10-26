@@ -19,6 +19,7 @@ library:
   - bytestring
   - scientific
   - text
+  - unordered-containers
 
 tests:
   autodocodec-aeson-test:

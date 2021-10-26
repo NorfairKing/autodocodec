@@ -10,6 +10,7 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.Foldable
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
@@ -48,7 +49,7 @@ parseJSONVia = flip go
         value <- object_ JSON..: k
         go value c
       OptionalKeyCodec k c -> do
-        mValue <- object_ JSON..:? k
+        let mValue = HM.lookup k object_
         forM mValue $ \value -> go value c
       BimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a

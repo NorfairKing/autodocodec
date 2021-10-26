@@ -68,7 +68,7 @@ instance ToJSON JSONSchema where
                       (ps2, rps2) = goO os2
                    in (ps1 ++ ps2, rps1 ++ rps2)
            in case goO os of
-                ([], _) -> ["type" JSON..= ("object" :: Text)] -- TODO this is wrong
+                ([], _) -> ["type" JSON..= ("object" :: Text)]
                 (ps, []) ->
                   [ "type" JSON..= ("object" :: Text),
                     "properties" JSON..= ps
@@ -126,7 +126,11 @@ instance FromJSON JSONSchema where
         mAny <- o JSON..:? "anyOf"
         case mAny of
           Just anies -> pure $ ChoiceSchema anies
-          Nothing -> fail "Unknown object schema without type."
+          Nothing -> do
+            mConst <- o JSON..:? "const"
+            case mConst of
+              Just constant -> pure $ ValueSchema constant
+              Nothing -> fail "Unknown object schema without type, anyOf or const."
       t -> fail $ "unknown schema type:" <> show t
 
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
