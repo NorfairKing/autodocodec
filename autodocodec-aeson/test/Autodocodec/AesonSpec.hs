@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -53,7 +54,7 @@ spec = do
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
 
-data Fruit = Apple | Orange | Banana | Melon
+data Fruit = Apple | Orange --  | Banana | Melon
   deriving (Show, Eq, Generic)
 
 instance Validity Fruit
@@ -63,7 +64,18 @@ instance GenValid Fruit where
   shrinkValid = shrinkValidStructurally
 
 instance HasCodec Fruit where
-  codec = undefined
+  codec =
+    matchChoiceCodec
+      ( \case
+          Apple -> Just Apple
+          _ -> Nothing,
+        literalTextValue Apple "Apple"
+      )
+      ( \case
+          Orange -> Just Orange
+          _ -> Nothing,
+        literalTextValue Orange "Orange"
+      )
 
 -- choiceCodec
 --   [ literalTextValue Apple "Apple",

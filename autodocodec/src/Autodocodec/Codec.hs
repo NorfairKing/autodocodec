@@ -168,5 +168,51 @@ literalText text = EqCodec text textCodec
 literalTextValue :: a -> Text -> Codec a a
 literalTextValue value text = bimapCodec (const value) (const text) (literalText text)
 
-selectiveCodec :: Codec (Either input1 input2) (Either output1 output2) -> Codec (input1 -> input2) (output1 -> output2) -> Codec input2 output2
-selectiveCodec = undefined
+matchChoiceCodec ::
+  forall input output newInput.
+  (newInput -> Maybe input, Codec input output) ->
+  (newInput -> Maybe input, Codec input output) ->
+  Codec newInput output
+matchChoiceCodec (f1, c1) (f2, c2) =
+  BimapCodec f g $
+    eitherCodec c1 c2
+  where
+    f = foldEither
+    g :: newInput -> Either input input
+    g newInput = case f1 newInput of
+      Just input -> Left input
+      Nothing -> case f2 newInput of
+        Just input -> Right input
+        Nothing -> error "no match"
+
+-- matchChoiceCodec ::
+--   forall input output newOutput.
+--   (output -> Maybe newOutput, Codec input output) ->
+--   (output -> Maybe newOutput, Codec input output) ->
+--   Codec input newOutput
+-- matchChoiceCodec (f1, c1) (f2, c2) =
+--   ExtraParserCodec f g $
+--     eitherCodec c1 c2
+--   where
+--     f :: Either output output -> Either String newOutput
+--     f e =
+--       let output = foldEither e
+--        in case f1 output of
+--             Just newOutput -> pure newOutput
+--             Nothing -> case f2 output of
+--               Just newOutput -> pure newOutput
+--               Nothing -> Left "No match."
+--     g :: input -> Either input input
+--     g = Right
+
+foldEither :: Either a a -> a
+foldEither = \case
+  Left a -> a
+  Right a -> a
+
+--  ExtraParserCodec ::
+--    !(oldOutput -> Either String newOutput) ->
+--    !(newInput -> oldInput) ->
+--    !(Codec oldInput oldOutput) ->
+--    Codec newInput newOutput
+--  CommentCodec :: Text -> Codec input output -> Codec input output
