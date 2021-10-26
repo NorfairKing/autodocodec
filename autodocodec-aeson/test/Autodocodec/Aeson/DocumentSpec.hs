@@ -25,6 +25,7 @@ import Test.Syd.Validity.Utils
 spec :: Spec
 spec = do
   jsonSchemaSpec @Bool "bool"
+  jsonSchemaSpec @Ordering "ordering"
   jsonSchemaSpec @Char "char"
   jsonSchemaSpec @Text "text"
   jsonSchemaSpec @LT.Text "lazy-text"
@@ -49,11 +50,28 @@ spec = do
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 jsonSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenJSONValueFile ("test_resources/schema/" <> filePath <> ".json") (jsonSchemaViaCodec @a)
+    pureGoldenJSONValueFile
+      ("test_resources/schema/" <> filePath <> ".json")
+      (jsonSchemaViaCodec @a)
+
+data Fruit = Apple | Orange | Banana | Melon
+  deriving (Show, Eq, Generic, Enum, Bounded)
+
+instance Validity Fruit
+
+instance GenValid Fruit where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance HasCodec Fruit where
+  codec = shownBoundedEnumCodec
 
 data Example = Example
   { exampleText :: !Text,
-    exampleBool :: !Bool
+    exampleBool :: !Bool,
+    exampleRequiredMaybe :: !(Maybe Text),
+    exampleOptional :: !(Maybe Text),
+    exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
 
@@ -69,3 +87,6 @@ instance HasCodec Example where
       Example
         <$> requiredField "text" .= exampleText
         <*> requiredField "bool" .= exampleBool
+        <*> requiredField "maybe" .= exampleRequiredMaybe
+        <*> optionalField "optional" .= exampleOptional
+        <*> requiredField "fruit" .= exampleFruit

@@ -2,7 +2,9 @@
     "$comment": "Example",
     "required": [
         "text",
-        "bool"
+        "bool",
+        "maybe",
+        "fruit"
     ],
     "type": "object",
     "properties": [
@@ -16,6 +18,44 @@
             "bool",
             {
                 "type": "boolean"
+            }
+        ],
+        [
+            "maybe",
+            {
+                "anyOf": [
+                    {
+                        "type": "null"
+                    },
+                    {
+                        "type": "string"
+                    }
+                ]
+            }
+        ],
+        [
+            "optional",
+            {
+                "type": "string"
+            }
+        ],
+        [
+            "fruit",
+            {
+                "anyOf": [
+                    {
+                        "const": "Apple"
+                    },
+                    {
+                        "const": "Orange"
+                    },
+                    {
+                        "const": "Banana"
+                    },
+                    {
+                        "const": "Melon"
+                    }
+                ]
             }
         ]
     ]

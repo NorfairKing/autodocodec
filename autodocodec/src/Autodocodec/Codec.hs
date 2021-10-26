@@ -6,8 +6,10 @@
 
 module Autodocodec.Codec where
 
+import Control.Monad
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
+import Data.Maybe
 import Data.Scientific as Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -185,34 +187,39 @@ matchChoiceCodec (f1, c1) (f2, c2) =
         Just input -> Right input
         Nothing -> error "no match"
 
--- matchChoiceCodec ::
---   forall input output newOutput.
---   (output -> Maybe newOutput, Codec input output) ->
---   (output -> Maybe newOutput, Codec input output) ->
---   Codec input newOutput
--- matchChoiceCodec (f1, c1) (f2, c2) =
---   ExtraParserCodec f g $
---     eitherCodec c1 c2
---   where
---     f :: Either output output -> Either String newOutput
---     f e =
---       let output = foldEither e
---        in case f1 output of
---             Just newOutput -> pure newOutput
---             Nothing -> case f2 output of
---               Just newOutput -> pure newOutput
---               Nothing -> Left "No match."
---     g :: input -> Either input input
---     g = Right
+shownBoundedEnumCodec ::
+  forall enum.
+  (Show enum, Eq enum, Enum enum, Bounded enum) =>
+  Codec enum enum
+shownBoundedEnumCodec =
+  let ls = [minBound .. maxBound]
+   in case NE.nonEmpty ls of
+        Nothing -> error "0 enum values ?!"
+        Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
+
+stringConstCodec ::
+  forall constant.
+  Eq constant =>
+  NonEmpty (constant, Text) ->
+  Codec constant constant
+stringConstCodec = enumCodec . NE.map (\(constant, text) -> (constant, literalTextValue constant text))
+
+enumCodec ::
+  forall enum output.
+  Eq enum =>
+  NonEmpty (enum, Codec enum enum) ->
+  Codec enum enum
+enumCodec = go
+  where
+    go :: NonEmpty (enum, Codec enum enum) -> Codec enum enum
+    go ((e, c) :| rest) = case NE.nonEmpty rest of
+      Nothing -> c
+      Just ne ->
+        matchChoiceCodec
+          (\e' -> if e == e' then Just e else Nothing, c)
+          (Just, go ne)
 
 foldEither :: Either a a -> a
 foldEither = \case
   Left a -> a
   Right a -> a
-
---  ExtraParserCodec ::
---    !(oldOutput -> Either String newOutput) ->
---    !(newInput -> oldInput) ->
---    !(Codec oldInput oldOutput) ->
---    Codec newInput newOutput
---  CommentCodec :: Text -> Codec input output -> Codec input output

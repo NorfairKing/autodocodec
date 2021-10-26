@@ -1,0 +1,13 @@
+{
+    "anyOf": [
+        {
+            "const": "LT"
+        },
+        {
+            "const": "EQ"
+        },
+        {
+            "const": "GT"
+        }
+    ]
+}

@@ -1,6 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -49,8 +48,12 @@ spec = do
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
 
-data Fruit = Apple | Orange | Banana | Melon
-  deriving (Show, Eq, Generic)
+data Fruit
+  = Apple
+  | Orange
+  | Banana
+  | Melon
+  deriving (Show, Eq, Generic, Bounded, Enum)
 
 instance Validity Fruit
 
@@ -59,14 +62,7 @@ instance GenValid Fruit where
   shrinkValid = shrinkValidStructurally
 
 instance HasCodec Fruit where
-  codec = undefined
-
--- choiceCodec
---   [ literalTextValue Apple "Apple",
---     literalTextValue Orange "Orange",
---     literalTextValue Banana "Banana",
---     literalTextValue Melon "Melon"
---   ]
+  codec = shownBoundedEnumCodec
 
 data Example = Example
   { exampleText :: !Text,

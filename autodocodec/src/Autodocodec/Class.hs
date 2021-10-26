@@ -34,13 +34,7 @@ instance HasCodec Bool where
   codec = boolCodec
 
 instance HasCodec Ordering where
-  codec = undefined
-
--- choiceCodec
---   [ literalTextValue LT "LT",
---     literalTextValue EQ "EQ",
---     literalTextValue GT "GT"
---   ]
+  codec = shownBoundedEnumCodec
 
 instance HasCodec Char where
   codec =
