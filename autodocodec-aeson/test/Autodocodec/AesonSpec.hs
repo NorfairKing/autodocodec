@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -9,6 +10,7 @@ module Autodocodec.AesonSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
+import Control.Applicative
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
@@ -24,6 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
 import GHC.Generics (Generic)
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import Test.Syd.Validity.Utils
@@ -55,6 +58,7 @@ spec = do
   aesonCodecSpec @[Text]
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
+  aesonCodecSpec @R
 
 data Fruit = Apple | Orange | Banana | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)
@@ -117,6 +121,45 @@ instance FromJSON Example where
       <*> o JSON..: "maybe"
       <*> o JSON..:? "optional"
       <*> o JSON..: "fruit"
+
+-- Recursive type
+data R
+  = N Int
+  | S R
+  deriving (Show, Eq, Generic)
+
+instance Validity R
+
+instance GenValid R where
+  shrinkValid = \case
+    N i -> N <$> shrinkValid i
+    S r -> [r]
+  genValid = sized $ \n -> case n of
+    0 -> N <$> genValid
+    _ -> oneof [N <$> genValid, S <$> resize (n -1) genValid]
+
+instance ToJSON R where
+  toJSON = \case
+    N n -> toJSON n
+    S r -> JSON.object ["s" JSON..= r]
+
+instance FromJSON R where
+  parseJSON v =
+    JSON.withObject "S" (\o -> S <$> o JSON..: "s") v
+      <|> (N <$> JSON.parseJSON v)
+
+instance HasCodec R where
+  codec =
+    let f = \case
+          Left i -> N i
+          Right r -> S r
+        g = \case
+          N i -> Left i
+          S r -> Right r
+     in bimapCodec f g $
+          eitherCodec
+            (codec @Int)
+            (object "S" $ requiredField "s" .= id)
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =
