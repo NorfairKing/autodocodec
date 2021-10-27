@@ -8,6 +8,7 @@ module Autodocodec.Yaml.Document where
 
 import Autodocodec
 import Autodocodec.Aeson
+import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as M
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
@@ -52,9 +53,8 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       ValueSchema v -> [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
-              [] -> [["[]"]]
-              [s_] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
-              (s_ : rest) ->
+              s_ :| [] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
+              (s_ :| rest) ->
                 concat $
                   addInFrontOfFirstInList ["[ "] (go s_) :
                   map (addInFrontOfFirstInList [", "] . go) rest

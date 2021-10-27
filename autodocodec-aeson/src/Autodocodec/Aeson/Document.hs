@@ -13,6 +13,8 @@ import Autodocodec.Aeson.Encode
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict as HM
+import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
@@ -35,7 +37,7 @@ data JSONSchema
   | ArraySchema !JSONSchema
   | ObjectSchema !(Map Text (KeyRequirement, JSONSchema)) -- TODO it's important (for docs) that these stay ordered.
   | ValueSchema !JSON.Value
-  | ChoiceSchema ![JSONSchema] -- TODO make this a nonempty list
+  | ChoiceSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
 
@@ -45,7 +47,10 @@ instance Validity JSONSchema where
       [ genericValidate js,
         declare "never has two nested comments" $ case js of
           CommentSchema _ (CommentSchema _ _) -> False
-          _ -> True
+          _ -> True,
+        case js of
+          ChoiceSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
+          _ -> valid
       ]
 
 data KeyRequirement = Required | Optional
@@ -142,17 +147,19 @@ jsonSchemaVia = go
       ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
       EqCodec value c -> ValueSchema (toJSONVia c value)
       BimapCodec _ _ c -> go c
-      EitherCodec c1 c2 -> ChoiceSchema (goChoice [go c1, go c2])
+      EitherCodec c1 c2 -> ChoiceSchema (goChoice (go c1 :| [go c2]))
       ExtraParserCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
 
-    goChoice :: [JSONSchema] -> [JSONSchema]
-    goChoice = concatMap goSingle
+    goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
+    goChoice (s :| rest) = case NE.nonEmpty rest of
+      Nothing -> goSingle s
+      Just ne -> goSingle s <> goChoice ne
       where
-        goSingle :: JSONSchema -> [JSONSchema]
+        goSingle :: JSONSchema -> NonEmpty JSONSchema
         goSingle = \case
           ChoiceSchema ss -> goChoice ss
-          s -> [s]
+          s' -> s' :| []
 
     goObject :: ObjectCodec input output -> Map Text (KeyRequirement, JSONSchema)
     goObject = \case

@@ -17,6 +17,7 @@ import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty (..))
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -68,8 +69,7 @@ instance GenValid JSONSchema where
     ObjectSchema os -> ObjectSchema <$> shrinkValid os
     ValueSchema v -> ValueSchema <$> shrinkValid v
     ChoiceSchema ss -> case ss of
-      [] -> [AnySchema]
-      [s] -> [s]
+      s :| [] -> [s]
       _ -> ChoiceSchema <$> shrinkValid ss
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
@@ -81,7 +81,14 @@ instance GenValid JSONSchema where
         oneof
           [ ArraySchema <$> resize (n -1) genValid,
             ObjectSchema <$> resize (n -1) genValid,
-            ChoiceSchema <$> resize (n -1) genValid,
+            do
+              (a, b, c) <- genSplit3 (n -1)
+              choice1 <- resize a genValid
+              choice2 <- resize b genValid
+              rest <- resize c genValid
+              pure $
+                ChoiceSchema $
+                  choice1 :| (choice2 : rest),
             do
               (a, b) <- genSplit (n -1)
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid
