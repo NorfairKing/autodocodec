@@ -5,28 +5,22 @@
                 "Left"
             ],
             "type": "object",
-            "properties": [
-                [
-                    "Left",
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            ]
+            "properties": {
+                "Left": {
+                    "type": "boolean"
+                }
+            }
         },
         {
             "required": [
                 "Right"
             ],
             "type": "object",
-            "properties": [
-                [
-                    "Right",
-                    {
-                        "type": "string"
-                    }
-                ]
-            ]
+            "properties": {
+                "Right": {
+                    "type": "string"
+                }
+            }
         }
     ]
 }

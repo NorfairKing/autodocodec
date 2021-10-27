@@ -8,6 +8,7 @@ module Autodocodec.Yaml.Document where
 
 import Autodocodec
 import Autodocodec.Aeson
+import qualified Data.Map as M
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml as Yaml
@@ -40,7 +41,14 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s
-      ObjectSchema s -> goObject s
+      ObjectSchema s ->
+        let requirementComment = \case
+              Required -> fore red "required"
+              Optional -> fore blue "optional"
+            keySchemaFor k (kr, ks) = addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment kr] : go ks)
+         in if M.null s
+              then [["<object>"]]
+              else concatMap (uncurry keySchemaFor) (M.toList s)
       ValueSchema v -> [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
@@ -53,12 +61,3 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                     ++ [[["]"]]]
          in addListAround s
       CommentSchema c s -> [chunk $ "# " <> c] : go s
-    goObject :: JSONObjectSchema -> [[Chunk]]
-    goObject = \case
-      AnyObjectSchema -> [["<object>"]]
-      KeySchema r k ss ->
-        let requirementComment = case r of
-              Required -> fore red "required"
-              Optional -> fore blue "optional"
-         in addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment] : go ss)
-      BothObjectSchema os1 os2 -> goObject os1 ++ goObject os2

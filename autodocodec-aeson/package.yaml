@@ -17,9 +17,14 @@ library:
   - aeson
   - autodocodec
   - bytestring
+  - containers
   - scientific
   - text
   - unordered-containers
+  - validity
+  - validity-aeson
+  - validity-containers
+  - validity-text
 
 tests:
   autodocodec-aeson-test:
@@ -32,13 +37,18 @@ tests:
     - -with-rtsopts=-N
     - -Wall
     dependencies:
+    - QuickCheck
     - aeson
     - autodocodec
     - autodocodec-aeson
     - bytestring
+    - containers
     - genvalidity
+    - genvalidity-aeson
+    - genvalidity-containers
     - genvalidity-scientific
     - genvalidity-sydtest
+    - genvalidity-sydtest-aeson
     - genvalidity-text
     - scientific
     - sydtest

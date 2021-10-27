@@ -8,9 +8,18 @@ extra-deps:
 - github: NorfairKing/validity
   commit: bafcaf3799fa76edd5968923f6efde25085815f9
   subdirs:
-  - validity
-  - genvalidity
-  - genvalidity-sydtest
+    - validity
+    - validity-aeson
+    - validity-containers
+    - validity-text
+    - genvalidity
+    - genvalidity-aeson
+    - genvalidity-containers
+    - genvalidity-scientific
+    - genvalidity-sydtest
+    - genvalidity-sydtest-aeson
+    - genvalidity-text
+
 - github: NorfairKing/safe-coloured-text
   commit: 7f157485e55528648a95edf3508a122b2e55779e
   subdirs:

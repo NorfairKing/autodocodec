@@ -7,56 +7,41 @@
         "fruit"
     ],
     "type": "object",
-    "properties": [
-        [
-            "text",
-            {
-                "type": "string"
-            }
-        ],
-        [
-            "bool",
-            {
-                "type": "boolean"
-            }
-        ],
-        [
-            "maybe",
-            {
-                "anyOf": [
-                    {
-                        "type": "null"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
-            }
-        ],
-        [
-            "optional",
-            {
-                "type": "string"
-            }
-        ],
-        [
-            "fruit",
-            {
-                "anyOf": [
-                    {
-                        "const": "Apple"
-                    },
-                    {
-                        "const": "Orange"
-                    },
-                    {
-                        "const": "Banana"
-                    },
-                    {
-                        "const": "Melon"
-                    }
-                ]
-            }
-        ]
-    ]
+    "properties": {
+        "maybe": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "text": {
+            "type": "string"
+        },
+        "fruit": {
+            "anyOf": [
+                {
+                    "const": "Apple"
+                },
+                {
+                    "const": "Orange"
+                },
+                {
+                    "const": "Banana"
+                },
+                {
+                    "const": "Melon"
+                }
+            ]
+        },
+        "bool": {
+            "type": "boolean"
+        },
+        "optional": {
+            "type": "string"
+        }
+    }
 }

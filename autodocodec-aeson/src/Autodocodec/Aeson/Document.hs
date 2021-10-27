@@ -12,10 +12,15 @@ import Autodocodec
 import Autodocodec.Aeson.Encode
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
-import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.List.NonEmpty as NE
+import qualified Data.HashMap.Strict as HM
+import Data.Map (Map)
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Text (Text)
+import Data.Validity
+import Data.Validity.Aeson ()
+import Data.Validity.Containers ()
+import Data.Validity.Text ()
 import GHC.Generics (Generic)
 
 -- TODO think about putting this value in a separate package or directly in autodocodec
@@ -28,20 +33,25 @@ data JSONSchema
   | StringSchema
   | NumberSchema
   | ArraySchema !JSONSchema
-  | ObjectSchema !JSONObjectSchema
+  | ObjectSchema !(Map Text (KeyRequirement, JSONSchema)) -- TODO it's important (for docs) that these stay ordered.
   | ValueSchema !JSON.Value
-  | ChoiceSchema ![JSONSchema]
+  | ChoiceSchema ![JSONSchema] -- TODO make this a nonempty list
   | CommentSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
 
-data JSONObjectSchema
-  = AnyObjectSchema
-  | KeySchema !KeyRequirement !Text !JSONSchema
-  | BothObjectSchema !JSONObjectSchema !JSONObjectSchema
-  deriving (Show, Eq, Generic)
+instance Validity JSONSchema where
+  validate js =
+    mconcat
+      [ genericValidate js,
+        declare "never has two nested comments" $ case js of
+          CommentSchema _ (CommentSchema _ _) -> False
+          _ -> True
+      ]
 
 data KeyRequirement = Required | Optional
   deriving (Show, Eq, Generic)
+
+instance Validity KeyRequirement
 
 instance ToJSON JSONSchema where
   toJSON = JSON.object . go
@@ -55,27 +65,22 @@ instance ToJSON JSONSchema where
         ArraySchema s -> ["type" JSON..= ("array" :: Text), "items" JSON..= s]
         ValueSchema v -> ["const" JSON..= v]
         ObjectSchema os ->
-          let goO = \case
-                AnyObjectSchema -> ([], [])
-                KeySchema r k s ->
-                  ( [(k, s)],
-                    case r of
-                      Required -> [k]
-                      Optional -> []
+          let combine (ps, rps) k (r, s) =
+                ( (k, s) : ps,
+                  ( case r of
+                      Required -> k : rps
+                      Optional -> rps
                   )
-                BothObjectSchema os1 os2 ->
-                  let (ps1, rps1) = goO os1
-                      (ps2, rps2) = goO os2
-                   in (ps1 ++ ps2, rps1 ++ rps2)
-           in case goO os of
+                )
+           in case M.foldlWithKey combine ([], []) os of
                 ([], _) -> ["type" JSON..= ("object" :: Text)]
                 (ps, []) ->
                   [ "type" JSON..= ("object" :: Text),
-                    "properties" JSON..= ps
+                    "properties" JSON..= HM.fromList ps
                   ]
                 (ps, rps) ->
                   [ "type" JSON..= ("object" :: Text),
-                    "properties" JSON..= ps,
+                    "properties" JSON..= HM.fromList ps,
                     "required" JSON..= rps
                   ]
         ChoiceSchema jcs -> ["anyOf" JSON..= jcs]
@@ -97,40 +102,30 @@ instance FromJSON JSONSchema where
           Nothing -> pure $ ArraySchema AnySchema
           Just is -> pure $ ArraySchema is
       Just "object" -> do
-        mP <- o JSON..: "properties"
+        mP <- o JSON..:? "properties"
         case mP of
-          Nothing -> pure $ ObjectSchema AnyObjectSchema
-          Just props -> do
+          Nothing -> pure $ ObjectSchema M.empty
+          Just (props :: Map Text JSONSchema) -> do
             requiredProps <- fromMaybe [] <$> o JSON..:? "required"
-            -- TODO distinguish between required and optional properties
-            let keySchemas =
-                  map
-                    ( \(k, s) ->
-                        KeySchema
-                          ( if k `elem` requiredProps
-                              then Required
-                              else Optional
-                          )
-                          k
-                          s
+            let keySchemaFor k s =
+                  M.singleton
+                    k
+                    ( ( if k `elem` requiredProps
+                          then Required
+                          else Optional
+                      ),
+                      s
                     )
-                    props
-            let go (ks :| rest) = case NE.nonEmpty rest of
-                  Nothing -> ks
-                  Just ne -> BothObjectSchema ks (go ne)
-            pure $
-              ObjectSchema $ case NE.nonEmpty keySchemas of
-                Nothing -> AnyObjectSchema
-                Just ne -> go ne
+            pure $ ObjectSchema $ M.unions $ map (uncurry keySchemaFor) $ M.toList props
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
           Just anies -> pure $ ChoiceSchema anies
           Nothing -> do
             mConst <- o JSON..:? "const"
-            case mConst of
-              Just constant -> pure $ ValueSchema constant
-              Nothing -> fail "Unknown object schema without type, anyOf or const."
+            pure $ case mConst of
+              Just constant -> ValueSchema constant
+              Nothing -> AnySchema
       t -> fail $ "unknown schema type:" <> show t
 
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
@@ -161,10 +156,10 @@ jsonSchemaVia = go
           ChoiceSchema ss -> goChoice ss
           s -> [s]
 
-    goObject :: ObjectCodec input output -> JSONObjectSchema
+    goObject :: ObjectCodec input output -> Map Text (KeyRequirement, JSONSchema)
     goObject = \case
-      RequiredKeyCodec k c -> KeySchema Required k (go c)
-      OptionalKeyCodec k c -> KeySchema Optional k (go c)
+      RequiredKeyCodec k c -> M.singleton k (Required, (go c))
+      OptionalKeyCodec k c -> M.singleton k (Optional, (go c))
       BimapObjectCodec _ _ oc -> goObject oc
-      PureObjectCodec _ -> AnyObjectSchema
-      ApObjectCodec oc1 oc2 -> BothObjectSchema (goObject oc1) (goObject oc2)
+      PureObjectCodec _ -> M.empty
+      ApObjectCodec oc1 oc2 -> M.union (goObject oc1) (goObject oc2)

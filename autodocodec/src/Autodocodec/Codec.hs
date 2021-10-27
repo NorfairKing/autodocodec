@@ -6,10 +6,8 @@
 
 module Autodocodec.Codec where
 
-import Control.Monad
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
-import Data.Maybe
 import Data.Scientific as Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -205,7 +203,7 @@ stringConstCodec ::
 stringConstCodec = enumCodec . NE.map (\(constant, text) -> (constant, literalTextValue constant text))
 
 enumCodec ::
-  forall enum output.
+  forall enum.
   Eq enum =>
   NonEmpty (enum, Codec enum enum) ->
   Codec enum enum
