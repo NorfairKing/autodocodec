@@ -38,6 +38,7 @@ tests:
     - autodocodec-yaml
     - bytestring
     - genvalidity
+    - genvalidity-aeson
     - genvalidity-scientific
     - genvalidity-sydtest
     - genvalidity-text

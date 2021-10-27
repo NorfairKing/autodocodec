@@ -186,6 +186,7 @@ jsonSchemaVia = go
   where
     go :: Codec input output -> JSONSchema
     go = \case
+      ValueCodec -> AnySchema
       NullCodec -> NullSchema
       BoolCodec -> BoolSchema
       StringCodec -> StringSchema

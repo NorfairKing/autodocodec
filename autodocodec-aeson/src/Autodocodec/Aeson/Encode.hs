@@ -17,6 +17,7 @@ toJSONVia = flip go
   where
     go :: a -> Codec a void -> JSON.Value
     go a = \case
+      ValueCodec -> a
       NullCodec -> JSON.Null
       BoolCodec -> toJSON (a :: Bool)
       StringCodec -> toJSON (a :: Text)

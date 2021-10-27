@@ -57,6 +57,7 @@ test-suite autodocodec-yaml-test
     , base >=4.7 && <5
     , bytestring
     , genvalidity
+    , genvalidity-aeson
     , genvalidity-scientific
     , genvalidity-sydtest
     , genvalidity-text

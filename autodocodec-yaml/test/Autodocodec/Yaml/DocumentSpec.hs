@@ -8,8 +8,10 @@ module Autodocodec.Yaml.DocumentSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Yaml
+import qualified Data.Aeson as JSON
 import Data.Data
 import Data.GenValidity
+import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
@@ -31,6 +33,7 @@ spec = do
   yamlSchemaSpec @LT.Text "lazy-text"
   yamlSchemaSpec @String "string"
   yamlSchemaSpec @Scientific "scientific"
+  yamlSchemaSpec @JSON.Value "value"
   yamlSchemaSpec @Int "int"
   yamlSchemaSpec @Int8 "int8"
   yamlSchemaSpec @Int16 "int16"

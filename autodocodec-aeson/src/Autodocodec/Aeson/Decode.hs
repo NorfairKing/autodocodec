@@ -21,6 +21,7 @@ parseJSONVia = flip go
   where
     go :: JSON.Value -> Codec void a -> JSON.Parser a
     go value = \case
+      ValueCodec -> pure value
       NullCodec -> case value of
         Null -> pure ()
         _ -> fail $ "Expected Null, but got: " <> show value

@@ -6,6 +6,7 @@
 
 module Autodocodec.Codec where
 
+import Data.Aeson as JSON
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Scientific as Scientific
@@ -13,9 +14,14 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 data Codec input output where
+  -- | Any value
+  ValueCodec :: Codec JSON.Value JSON.Value
+  -- | The 'null' value
   NullCodec :: Codec () ()
   BoolCodec :: Codec Bool Bool
-  -- | This is named after the primitive type "String" in json, not after the haskell type string.
+  -- | A String value
+  --
+  -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec :: Codec Text Text
   NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
   -- TODO use a vector here because that's what aeson uses.
@@ -58,6 +64,7 @@ showCodecABit = ($ "") . go 0
   where
     go :: Int -> Codec input output -> ShowS
     go d = \case
+      ValueCodec -> showString "ValueCodec"
       NullCodec -> showString "NullCodec"
       BoolCodec -> showString "BoolCodec"
       StringCodec -> showString "StringCodec"

@@ -39,6 +39,7 @@ spec = do
   jsonSchemaSpec @LT.Text "lazy-text"
   jsonSchemaSpec @String "string"
   jsonSchemaSpec @Scientific "scientific"
+  jsonSchemaSpec @JSON.Value "value"
   jsonSchemaSpec @Int "int"
   jsonSchemaSpec @Int8 "int8"
   jsonSchemaSpec @Int16 "int16"

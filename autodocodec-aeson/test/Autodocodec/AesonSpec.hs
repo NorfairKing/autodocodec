@@ -14,6 +14,7 @@ import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import Data.Data
 import Data.GenValidity
+import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
@@ -37,6 +38,7 @@ spec = do
   aesonCodecSpec @Text
   aesonCodecSpec @LT.Text
   aesonCodecSpec @Scientific
+  aesonCodecSpec @JSON.Value
   aesonCodecSpec @Int
   aesonCodecSpec @Int8
   aesonCodecSpec @Int16

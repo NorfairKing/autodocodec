@@ -6,6 +6,7 @@
 module Autodocodec.Class where
 
 import Autodocodec.Codec
+import qualified Data.Aeson as JSON
 import Data.Int
 import Data.Scientific
 import Data.Text (Text)
@@ -83,6 +84,9 @@ instance HasCodec Word32 where
 
 instance HasCodec Word64 where
   codec = boundedIntegerCodec <?> "Word64"
+
+instance HasCodec JSON.Value where
+  codec = ValueCodec
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec
