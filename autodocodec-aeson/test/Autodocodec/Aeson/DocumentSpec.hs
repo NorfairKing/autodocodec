@@ -109,9 +109,9 @@ instance GenValid KeyRequirement
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 jsonSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenJSONValueFile
+    pureGoldenJSONFile
       ("test_resources/schema/" <> filePath <> ".json")
-      (jsonSchemaViaCodec @a)
+      (JSON.toJSON (jsonSchemaViaCodec @a))
 
 data Fruit = Apple | Orange | Banana | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)
