@@ -108,14 +108,15 @@ instance GenUnchecked KeyRequirement
 instance GenValid KeyRequirement
 
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
-jsonSchemaSpec filePath = do
-  it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenJSONFile
-      ("test_resources/schema/" <> filePath <> ".json")
-      (JSON.toJSON (jsonSchemaViaCodec @a))
-  it ("validates all encoded values of " <> nameOf @a) $
-    forAllValid $ \(a :: a) ->
-      validateAccordingTo (toJSONViaCodec a) (jsonSchemaViaCodec @a) `shouldBe` True
+jsonSchemaSpec filePath =
+  describe ("jsonSchemaSpec @" <> nameOf @a) $ do
+    it "outputs the same schema as before" $
+      pureGoldenJSONFile
+        ("test_resources/schema/" <> filePath <> ".json")
+        (JSON.toJSON (jsonSchemaViaCodec @a))
+    it "validates all encoded values" $
+      forAllValid $ \(a :: a) ->
+        validateAccordingTo (toJSONViaCodec a) (jsonSchemaViaCodec @a) `shouldBe` True
 
 data Fruit = Apple | Orange | Banana | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)
