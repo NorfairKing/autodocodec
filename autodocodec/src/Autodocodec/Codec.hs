@@ -184,13 +184,57 @@ matchChoiceCodec (f1, c1) (f2, c2) =
   BimapCodec f g $
     eitherCodec c1 c2
   where
-    f = foldEither
+    f = \case
+      Left a -> a
+      Right a -> a
     g :: newInput -> Either input input
     g newInput = case f1 newInput of
       Just input -> Left input
       Nothing -> case f2 newInput of
         Just input -> Right input
         Nothing -> error "no match"
+
+matchChoicesCodec ::
+  forall input output.
+  NonEmpty (input -> Maybe input, Codec input output) ->
+  Codec input output
+matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
+  Nothing -> c
+  Just ne ->
+    matchChoiceCodec
+      (f, c)
+      (Just, matchChoicesCodec ne)
+
+enumCodec ::
+  forall enum.
+  Eq enum =>
+  NonEmpty (enum, Codec enum enum) ->
+  Codec enum enum
+enumCodec =
+  matchChoicesCodec
+    . NE.map
+      ( \(constant, c) ->
+          ( \constant' ->
+              if constant' == constant
+                then Just constant'
+                else Nothing,
+            c
+          )
+      )
+
+stringConstCodec ::
+  forall constant.
+  Eq constant =>
+  NonEmpty (constant, Text) ->
+  Codec constant constant
+stringConstCodec =
+  enumCodec
+    . NE.map
+      ( \(constant, text) ->
+          ( constant,
+            literalTextValue constant text
+          )
+      )
 
 shownBoundedEnumCodec ::
   forall enum.
@@ -201,30 +245,3 @@ shownBoundedEnumCodec =
    in case NE.nonEmpty ls of
         Nothing -> error "0 enum values ?!"
         Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
-
-stringConstCodec ::
-  forall constant.
-  Eq constant =>
-  NonEmpty (constant, Text) ->
-  Codec constant constant
-stringConstCodec = enumCodec . NE.map (\(constant, text) -> (constant, literalTextValue constant text))
-
-enumCodec ::
-  forall enum.
-  Eq enum =>
-  NonEmpty (enum, Codec enum enum) ->
-  Codec enum enum
-enumCodec = go
-  where
-    go :: NonEmpty (enum, Codec enum enum) -> Codec enum enum
-    go ((e, c) :| rest) = case NE.nonEmpty rest of
-      Nothing -> c
-      Just ne ->
-        matchChoiceCodec
-          (\e' -> if e == e' then Just e else Nothing, c)
-          (Just, go ne)
-
-foldEither :: Either a a -> a
-foldEither = \case
-  Left a -> a
-  Right a -> a
