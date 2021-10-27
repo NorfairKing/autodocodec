@@ -67,10 +67,9 @@ instance ToJSON JSONSchema where
         ObjectSchema os ->
           let combine (ps, rps) k (r, s) =
                 ( (k, s) : ps,
-                  ( case r of
-                      Required -> k : rps
-                      Optional -> rps
-                  )
+                  case r of
+                    Required -> k : rps
+                    Optional -> rps
                 )
            in case M.foldlWithKey combine ([], []) os of
                 ([], _) -> ["type" JSON..= ("object" :: Text)]
@@ -110,10 +109,9 @@ instance FromJSON JSONSchema where
             let keySchemaFor k s =
                   M.singleton
                     k
-                    ( ( if k `elem` requiredProps
-                          then Required
-                          else Optional
-                      ),
+                    ( if k `elem` requiredProps
+                        then Required
+                        else Optional,
                       s
                     )
             pure $ ObjectSchema $ M.unions $ map (uncurry keySchemaFor) $ M.toList props
@@ -158,8 +156,8 @@ jsonSchemaVia = go
 
     goObject :: ObjectCodec input output -> Map Text (KeyRequirement, JSONSchema)
     goObject = \case
-      RequiredKeyCodec k c -> M.singleton k (Required, (go c))
-      OptionalKeyCodec k c -> M.singleton k (Optional, (go c))
+      RequiredKeyCodec k c -> M.singleton k (Required, go c)
+      OptionalKeyCodec k c -> M.singleton k (Optional, go c)
       BimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> M.empty
       ApObjectCodec oc1 oc2 -> M.union (goObject oc1) (goObject oc2)
