@@ -1,6 +1,14 @@
 # Example
+[37mtext[m: # [31mrequired[m
+  [33m<string>[m
 [37mbool[m: # [31mrequired[m
   [33m<boolean>[m
+[37mmaybe[m: # [31mrequired[m
+  [ [33mnull[m
+  , [33m<string>[m
+  ]
+[37moptional[m: # [34moptional[m
+  [33m<string>[m
 [37mfruit[m: # [31mrequired[m
   [ Apple
 
@@ -11,11 +19,3 @@
   , Melon
 
   ]
-[37mmaybe[m: # [31mrequired[m
-  [ [33mnull[m
-  , [33m<string>[m
-  ]
-[37moptional[m: # [34moptional[m
-  [33m<string>[m
-[37mtext[m: # [31mrequired[m
-  [33m<string>[m

@@ -12,12 +12,15 @@ import Autodocodec
 import Autodocodec.Aeson.Encode
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
+import Data.Foldable
 import qualified Data.HashMap.Strict as HM
+import Data.List
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
+import qualified Data.Set as S
 import Data.Text (Text)
 import Data.Validity
 import Data.Validity.Aeson ()
@@ -35,7 +38,8 @@ data JSONSchema
   | StringSchema
   | NumberSchema
   | ArraySchema !JSONSchema
-  | ObjectSchema !(Map Text (KeyRequirement, JSONSchema)) -- TODO it's important (for docs) that these stay ordered.
+  | -- | This needs to be a list because keys should stay in their original ordering.
+    ObjectSchema ![(Text, (KeyRequirement, JSONSchema))]
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
@@ -49,6 +53,10 @@ instance Validity JSONSchema where
           CommentSchema _ (CommentSchema _ _) -> False
           _ -> True,
         case js of
+          ObjectSchema ks ->
+            declare "there are no two equal keys in a keys schema" $
+              let l = map fst ks
+               in nub l == l
           ChoiceSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
           _ -> valid
       ]
@@ -70,23 +78,26 @@ instance ToJSON JSONSchema where
         ArraySchema s -> ["type" JSON..= ("array" :: Text), "items" JSON..= s]
         ValueSchema v -> ["const" JSON..= v]
         ObjectSchema os ->
-          let combine (ps, rps) k (r, s) =
+          let combine (ps, rps) (k, (r, s)) =
                 ( (k, s) : ps,
                   case r of
-                    Required -> k : rps
+                    Required -> S.insert k rps
                     Optional -> rps
                 )
-           in case M.foldlWithKey combine ([], []) os of
-                ([], _) -> ["type" JSON..= ("object" :: Text)]
-                (ps, []) ->
-                  [ "type" JSON..= ("object" :: Text),
-                    "properties" JSON..= HM.fromList ps
-                  ]
-                (ps, rps) ->
-                  [ "type" JSON..= ("object" :: Text),
-                    "properties" JSON..= HM.fromList ps,
-                    "required" JSON..= rps
-                  ]
+              (props, requiredProps) = foldl' combine ([], S.empty) os
+           in case props of
+                [] -> ["type" JSON..= ("object" :: Text)]
+                _ ->
+                  if S.null requiredProps
+                    then
+                      [ "type" JSON..= ("object" :: Text),
+                        "properties" JSON..= HM.fromList props
+                      ]
+                    else
+                      [ "type" JSON..= ("object" :: Text),
+                        "properties" JSON..= HM.fromList props,
+                        "required" JSON..= requiredProps
+                      ]
         ChoiceSchema jcs -> ["anyOf" JSON..= jcs]
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s -- TODO this is probably wrong.
 
@@ -108,18 +119,18 @@ instance FromJSON JSONSchema where
       Just "object" -> do
         mP <- o JSON..:? "properties"
         case mP of
-          Nothing -> pure $ ObjectSchema M.empty
+          Nothing -> pure $ ObjectSchema []
           Just (props :: Map Text JSONSchema) -> do
             requiredProps <- fromMaybe [] <$> o JSON..:? "required"
             let keySchemaFor k s =
-                  M.singleton
-                    k
+                  ( k,
                     ( if k `elem` requiredProps
                         then Required
                         else Optional,
                       s
                     )
-            pure $ ObjectSchema $ M.unions $ map (uncurry keySchemaFor) $ M.toList props
+                  )
+            pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
@@ -161,10 +172,10 @@ jsonSchemaVia = go
           ChoiceSchema ss -> goChoice ss
           s' -> s' :| []
 
-    goObject :: ObjectCodec input output -> Map Text (KeyRequirement, JSONSchema)
+    goObject :: ObjectCodec input output -> [(Text, (KeyRequirement, JSONSchema))]
     goObject = \case
-      RequiredKeyCodec k c -> M.singleton k (Required, go c)
-      OptionalKeyCodec k c -> M.singleton k (Optional, go c)
+      RequiredKeyCodec k c -> [(k, (Required, go c))]
+      OptionalKeyCodec k c -> [(k, (Optional, go c))]
       BimapObjectCodec _ _ oc -> goObject oc
-      PureObjectCodec _ -> M.empty
-      ApObjectCodec oc1 oc2 -> M.union (goObject oc1) (goObject oc2)
+      PureObjectCodec _ -> []
+      ApObjectCodec oc1 oc2 -> goObject oc1 ++ goObject oc2

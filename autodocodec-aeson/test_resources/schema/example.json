@@ -1,10 +1,10 @@
 {
     "$comment": "Example",
     "required": [
-        "text",
         "bool",
+        "fruit",
         "maybe",
-        "fruit"
+        "text"
     ],
     "type": "object",
     "properties": {

@@ -9,7 +9,6 @@ module Autodocodec.Yaml.Document where
 import Autodocodec
 import Autodocodec.Aeson
 import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.Map as M
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml as Yaml
@@ -47,9 +46,9 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
               Required -> fore red "required"
               Optional -> fore blue "optional"
             keySchemaFor k (kr, ks) = addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment kr] : go ks)
-         in if M.null s
+         in if null s
               then [["<object>"]]
-              else concatMap (uncurry keySchemaFor) (M.toList s)
+              else concatMap (uncurry keySchemaFor) s
       ValueSchema v -> [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case

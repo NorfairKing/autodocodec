@@ -10,6 +10,7 @@ module Autodocodec.Aeson.DocumentSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
+import qualified Data.Aeson as JSON
 import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
@@ -27,7 +28,6 @@ import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Aeson
 import Test.Syd.Validity
-import Test.Syd.Validity.Aeson
 import Test.Syd.Validity.Utils
 
 spec :: Spec
@@ -56,7 +56,15 @@ spec = do
   jsonSchemaSpec @Example "example"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
-    jsonSpecOnValid @JSONSchema
+    it "roundtrips through json and back" $
+      forAllValid $ \jsonSchema ->
+        -- We use the reencode version to survive the ordering change through map
+        let encoded = JSON.encode (jsonSchema :: JSONSchema)
+         in case JSON.eitherDecode encoded of
+              Left err -> expectationFailure err
+              Right decoded ->
+                let encodedAgain = JSON.encode (decoded :: JSONSchema)
+                 in encodedAgain `shouldBe` encoded
 
 instance GenValid JSONSchema where
   shrinkValid = \case
@@ -66,7 +74,7 @@ instance GenValid JSONSchema where
     StringSchema -> [AnySchema]
     NumberSchema -> [AnySchema]
     ArraySchema s -> s : (ArraySchema <$> shrinkValid s)
-    ObjectSchema os -> ObjectSchema <$> shrinkValid os
+    ObjectSchema os -> filter isValid $ ObjectSchema <$> shrinkValid os
     ValueSchema v -> ValueSchema <$> shrinkValid v
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
@@ -80,7 +88,7 @@ instance GenValid JSONSchema where
       else
         oneof
           [ ArraySchema <$> resize (n -1) genValid,
-            ObjectSchema <$> resize (n -1) genValid,
+            (ObjectSchema <$> resize (n -1) genValid) `suchThat` isValid,
             do
               (a, b, c) <- genSplit3 (n -1)
               choice1 <- resize a genValid
