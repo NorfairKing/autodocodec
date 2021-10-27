@@ -112,6 +112,9 @@ jsonSchemaSpec filePath = do
     pureGoldenJSONFile
       ("test_resources/schema/" <> filePath <> ".json")
       (JSON.toJSON (jsonSchemaViaCodec @a))
+  it ("validates all encoded values of " <> nameOf @a) $
+    forAllValid $ \(a :: a) ->
+      validateAccordingTo (toJSONViaCodec a) (jsonSchemaViaCodec @a) `shouldBe` True
 
 data Fruit = Apple | Orange | Banana | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)

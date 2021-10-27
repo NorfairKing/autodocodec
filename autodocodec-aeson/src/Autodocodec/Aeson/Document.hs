@@ -45,6 +45,42 @@ data JSONSchema
   | CommentSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
 
+validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
+validateAccordingTo = go
+  where
+    go :: JSON.Value -> JSONSchema -> Bool
+    go value = \case
+      AnySchema -> True
+      NullSchema -> value == JSON.Null
+      BoolSchema -> case value of
+        JSON.Bool _ -> True
+        _ -> False
+      StringSchema -> case value of
+        JSON.String _ -> True
+        _ -> False
+      NumberSchema -> case value of
+        JSON.Number _ -> True
+        _ -> False
+      ArraySchema as -> case value of
+        JSON.Array v -> all (`validateAccordingTo` as) v
+        _ -> False
+      ObjectSchema kss -> case value of
+        JSON.Object hm ->
+          let goKey :: Text -> JSON.Value -> Bool
+              goKey key value' = case lookup key kss of
+                Nothing -> False
+                Just (_, ks) -> go value' ks
+              goKeySchema :: Text -> (KeyRequirement, JSONSchema) -> Bool
+              goKeySchema key (kr, ks) = case HM.lookup key hm of
+                Nothing -> kr == Optional
+                Just value' -> go value' ks
+              actualKeys = HM.toList hm
+           in all (uncurry goKey) actualKeys && all (uncurry goKeySchema) kss
+        _ -> False
+      ValueSchema v -> v == value
+      ChoiceSchema ss -> any (go value) ss
+      CommentSchema _ s -> go value s
+
 instance Validity JSONSchema where
   validate js =
     mconcat
