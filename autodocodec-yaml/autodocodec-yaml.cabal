@@ -33,6 +33,7 @@ library
     , autodocodec-aeson
     , base >=4.7 && <5
     , containers
+    , mtl
     , safe-coloured-text
     , text
     , yaml
@@ -50,7 +51,8 @@ test-suite autodocodec-yaml-test
   build-tool-depends:
       sydtest-discover:sydtest-discover
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , autodocodec
     , autodocodec-aeson
     , autodocodec-yaml

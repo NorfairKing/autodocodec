@@ -10,7 +10,6 @@ module Autodocodec.Aeson.Document where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode
-import Control.Arrow (second)
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -30,7 +29,6 @@ import Data.Validity
 import Data.Validity.Aeson ()
 import Data.Validity.Containers ()
 import Data.Validity.Text ()
-import Debug.Trace
 import GHC.Generics (Generic)
 
 -- TODO think about putting this value in a separate package or directly in autodocodec

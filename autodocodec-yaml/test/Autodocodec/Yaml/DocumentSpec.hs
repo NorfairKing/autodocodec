@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -20,6 +21,7 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
 import GHC.Generics (Generic)
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity.Utils
 import Text.Colour
@@ -50,6 +52,7 @@ spec = do
   yamlSchemaSpec @[Text] "list-text"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
+  yamlSchemaSpec @R "r"
 
 data Fruit
   = Apple
@@ -91,6 +94,36 @@ instance HasCodec Example where
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
         <*> requiredField "fruit" .= exampleFruit
+
+-- Recursive type
+data R
+  = N Int
+  | S R
+  deriving (Show, Eq, Generic)
+
+instance Validity R
+
+instance GenValid R where
+  shrinkValid = \case
+    N i -> N <$> shrinkValid i
+    S r -> [r]
+  genValid = sized $ \n -> case n of
+    0 -> N <$> genValid
+    _ -> oneof [N <$> genValid, S <$> resize (n -1) genValid]
+
+instance HasCodec R where
+  codec =
+    ReferenceCodec "R" $
+      let f = \case
+            Left i -> N i
+            Right r -> S r
+          g = \case
+            N i -> Left i
+            S r -> Right r
+       in bimapCodec f g $
+            eitherCodec
+              (codec @Int)
+              (object "S" $ requiredField "s" .= id)
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

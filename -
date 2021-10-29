@@ -53,28 +53,17 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
               keySchemaChunks <- go ks
               pure $ addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment kr] : keySchemaChunks)
          in if null s
-              then pure [["<object>"]]
-              else concat <$> mapM (uncurry keySchemaFor) s
-      ValueSchema v -> pure [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
+              then pure  [["<object>"]]
+              else concatMap (uncurry keySchemaFor) s
+      ValueSchema v -> [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
-              s_ :| [] -> do
-                chunks <- go s_
-                pure $ addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
-              (s_ :| rest) -> do
-                chunks <- go s_
-                restChunks <- mapM go rest
-                pure $
-                  concat $
-                    addInFrontOfFirstInList ["[ "] chunks :
-                    map (addInFrontOfFirstInList [", "]) restChunks
-                      ++ [[["]"]]]
+              s_ :| [] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
+              (s_ :| rest) ->
+                concat $
+                  addInFrontOfFirstInList ["[ "] (go s_) :
+                  map (addInFrontOfFirstInList [", "] . go) rest
+                    ++ [[["]"]]]
          in addListAround s
-      CommentSchema comment s -> ([chunk $ "# " <> comment] :) <$> go s
-      ReferenceSchema name s -> do
-        alreadySeen <- gets (S.member name)
-        if alreadySeen
-          then pure [[fore cyan $ chunk $ "ref: " <> name]]
-          else do
-            modify (S.insert name)
-            ([fore cyan $ chunk $ "def: " <> name] :) <$> go s
+      CommentSchema comment s -> [chunk $ "# " <> comment] : go s
+      ReferenceSchema name s -> [fore cyan $ chunk $ "def: " <> name] : go s

@@ -1,0 +1,7 @@
+[36mdef: R[m
+[ # Int
+  [33m<number>[m
+, # S
+  [37ms[m: # [31mrequired[m
+    [36mref: R[m
+]
