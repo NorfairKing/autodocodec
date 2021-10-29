@@ -55,6 +55,7 @@ spec = do
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   jsonSchemaSpec @[Text] "list-text"
   jsonSchemaSpec @Example "example"
+  jsonSchemaSpec @R "r"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     it "roundtrips through json and back" $
@@ -83,6 +84,9 @@ instance GenValid JSONSchema where
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
+    ReferenceSchema k s -> (s :) $ do
+      (k', s') <- shrinkValid (k, s)
+      pure $ ReferenceSchema k' s'
   genValid = sized $ \n ->
     if n <= 1
       then elements [AnySchema, NullSchema, BoolSchema, StringSchema, NumberSchema]
@@ -154,3 +158,33 @@ instance HasCodec Example where
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
         <*> requiredField "fruit" .= exampleFruit
+
+-- Recursive type
+data R
+  = N Int
+  | S R
+  deriving (Show, Eq, Generic)
+
+instance Validity R
+
+instance GenValid R where
+  shrinkValid = \case
+    N i -> N <$> shrinkValid i
+    S r -> [r]
+  genValid = sized $ \n -> case n of
+    0 -> N <$> genValid
+    _ -> oneof [N <$> genValid, S <$> resize (n -1) genValid]
+
+instance HasCodec R where
+  codec =
+    ReferenceCodec "R" $
+      let f = \case
+            Left i -> N i
+            Right r -> S r
+          g = \case
+            N i -> Left i
+            S r -> Right r
+       in bimapCodec f g $
+            eitherCodec
+              (codec @Int)
+              (object "S" $ requiredField "s" .= id)

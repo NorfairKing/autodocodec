@@ -18,6 +18,7 @@ library:
   - autodocodec
   - bytestring
   - containers
+  - mtl
   - scientific
   - text
   - unordered-containers

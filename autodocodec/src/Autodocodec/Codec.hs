@@ -56,7 +56,10 @@ data Codec input output where
     !(newInput -> oldInput) ->
     !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
+  -- For adding implementation-irrelevant but human-relevant information.
   CommentCodec :: Text -> Codec input output -> Codec input output
+  -- For naming a codec, so that recursive codecs can have a finite schema.
+  ReferenceCodec :: Text -> Codec input output -> Codec input output
 
 -- Jsut for debugging
 showCodecABit :: Codec input output -> String
@@ -76,6 +79,7 @@ showCodecABit = ($ "") . go 0
       EitherCodec c1 c2 -> showParen (d > 10) $ showString "EitherCodec " . go 11 c1 . showString " " . go 11 c2
       ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
       CommentCodec comment c -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . go 11 c
+      ReferenceCodec comment c -> showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d comment . showString " " . go 11 c
     goObject :: Int -> ObjectCodec input output -> ShowS
     goObject d = \case
       RequiredKeyCodec k c -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . go 11 c

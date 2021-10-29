@@ -43,6 +43,7 @@ parseJSONVia = flip go
           Right new -> pure new
       EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
       CommentCodec _ c -> go value c
+      ReferenceCodec _ c -> go value c
 
     goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a
     goObject object_ = \case

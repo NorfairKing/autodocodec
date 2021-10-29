@@ -1,0 +1,25 @@
+{
+    "$ref": "#/$defs/R",
+    "$defs": {
+        "R": {
+            "anyOf": [
+                {
+                    "$comment": "Int",
+                    "type": "number"
+                },
+                {
+                    "$comment": "S",
+                    "required": [
+                        "s"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "s": {
+                            "$ref": "#/$defs/R"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

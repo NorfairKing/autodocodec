@@ -10,9 +10,13 @@ module Autodocodec.Aeson.Document where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode
+import Control.Arrow (second)
+import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Types as JSON
 import Data.Foldable
+import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.List
 import Data.List.NonEmpty (NonEmpty (..))
@@ -26,6 +30,7 @@ import Data.Validity
 import Data.Validity.Aeson ()
 import Data.Validity.Containers ()
 import Data.Validity.Text ()
+import Debug.Trace
 import GHC.Generics (Generic)
 
 -- TODO think about putting this value in a separate package or directly in autodocodec
@@ -43,6 +48,7 @@ data JSONSchema
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
+  | ReferenceSchema !Text !JSONSchema
   deriving (Show, Eq, Generic)
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
@@ -80,6 +86,7 @@ validateAccordingTo = go
       ValueSchema v -> v == value
       ChoiceSchema ss -> any (go value) ss
       CommentSchema _ s -> go value s
+      ReferenceSchema _ s -> go value s
 
 instance Validity JSONSchema where
   validate js =
@@ -103,17 +110,28 @@ data KeyRequirement = Required | Optional
 instance Validity KeyRequirement
 
 instance ToJSON JSONSchema where
-  toJSON = JSON.object . go
+  toJSON = uncurry objectWithDefs . (`runState` M.empty) . go
     where
+      objectWithDefs :: [JSON.Pair] -> Map Text JSON.Value -> JSON.Value
+      objectWithDefs pairs defs =
+        JSON.object $
+          ( if null defs
+              then id
+              else (("$defs" JSON..= defs) :)
+          )
+            pairs
+      go :: JSONSchema -> State (Map Text JSON.Value) [JSON.Pair]
       go = \case
-        AnySchema -> []
-        NullSchema -> ["type" JSON..= ("null" :: Text)]
-        BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
-        StringSchema -> ["type" JSON..= ("string" :: Text)]
-        NumberSchema -> ["type" JSON..= ("number" :: Text)]
-        ArraySchema s -> ["type" JSON..= ("array" :: Text), "items" JSON..= s]
-        ValueSchema v -> ["const" JSON..= v]
-        ObjectSchema os ->
+        AnySchema -> pure []
+        NullSchema -> pure ["type" JSON..= ("null" :: Text)]
+        BoolSchema -> pure ["type" JSON..= ("boolean" :: Text)]
+        StringSchema -> pure ["type" JSON..= ("string" :: Text)]
+        NumberSchema -> pure ["type" JSON..= ("number" :: Text)]
+        ArraySchema s -> do
+          itemSchemaVal <- go s
+          pure ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
+        ValueSchema v -> pure ["const" JSON..= v]
+        ObjectSchema os -> do
           let combine (ps, rps) (k, (r, s)) =
                 ( (k, s) : ps,
                   case r of
@@ -121,21 +139,38 @@ instance ToJSON JSONSchema where
                     Optional -> rps
                 )
               (props, requiredProps) = foldl' combine ([], S.empty) os
-           in case props of
-                [] -> ["type" JSON..= ("object" :: Text)]
-                _ ->
-                  if S.null requiredProps
-                    then
-                      [ "type" JSON..= ("object" :: Text),
-                        "properties" JSON..= HM.fromList props
-                      ]
-                    else
-                      [ "type" JSON..= ("object" :: Text),
-                        "properties" JSON..= HM.fromList props,
-                        "required" JSON..= requiredProps
-                      ]
-        ChoiceSchema jcs -> ["anyOf" JSON..= jcs]
-        CommentSchema comment s -> ("$comment" JSON..= comment) : go s -- TODO this is probably wrong.
+          propVals <- mapM (fmap JSON.object . go) $ HM.fromList props
+          let propVal :: JSON.Value
+              propVal = (JSON.toJSON :: HashMap Text JSON.Value -> JSON.Value) propVals
+          pure $ case props of
+            [] -> ["type" JSON..= ("object" :: Text)]
+            _ ->
+              if S.null requiredProps
+                then
+                  [ "type" JSON..= ("object" :: Text),
+                    "properties" JSON..= propVal
+                  ]
+                else
+                  [ "type" JSON..= ("object" :: Text),
+                    "properties" JSON..= propVal,
+                    "required" JSON..= requiredProps
+                  ]
+        ChoiceSchema jcs -> do
+          svals <- forM (NE.toList jcs) $ \js -> do
+            pairs <- go js
+            pure $ JSON.object pairs
+          let val :: JSON.Value
+              val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
+          pure [("anyOf", val)]
+        CommentSchema comment s -> (("$comment" JSON..= comment) :) <$> go s
+        ReferenceSchema name s -> do
+          alreadySeen <- gets (M.member name)
+          when (not alreadySeen) $ do
+            modify (M.insert name JSON.Null) -- TODO Dummy value
+            val <- go s
+            modify (M.insert name (JSON.object val))
+          -- Here we don't recurse, on purpose.
+          pure ["$ref" JSON..= ("#/$defs/" <> name :: Text)]
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
@@ -198,6 +233,7 @@ jsonSchemaVia = go
       EitherCodec c1 c2 -> ChoiceSchema (goChoice (go c1 :| [go c2]))
       ExtraParserCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
+      ReferenceCodec t c -> ReferenceSchema t (go c)
 
     goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goChoice (s :| rest) = case NE.nonEmpty rest of

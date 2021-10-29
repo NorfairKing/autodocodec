@@ -36,6 +36,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , mtl
     , scientific
     , text
     , unordered-containers
