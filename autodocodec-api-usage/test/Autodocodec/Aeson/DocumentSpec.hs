@@ -9,6 +9,7 @@ module Autodocodec.Aeson.DocumentSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
+import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
 import Data.GenValidity
@@ -54,7 +55,7 @@ spec = do
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   jsonSchemaSpec @[Text] "list-text"
   jsonSchemaSpec @Example "example"
-  jsonSchemaSpec @R "r"
+  jsonSchemaSpec @Recursive "recursive"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     it "roundtrips through json and back" $

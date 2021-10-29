@@ -10,12 +10,9 @@
 module Autodocodec.Usage where
 
 import Autodocodec
-import Autodocodec.Aeson
 import Control.Applicative
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Types as JSON
-import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()

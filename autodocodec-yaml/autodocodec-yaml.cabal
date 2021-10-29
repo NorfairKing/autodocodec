@@ -38,34 +38,3 @@ library
     , text
     , yaml
   default-language: Haskell2010
-
-test-suite autodocodec-yaml-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Autodocodec.Yaml.DocumentSpec
-      Paths_autodocodec_yaml
-  hs-source-dirs:
-      test/
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-tool-depends:
-      sydtest-discover:sydtest-discover
-  build-depends:
-      QuickCheck
-    , aeson
-    , autodocodec
-    , autodocodec-aeson
-    , autodocodec-yaml
-    , base >=4.7 && <5
-    , bytestring
-    , genvalidity
-    , genvalidity-aeson
-    , genvalidity-scientific
-    , genvalidity-sydtest
-    , genvalidity-text
-    , safe-coloured-text
-    , scientific
-    , sydtest
-    , sydtest-aeson
-    , text
-  default-language: Haskell2010

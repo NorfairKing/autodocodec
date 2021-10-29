@@ -7,6 +7,7 @@ module Autodocodec.AesonSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
+import Autodocodec.Usage
 import Control.Applicative
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -55,7 +56,7 @@ spec = do
   aesonCodecSpec @[Text]
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
-  aesonCodecSpec @R
+  aesonCodecSpec @Recursive
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =

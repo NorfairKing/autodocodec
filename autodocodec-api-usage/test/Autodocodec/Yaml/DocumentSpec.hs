@@ -6,6 +6,7 @@
 module Autodocodec.Yaml.DocumentSpec (spec) where
 
 import Autodocodec
+import Autodocodec.Usage
 import Autodocodec.Yaml
 import qualified Data.Aeson as JSON
 import Data.Data
@@ -50,7 +51,7 @@ spec = do
   yamlSchemaSpec @[Text] "list-text"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
-  yamlSchemaSpec @R "r"
+  yamlSchemaSpec @Recursive "recursive"
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do
