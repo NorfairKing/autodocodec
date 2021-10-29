@@ -1,0 +1,28 @@
+name: autodocodec-api-usage
+version: 0.0.0.0
+github: "NorfairKing/autodocodec"
+license: MIT
+license-file: LICENSE
+author: "Tom Sydney Kerckhove"
+maintainer: "syd@cs-syd.eu"
+copyright: "2021 Tom Sydney Kerckhove"
+synopsis: Autodocodec api usage tests
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - QuickCheck
+  - aeson
+  - autodocodec
+  - autodocodec-aeson
+  - autodocodec-yaml
+  - bytestring
+  - genvalidity
+  - genvalidity-aeson
+  - genvalidity-scientific
+  - genvalidity-text
+  - scientific
+  - text

@@ -11,6 +11,7 @@ with final.haskell.lib;
       "autodocodec"
       "autodocodec-aeson"
       "autodocodec-yaml"
+      "autodocodec-api-usage"
     ]
       autodocodecPkg;
 

@@ -1,0 +1,45 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           autodocodec-api-usage
+version:        0.0.0.0
+synopsis:       Autodocodec api usage tests
+homepage:       https://github.com/NorfairKing/autodocodec#readme
+bug-reports:    https://github.com/NorfairKing/autodocodec/issues
+author:         Tom Sydney Kerckhove
+maintainer:     syd@cs-syd.eu
+copyright:      2021 Tom Sydney Kerckhove
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/NorfairKing/autodocodec
+
+library
+  exposed-modules:
+      Autodocodec
+      Autodocodec.Usage
+  other-modules:
+      Paths_autodocodec_api_usage
+  hs-source-dirs:
+      src
+  build-depends:
+      QuickCheck
+    , aeson
+    , autodocodec
+    , autodocodec-aeson
+    , autodocodec-yaml
+    , base >=4.7 && <5
+    , bytestring
+    , genvalidity
+    , genvalidity-aeson
+    , genvalidity-scientific
+    , genvalidity-text
+    , scientific
+    , text
+  default-language: Haskell2010

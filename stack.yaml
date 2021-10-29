@@ -3,6 +3,8 @@ packages:
 - autodocodec
 - autodocodec-aeson
 - autodocodec-yaml
+# Test-only
+- autodocodec-api-usage
 extra-deps:
 
 - github: NorfairKing/validity

@@ -1,5 +1,4 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -121,70 +120,3 @@ jsonSchemaSpec filePath =
     it "validates all encoded values" $
       forAllValid $ \(a :: a) ->
         validateAccordingTo (toJSONViaCodec a) (jsonSchemaViaCodec @a) `shouldBe` True
-
-data Fruit = Apple | Orange | Banana | Melon
-  deriving (Show, Eq, Generic, Enum, Bounded)
-
-instance Validity Fruit
-
-instance GenValid Fruit where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-instance HasCodec Fruit where
-  codec = shownBoundedEnumCodec
-
-data Example = Example
-  { exampleText :: !Text,
-    exampleBool :: !Bool,
-    exampleRequiredMaybe :: !(Maybe Text),
-    exampleOptional :: !(Maybe Text),
-    exampleFruit :: !Fruit
-  }
-  deriving (Show, Eq, Generic)
-
-instance Validity Example
-
-instance GenValid Example where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-instance HasCodec Example where
-  codec =
-    object "Example" $
-      Example
-        <$> requiredField "text" .= exampleText
-        <*> requiredField "bool" .= exampleBool
-        <*> requiredField "maybe" .= exampleRequiredMaybe
-        <*> optionalField "optional" .= exampleOptional
-        <*> requiredField "fruit" .= exampleFruit
-
--- Recursive type
-data R
-  = N Int
-  | S R
-  deriving (Show, Eq, Generic)
-
-instance Validity R
-
-instance GenValid R where
-  shrinkValid = \case
-    N i -> N <$> shrinkValid i
-    S r -> [r]
-  genValid = sized $ \n -> case n of
-    0 -> N <$> genValid
-    _ -> oneof [N <$> genValid, S <$> resize (n -1) genValid]
-
-instance HasCodec R where
-  codec =
-    ReferenceCodec "R" $
-      let f = \case
-            Left i -> N i
-            Right r -> S r
-          g = \case
-            N i -> Left i
-            S r -> Right r
-       in bimapCodec f g $
-            eitherCodec
-              (codec @Int)
-              (object "S" $ requiredField "s" .= id)

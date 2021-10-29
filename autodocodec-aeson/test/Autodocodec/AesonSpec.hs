@@ -1,8 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -59,107 +56,6 @@ spec = do
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecSpec @R
-
-data Fruit = Apple | Orange | Banana | Melon
-  deriving (Show, Eq, Generic, Enum, Bounded)
-
-instance Validity Fruit
-
-instance GenValid Fruit where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-instance HasCodec Fruit where
-  codec = shownBoundedEnumCodec
-
-instance FromJSON Fruit
-
-instance ToJSON Fruit
-
-data Example = Example
-  { exampleText :: !Text,
-    exampleBool :: !Bool,
-    exampleRequiredMaybe :: !(Maybe Text),
-    exampleOptional :: !(Maybe Text),
-    exampleFruit :: !Fruit
-  }
-  deriving (Show, Eq, Generic)
-
-instance Validity Example
-
-instance GenValid Example where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-instance HasCodec Example where
-  codec =
-    object "Example" $
-      Example
-        <$> requiredField "text" .= exampleText
-        <*> requiredField "bool" .= exampleBool
-        <*> requiredField "maybe" .= exampleRequiredMaybe
-        <*> optionalField "optional" .= exampleOptional
-        <*> requiredField "fruit" .= exampleFruit
-
-instance ToJSON Example where
-  toJSON Example {..} =
-    JSON.object $
-      concat
-        [ [ "text" JSON..= exampleText,
-            "bool" JSON..= exampleBool,
-            "maybe" JSON..= exampleRequiredMaybe,
-            "fruit" JSON..= exampleFruit
-          ],
-          ["optional" JSON..= opt | opt <- maybeToList exampleOptional]
-        ]
-
-instance FromJSON Example where
-  parseJSON = JSON.withObject "Example" $ \o ->
-    Example
-      <$> o JSON..: "text"
-      <*> o JSON..: "bool"
-      <*> o JSON..: "maybe"
-      <*> o JSON..:? "optional"
-      <*> o JSON..: "fruit"
-
--- Recursive type
-data R
-  = N Int
-  | S R
-  deriving (Show, Eq, Generic)
-
-instance Validity R
-
-instance GenValid R where
-  shrinkValid = \case
-    N i -> N <$> shrinkValid i
-    S r -> [r]
-  genValid = sized $ \n -> case n of
-    0 -> N <$> genValid
-    _ -> oneof [N <$> genValid, S <$> resize (n -1) genValid]
-
-instance ToJSON R where
-  toJSON = \case
-    N n -> toJSON n
-    S r -> JSON.object ["s" JSON..= r]
-
-instance FromJSON R where
-  parseJSON v =
-    JSON.withObject "S" (\o -> S <$> o JSON..: "s") v
-      <|> (N <$> JSON.parseJSON v)
-
-instance HasCodec R where
-  codec =
-    let f = \case
-          Left i -> N i
-          Right r -> S r
-        g = \case
-          N i -> Left i
-          S r -> Right r
-     in bimapCodec f g $
-          eitherCodec
-            (codec @Int)
-            (object "S" $ requiredField "s" .= id)
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =
