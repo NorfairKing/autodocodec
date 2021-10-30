@@ -47,7 +47,7 @@ data JSONSchema
   | NumberSchema
   | ArraySchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
-    ObjectSchema ![(Text, (KeyRequirement, JSONSchema))]
+    ObjectSchema ![(Text, (KeyRequirement, JSONSchema, Maybe Text))]
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
   | DefaultSchema
@@ -73,11 +73,12 @@ showJSONSchemaABit = ($ "") . (`evalState` S.empty) . go 0
       NumberSchema -> pure $ showString "NumberSchema"
       ArraySchema c -> (\s -> showParen (d > 10) $ showString "ArraySchema " . s) <$> go 11 c
       ObjectSchema kss -> do
-        fs <- forM kss $ \(k, (kr, ks)) -> do
+        fs <- forM kss $ \(k, (kr, ks, mdoc)) -> do
           let f1 = showsPrec d k
           let f2 = showsPrec d kr
           f3 <- go d ks
-          pure $ f1 . showString " " . f2 . showString " " . f3
+          let f4 = showsPrec d mdoc
+          pure $ f1 . showString " " . f2 . showString " " . f3 . showString " " . f4
         let s = appEndo $ mconcat $ map Endo fs
         pure $ showParen (d > 10) $ showString "ObjectSchema " . s
       ValueSchema v -> pure $ showString "ValueSchema " . showsPrec d v
@@ -120,9 +121,9 @@ validateAccordingTo = go
           let goKey :: Text -> JSON.Value -> Bool
               goKey key value' = case lookup key kss of
                 Nothing -> False
-                Just (_, ks) -> go value' ks
-              goKeySchema :: Text -> (KeyRequirement, JSONSchema) -> Bool
-              goKeySchema key (kr, ks) = case HM.lookup key hm of
+                Just (_, ks, _) -> go value' ks
+              goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> Bool
+              goKeySchema key (kr, ks, _) = case HM.lookup key hm of
                 Nothing -> kr == Optional
                 Just value' -> go value' ks
               actualKeys = HM.toList hm
@@ -178,7 +179,7 @@ instance ToJSON JSONSchema where
           pure ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
         ValueSchema v -> pure ["const" JSON..= v]
         ObjectSchema os -> do
-          let combine (ps, rps) (k, (r, s)) =
+          let combine (ps, rps) (k, (r, s, _)) =
                 ( (k, s) : ps,
                   case r of
                     Required -> S.insert k rps
@@ -245,7 +246,8 @@ instance FromJSON JSONSchema where
                     ( if k `elem` requiredProps
                         then Required
                         else Optional,
-                      s
+                      s,
+                      Nothing -- TODO
                     )
                   )
             pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
@@ -283,8 +285,8 @@ jsonSchemaVia = go
       PureCodec _ -> AnySchema -- TODO is this right?
       ApCodec oc1 oc2 -> ObjectSchema (goObject oc1 ++ goObject oc2)
       DefaultCodec value shownValue c -> DefaultSchema shownValue (JSON.Object (toContextVia c (Just value))) (go c)
-      RequiredKeyCodec k c -> ObjectSchema [(k, (Required, go c))]
-      OptionalKeyCodec k c -> ObjectSchema [(k, (Optional, go c))]
+      RequiredKeyCodec k c mdoc -> ObjectSchema [(k, (Required, go c, mdoc))]
+      OptionalKeyCodec k c mdoc -> ObjectSchema [(k, (Optional, go c, mdoc))]
 
     goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goChoice (s :| rest) = case NE.nonEmpty rest of
@@ -296,11 +298,14 @@ jsonSchemaVia = go
           ChoiceSchema ss -> goChoice ss
           s' -> s' :| []
 
-    goObject :: ObjectCodec input output -> [(Text, (KeyRequirement, JSONSchema))]
+    goObject :: ObjectCodec input output -> [(Text, (KeyRequirement, JSONSchema, Maybe Text))]
     goObject = \case
-      RequiredKeyCodec k c -> [(k, (Required, go c))]
-      OptionalKeyCodec k c -> [(k, (Optional, go c))]
+      RequiredKeyCodec k c mdoc -> [(k, (Required, go c, mdoc))]
+      OptionalKeyCodec k c mdoc -> [(k, (Optional, go c, mdoc))]
       MapCodec _ _ c -> goObject c
-      DefaultCodec value shownValue c -> map (second (second (DefaultSchema shownValue (JSON.Object (toContextVia c (Just value)))))) (goObject c) -- TODO This isn't exactly clean, is it?
+      DefaultCodec value shownValue c -> map (second (\(kr, s, mt) -> (kr, DefaultSchema shownValue (JSON.Object (toContextVia c (Just value))) s, mt))) (goObject c) -- TODO This isn't exactly clean, is it?
       PureCodec _ -> [] -- TODO show something ?
       ApCodec oc1 oc2 -> goObject oc1 ++ goObject oc2
+
+uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
+uncurry3 f (a, b, c) = f a b c

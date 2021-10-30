@@ -34,8 +34,8 @@ toContextVia = flip go
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
-      RequiredKeyCodec k c -> k JSON..= go a c
-      OptionalKeyCodec k c -> case a of
+      RequiredKeyCodec k c _ -> k JSON..= go a c
+      OptionalKeyCodec k c _ -> case a of
         Nothing -> mempty
         Just b -> k JSON..= go b c
       DefaultCodec _ _ c -> go (Just a) c -- Default value is ignored during encoding.

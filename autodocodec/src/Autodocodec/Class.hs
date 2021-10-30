@@ -92,8 +92,8 @@ instance HasCodec a => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     eitherCodec
-      (ObjectCodec Nothing (requiredField "Left"))
-      (ObjectCodec Nothing (requiredField "Right"))
+      (ObjectCodec Nothing (requiredField' "Left"))
+      (ObjectCodec Nothing (requiredField' "Right"))
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodec
@@ -107,10 +107,22 @@ instance HasCodec a => HasCodec [a] where
 -- See 'requiredFieldWith'
 requiredField ::
   HasCodec output =>
-  -- | The key
+  -- | Key
   Text ->
+  -- | Documentation
+  Text ->
+  -- |
   ObjectCodec output output
 requiredField key = requiredFieldWith key codec
+
+-- | Like 'requiredField', but without documentation
+requiredField' ::
+  HasCodec output =>
+  -- | Key
+  Text ->
+  -- |
+  ObjectCodec output output
+requiredField' key = requiredFieldWith' key codec
 
 -- | An optional field
 --
@@ -121,10 +133,22 @@ requiredField key = requiredFieldWith key codec
 -- See 'optionalFieldWith'
 optionalField ::
   HasCodec output =>
-  -- | The key
+  -- | Key
   Text ->
+  -- | Documentation
+  Text ->
+  -- |
   ObjectCodec (Maybe output) (Maybe output)
 optionalField key = optionalFieldWith key codec
+
+-- | Like 'optionalField', but without documentation
+optionalField' ::
+  HasCodec output =>
+  -- | Key
+  Text ->
+  -- |
+  ObjectCodec (Maybe output) (Maybe output)
+optionalField' key = optionalFieldWith' key codec
 
 -- | An optional, or null, field
 --
@@ -135,11 +159,33 @@ optionalField key = optionalFieldWith key codec
 optionalFieldOrNull ::
   forall output.
   HasCodec output =>
-  -- | The key
+  -- | Key
+  Text ->
+  -- | Documentation
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull key =
-  dimapCodec f g $ OptionalKeyCodec key (maybeCodec codec)
+optionalFieldOrNull key doc =
+  dimapCodec f g $ OptionalKeyCodec key (maybeCodec codec) (Just doc)
+  where
+    f :: Maybe (Maybe output) -> Maybe output
+    f = \case
+      Nothing -> Nothing
+      Just Nothing -> Nothing
+      Just (Just a) -> Just a
+    g :: Maybe output -> Maybe (Maybe output)
+    g = \case
+      Nothing -> Nothing
+      Just a -> Just (Just a)
+
+-- | Like 'optionalFieldOrNull', but without documentation
+optionalFieldOrNull' ::
+  forall output.
+  HasCodec output =>
+  -- | Key
+  Text ->
+  ObjectCodec (Maybe output) (Maybe output)
+optionalFieldOrNull' key =
+  dimapCodec f g $ OptionalKeyCodec key (maybeCodec codec) Nothing
   where
     f :: Maybe (Maybe output) -> Maybe output
     f = \case

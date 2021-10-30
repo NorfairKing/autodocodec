@@ -60,10 +60,10 @@ parseContextVia = flip go
       EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
-      RequiredKeyCodec k c -> do
+      RequiredKeyCodec k c _ -> do
         valueAtKey <- value JSON..: k
         go valueAtKey c
-      OptionalKeyCodec k c -> do
+      OptionalKeyCodec k c _ -> do
         let mValueAtKey = HM.lookup k value
         forM mValueAtKey $ \valueAtKey -> go valueAtKey c
       DefaultCodec defaultValue _ c -> fromMaybe defaultValue <$> go value c

@@ -134,17 +134,21 @@ data Codec context input output where
     -- |
     ValueCodec input output
   RequiredKeyCodec ::
-    -- |
+    -- | The key
     Text ->
     -- |
     ValueCodec input output ->
+    -- | Documentation
+    Maybe Text ->
     -- |
     ObjectCodec input output
   OptionalKeyCodec ::
-    -- |
+    -- | The key
     Text ->
     -- |
     ValueCodec input output ->
+    -- | Documentation
+    Maybe Text ->
     -- |
     Codec JSON.Object (Maybe input) (Maybe output)
   DefaultCodec ::
@@ -219,8 +223,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
             modify (S.insert name)
             s <- go d c
             pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name . showString " " . s
-      RequiredKeyCodec k c -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
-      OptionalKeyCodec k c -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
+      RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
       PureCodec _ -> pure $ showString "PureCodec" -- TODO add show instance?
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
       DefaultCodec _ defaultShown c -> (\s -> showParen (d > 10) $ showString "DefaultCodec " . showsPrec d defaultShown . showString " " . s) <$> go 11 c
@@ -328,35 +332,48 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 -- During decoding, the field must be in the object.
 --
 -- During encoding, the field will always be in the object.
---
---
--- This is a forward-compatible version of 'RequiredField'
---
--- > requiredFieldWith = RequiredKeyCodec
 requiredFieldWith ::
   -- | The key
   Text ->
   -- | The codec for the value
   ValueCodec input output ->
+  -- | Documentation
+  Text ->
   ObjectCodec input output
-requiredFieldWith = RequiredKeyCodec
+requiredFieldWith key c doc = RequiredKeyCodec key c (Just doc)
+
+-- | Like 'requiredFieldWith', but without documentation.
+requiredFieldWith' ::
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  ValueCodec input output ->
+  ObjectCodec input output
+requiredFieldWith' key c = RequiredKeyCodec key c Nothing
 
 -- | An optional field
 --
 -- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
 --
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
---
--- This is a forward-compatible version of 'OptionalField'
---
--- > optionalFieldWith = OptionalKeyCodec
 optionalFieldWith ::
   -- | The key
   Text ->
   -- | The codec for the value
   ValueCodec input output ->
+  -- | Documentation
+  Text ->
   ObjectCodec (Maybe input) (Maybe output)
-optionalFieldWith = OptionalKeyCodec
+optionalFieldWith key c doc = OptionalKeyCodec key c (Just doc)
+
+-- | Like 'optionalFieldWith', but without documentation.
+optionalFieldWith' ::
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  ValueCodec input output ->
+  ObjectCodec (Maybe input) (Maybe output)
+optionalFieldWith' key c = OptionalKeyCodec key c Nothing
 
 -- | Add a default value to a codec, documented using its show instance.
 --

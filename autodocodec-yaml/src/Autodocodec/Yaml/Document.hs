@@ -13,6 +13,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml as Yaml
@@ -49,9 +50,12 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
         let requirementComment = \case
               Required -> fore red "required"
               Optional -> fore blue "optional"
-            keySchemaFor k (kr, ks) = do
+            keySchemaFor k (kr, ks, mdoc) = do
               keySchemaChunks <- go ks
-              pure $ addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (["# ", requirementComment kr] : keySchemaChunks)
+              let docToLines :: Text -> [[Chunk]]
+                  docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
+              let prefixLines = ["# ", requirementComment kr] : maybe [] docToLines mdoc
+              pure $ addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
          in if null s
               then pure [["<object>"]]
               else concat <$> mapM (uncurry keySchemaFor) s

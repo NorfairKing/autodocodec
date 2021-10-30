@@ -63,13 +63,13 @@ instance HasCodec Example where
   codec =
     object "Example" $
       Example
-        <$> requiredField "text" .= exampleText
-        <*> requiredField "bool" .= exampleBool
-        <*> requiredField "maybe" .= exampleRequiredMaybe
-        <*> optionalField "optional" .= exampleOptional
-        <*> optionalFieldOrNull "optional-or-null" .= exampleOptionalOrNull
-        <*> optionalField "optional-with-default" .!= "foobar" .= exampleOptionalWithDefault
-        <*> requiredField "fruit" .= exampleFruit
+        <$> requiredField "text" "a text" .= exampleText
+        <*> requiredField "bool" "a bool" .= exampleBool
+        <*> requiredField "maybe" "a maybe text" .= exampleRequiredMaybe
+        <*> optionalField "optional" "an optional text" .= exampleOptional
+        <*> optionalFieldOrNull "optional-or-null" "an optional-or-null text" .= exampleOptionalOrNull
+        <*> optionalField "optional-with-default" "an optional text with a default" .!= "foobar" .= exampleOptionalWithDefault
+        <*> requiredField "fruit" "fruit!!" .= exampleFruit
 
 instance ToJSON Example where
   toJSON Example {..} =
@@ -147,5 +147,5 @@ instance HasCodec Recursive where
             Recurse r -> Right r
        in dimapCodec f g $
             eitherCodec
-              (codec @Int)
-              (object "Recurse" $ requiredField "recurse")
+              (codec @Int <?> "base case")
+              (object "Recurse" $ requiredField "recurse" "recursive case")
