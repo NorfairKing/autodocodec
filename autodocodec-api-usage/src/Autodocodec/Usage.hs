@@ -47,6 +47,7 @@ data Example = Example
     exampleBool :: !Bool,
     exampleRequiredMaybe :: !(Maybe Text),
     exampleOptional :: !(Maybe Text),
+    exampleOptionalOrNull :: !(Maybe Text),
     exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
@@ -65,6 +66,7 @@ instance HasCodec Example where
         <*> requiredField "bool" .= exampleBool
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
+        <*> optionalFieldOrNull "optional-or-null" .= exampleOptionalOrNull
         <*> requiredField "fruit" .= exampleFruit
 
 instance ToJSON Example where
@@ -76,7 +78,12 @@ instance ToJSON Example where
             "maybe" JSON..= exampleRequiredMaybe,
             "fruit" JSON..= exampleFruit
           ],
-          ["optional" JSON..= opt | opt <- maybeToList exampleOptional]
+          [ "optional" JSON..= opt
+            | opt <- maybeToList exampleOptional
+          ],
+          [ "optional-or-null" JSON..= opt
+            | opt <- maybeToList exampleOptionalOrNull
+          ]
         ]
 
 instance FromJSON Example where
@@ -86,9 +93,16 @@ instance FromJSON Example where
       <*> o JSON..: "bool"
       <*> o JSON..: "maybe"
       <*> o JSON..:? "optional"
+      <*> o JSON..:? "optional-or-null"
       <*> o JSON..: "fruit"
 
 -- Recursive type
+--
+-- We use this example to make sure that:
+--
+-- 1. We can define recursive types
+-- 2. We can encode, decode, and document a recursive type finitely.
+-- 3. TODO We can roundtrip its json schema through json.
 data Recursive
   = Base Int
   | Recurse Recursive

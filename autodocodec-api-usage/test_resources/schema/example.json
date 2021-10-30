@@ -37,6 +37,16 @@
                 }
             ]
         },
+        "optional-or-null": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
         "bool": {
             "type": "boolean"
         },

@@ -9,6 +9,10 @@
   ]
 [37moptional[m: # [34moptional[m
   [33m<string>[m
+[37moptional-or-null[m: # [34moptional[m
+  [ [33mnull[m
+  , [33m<string>[m
+  ]
 [37mfruit[m: # [31mrequired[m
   [ Apple
 

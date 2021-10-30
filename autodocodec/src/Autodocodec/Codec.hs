@@ -111,8 +111,9 @@ bimapCodec = BimapCodec
 eitherCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
 
+-- | Value or null.
 maybeCodec :: Codec input output -> Codec (Maybe input) (Maybe output)
-maybeCodec = bimapCodec f g . EitherCodec NullCodec
+maybeCodec = bimapCodec f g . EitherCodec nullCodec
   where
     f = \case
       Left () -> Nothing
@@ -161,6 +162,9 @@ apObjectCodec = ApObjectCodec
 
 (<??>) :: Codec input output -> [Text] -> Codec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
+
+nullCodec :: Codec () ()
+nullCodec = NullCodec
 
 boolCodec :: Codec Bool Bool
 boolCodec = BoolCodec
