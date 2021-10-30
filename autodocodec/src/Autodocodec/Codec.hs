@@ -16,30 +16,63 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 
+-- | A Self-documenting encoder and decoder,
+--
+-- also called an "Autodocodec".
+--
+-- In an ideal situation, this type would have only one type paramater: 'Codec value'.
+-- This does not work very well because we want to be able to implement 'Functor' and 'Applicative', which each require a kind '* -> *'.
+-- So instead we use two type parameters.
+--
+-- The two type parameters correspond to the phase in which they are used:
+--
+-- * The @input@ parameter is used for the type that is used during encoding of a value.
+-- * The @output@ parameter is used for the type that is used during decoding of a value.
+-- * Both parameters are usused during documentation.
 data Codec input output where
-  -- | Any value
-  ValueCodec :: Codec JSON.Value JSON.Value
-  -- | The 'null' value
-  NullCodec :: Codec () ()
-  BoolCodec :: Codec Bool Bool
+  -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
+  ValueCodec ::
+    -- |
+    Codec JSON.Value JSON.Value
+  -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
+  NullCodec ::
+    -- |
+    Codec () ()
+  -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
+  BoolCodec ::
+    -- |
+    Codec Bool Bool
   -- | A String value
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
-  StringCodec :: Codec Text Text
-  NumberCodec :: Codec Scientific Scientific -- TODO can we do this without scientific?
-  -- TODO use a vector here because that's what aeson uses.
+  StringCodec ::
+    -- |
+    Codec Text Text
+  NumberCodec ::
+    -- |
+    Codec Scientific Scientific -- TODO can we do this without scientific?
+    -- TODO use a vector here because that's what aeson uses.
   ArrayCodec ::
+    -- |
     !(Maybe Text) ->
+    -- |
     !(Codec input output) ->
+    -- |
     Codec [input] [output]
   ObjectCodec ::
+    -- |
     !(Maybe Text) ->
+    -- |
     !(ObjectCodec value value) ->
+    -- |
     Codec value value
   EqCodec ::
     (Show value, Eq value) =>
+    -- |
     !value ->
+    -- |
     !(Codec value value) ->
+    -- |
     Codec value value
   -- | To implement 'fmap', and to map a codec in both directions.
   --
@@ -47,20 +80,52 @@ data Codec input output where
   -- but we can implement bimap using this function by using a decoding function that does not fail.
   -- Otherwise we would have to have another constructor here.
   MapCodec ::
+    -- |
     !(oldOutput -> Either String newOutput) ->
+    -- |
     !(newInput -> oldInput) ->
+    -- |
     !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
+  -- | Encode/Decode an 'Either' value
+  --
+  -- During encoding, encode either value of an 'Either' using their own codec.
+  -- During decoding, try to parse the 'Left' side first, and the 'Right' side only when that fails.
+  --
+  --
+  -- This codec is used to implement choice.
   EitherCodec ::
+    -- | Codec for the 'Left' side
     !(Codec input1 output1) ->
+    -- | Codec for the 'Right' side
     !(Codec input2 output2) ->
+    -- |
     Codec (Either input1 input2) (Either output1 output2)
-  -- For adding implementation-irrelevant but human-relevant information.
-  CommentCodec :: Text -> Codec input output -> Codec input output
-  -- For naming a codec, so that recursive codecs can have a finite schema.
-  ReferenceCodec :: Text -> Codec input output -> Codec input output
+  -- | A comment codec
+  --
+  -- This is used to add implementation-irrelevant but human-relevant information.
+  CommentCodec ::
+    -- | Comment
+    Text ->
+    -- |
+    Codec input output ->
+    -- |
+    Codec input output
+  -- | A reference codec
+  --
+  -- This is used for naming a codec, so that recursive codecs can have a finite schema.
+  ReferenceCodec ::
+    -- |
+    Text ->
+    -- |
+    Codec input output ->
+    -- |
+    Codec input output
 
--- Jsut for debugging
+-- | Show a codec to a human.
+--
+-- This function exists for codec debugging.
+-- It omits any unshowable information from the output.
 showCodecABit :: Codec input output -> String
 showCodecABit = ($ "") . (`evalState` S.empty) . go 0
   where
@@ -94,16 +159,48 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       BimapObjectCodec _ _ oc -> (\s -> showParen (d > 10) $ showString "BimapObjectCodec " . s) <$> goObject 11 oc
       ApObjectCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "KeyCodec " . s1 . showString " " . s2) <$> goObject 11 oc1 <*> goObject 11 oc2
 
-fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
+-- | Map the output part of a codec
+--
+-- You can use this function if you only need to map the parsing-side of a codec.
+-- This function is probably only useful if the function you map does not change the codec type.
+--
+-- WARNING: This can be used to produce a codec that does not roundtrip.
+--
+-- TODO example
+fmapCodec ::
+  (oldOutput -> newOutput) ->
+  Codec input oldOutput ->
+  Codec input newOutput
 fmapCodec f = MapCodec (Right . f) id
 
-comapCodec :: (newInput -> oldInput) -> Codec oldInput output -> Codec newInput output
+-- | Map the input part of a codec
+--
+-- You can use this function if you only need to map the rendering-side of a codec.
+-- This function is probably only useful if the function you map does not change the codec type.
+--
+-- WARNING: This can be used to produce a codec that does not roundtrip.
+--
+-- TODO example
+comapCodec ::
+  (newInput -> oldInput) ->
+  Codec oldInput output ->
+  Codec newInput output
 comapCodec g = MapCodec Right g
 
-bimapCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> Codec oldInput oldOutput -> Codec newInput newOutput
+-- | Map both directions of a codec
+--
+-- You can use this function to change the type of a codec.
+bimapCodec ::
+  (oldOutput -> newOutput) ->
+  (newInput -> oldInput) ->
+  Codec oldInput oldOutput ->
+  Codec newInput newOutput
 bimapCodec f g = MapCodec (Right . f) g
 
-eitherCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
+eitherCodec ::
+  Codec input1 output1 ->
+  Codec input2 output2 ->
+  Codec (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
 
 -- | Value or null.
