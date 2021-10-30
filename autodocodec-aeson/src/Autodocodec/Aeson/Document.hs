@@ -266,9 +266,8 @@ jsonSchemaVia = go
       ArrayCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
       ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
       EqCodec value c -> ValueSchema (toJSONVia c value)
-      BimapCodec _ _ c -> go c
       EitherCodec c1 c2 -> ChoiceSchema (goChoice (go c1 :| [go c2]))
-      ExtraParserCodec _ _ c -> go c
+      MapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
       ReferenceCodec t c -> ReferenceSchema t (go c)
 

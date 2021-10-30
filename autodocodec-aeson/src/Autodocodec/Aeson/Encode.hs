@@ -25,8 +25,7 @@ toJSONVia = flip go
       ArrayCodec _ c -> toJSON (map (`go` c) a)
       ObjectCodec _ oc -> JSON.Object (goObject a oc)
       EqCodec value c -> go value c
-      BimapCodec _ g c -> go (g a) c
-      ExtraParserCodec _ g c -> go (g a) c
+      MapCodec _ g c -> go (g a) c
       EitherCodec c1 c2 -> case a of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2

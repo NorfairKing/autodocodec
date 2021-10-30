@@ -42,8 +42,12 @@ data Codec input output where
     !(Codec value value) ->
     Codec value value
   -- | To implement 'fmap', and to map a codec in both directions.
-  BimapCodec ::
-    !(oldOutput -> newOutput) ->
+  --
+  -- This is not strictly bimap, because the decoding function is allowed to fail,
+  -- but we can implement bimap using this function by using a decoding function that does not fail.
+  -- Otherwise we would have to have another constructor here.
+  MapCodec ::
+    !(oldOutput -> Either String newOutput) ->
     !(newInput -> oldInput) ->
     !(Codec oldInput oldOutput) ->
     Codec newInput newOutput
@@ -51,14 +55,6 @@ data Codec input output where
     !(Codec input1 output1) ->
     !(Codec input2 output2) ->
     Codec (Either input1 input2) (Either output1 output2)
-  -- For parsing with potential errors
-  -- TODO: maybe we want to get rid of bimap and implement it in terms of this?
-  -- TODO: this should get a better name.
-  ExtraParserCodec ::
-    !(oldOutput -> Either String newOutput) ->
-    !(newInput -> oldInput) ->
-    !(Codec oldInput oldOutput) ->
-    Codec newInput newOutput
   -- For adding implementation-irrelevant but human-relevant information.
   CommentCodec :: Text -> Codec input output -> Codec input output
   -- For naming a codec, so that recursive codecs can have a finite schema.
@@ -78,9 +74,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ArrayCodec name c -> (\s -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . s) <$> go 11 c
       ObjectCodec name oc -> (\s -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . s) <$> goObject 11 oc
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
-      BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec " . s) <$> go 11 c
+      MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
-      ExtraParserCodec _ _ c -> (\s -> showParen (d > 10) $ showString "ExtraParserCodec " . s) <$> go 11 c
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
@@ -100,13 +95,13 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ApObjectCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "KeyCodec " . s1 . showString " " . s2) <$> goObject 11 oc1 <*> goObject 11 oc2
 
 fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
-fmapCodec f = BimapCodec f id
+fmapCodec f = MapCodec (Right . f) id
 
 comapCodec :: (newInput -> oldInput) -> Codec oldInput output -> Codec newInput output
-comapCodec g = BimapCodec id g
+comapCodec g = MapCodec Right g
 
 bimapCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> Codec oldInput oldOutput -> Codec newInput newOutput
-bimapCodec = BimapCodec
+bimapCodec f g = MapCodec (Right . f) g
 
 eitherCodec :: Codec input1 output1 -> Codec input2 output2 -> Codec (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
@@ -173,7 +168,7 @@ textCodec :: Codec Text Text
 textCodec = StringCodec
 
 stringCodec :: Codec String String
-stringCodec = BimapCodec T.unpack T.pack StringCodec
+stringCodec = bimapCodec T.unpack T.pack StringCodec
 
 scientificCodec :: Codec Scientific Scientific
 scientificCodec = NumberCodec
@@ -182,7 +177,7 @@ object :: Text -> ObjectCodec value value -> Codec value value
 object name = ObjectCodec (Just name)
 
 boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
-boundedIntegerCodec = ExtraParserCodec go fromIntegral NumberCodec
+boundedIntegerCodec = MapCodec go fromIntegral NumberCodec
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number too big: " <> show s
@@ -200,7 +195,7 @@ matchChoiceCodec ::
   (newInput -> Maybe input, Codec input output) ->
   Codec newInput output
 matchChoiceCodec (f1, c1) (f2, c2) =
-  BimapCodec f g $
+  bimapCodec f g $
     eitherCodec c1 c2
   where
     f = \case

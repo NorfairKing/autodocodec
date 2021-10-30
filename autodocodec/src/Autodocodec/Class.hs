@@ -40,7 +40,7 @@ instance HasCodec Char where
           [] -> Left "Expected exactly 1 character, but got none."
           [c] -> Right c
           _ -> Left "Expected exactly 1 character, but got more."
-     in ExtraParserCodec parseChar (: []) stringCodec
+     in MapCodec parseChar (: []) stringCodec
   listCodec = stringCodec
 
 instance HasCodec Text where
