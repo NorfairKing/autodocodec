@@ -28,7 +28,7 @@ parseJSONVia = flip go
       BoolCodec -> parseJSON value
       StringCodec -> parseJSON value
       NumberCodec -> parseJSON value
-      ArrayCodec mname c -> withArray (maybe "Unnamed" T.unpack mname) (\a -> toList <$> mapM (`go` c) a) value
+      ArrayCodec mname c -> withArray (maybe "Unnamed" T.unpack mname) (mapM (`go` c)) value
       ObjectCodec mname c -> withObject (maybe "Unnamed" T.unpack mname) (\o -> goObject o c) value
       EqCodec expected c -> do
         actual <- go value c

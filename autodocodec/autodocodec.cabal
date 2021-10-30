@@ -37,4 +37,5 @@ library
     , mtl
     , scientific
     , text
+    , vector
   default-language: Haskell2010

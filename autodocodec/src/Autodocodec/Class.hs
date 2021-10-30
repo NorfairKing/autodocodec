@@ -12,6 +12,7 @@ import Data.Int
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import qualified Data.Vector as V
 import Data.Word
 
 class HasCodec a where
@@ -24,7 +25,7 @@ class HasCodec a where
   --
   -- This is really only useful for cases like 'Char' and 'String'
   listCodec :: Codec [a] [a]
-  listCodec = ArrayCodec Nothing codec
+  listCodec = bimapCodec V.toList V.fromList $ ArrayCodec Nothing codec
 
   {-# MINIMAL codec #-}
 

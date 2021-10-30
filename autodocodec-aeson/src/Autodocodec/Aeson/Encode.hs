@@ -22,7 +22,7 @@ toJSONVia = flip go
       BoolCodec -> toJSON (a :: Bool)
       StringCodec -> toJSON (a :: Text)
       NumberCodec -> toJSON (a :: Scientific)
-      ArrayCodec _ c -> toJSON (map (`go` c) a)
+      ArrayCodec _ c -> toJSON (fmap (`go` c) a)
       ObjectCodec _ oc -> JSON.Object (goObject a oc)
       EqCodec value c -> go value c
       MapCodec _ g c -> go (g a) c

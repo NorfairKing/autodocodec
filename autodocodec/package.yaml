@@ -20,3 +20,4 @@ library:
   - mtl
   - scientific
   - text
+  - vector

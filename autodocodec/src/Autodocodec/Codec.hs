@@ -15,6 +15,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Vector (Vector)
 
 -- | A Self-documenting encoder and decoder,
 --
@@ -55,16 +56,16 @@ data Codec input output where
   NumberCodec ::
     -- |
     Codec Scientific Scientific
-  -- TODO use a vector here because that's what aeson uses.
+  -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayCodec ::
-    -- |
+    -- | Name of the array, for error messages and documentation.
     !(Maybe Text) ->
     -- |
     !(Codec input output) ->
     -- |
-    Codec [input] [output]
+    Codec (Vector input) (Vector output)
   ObjectCodec ::
-    -- |
+    -- | Name of the array, for error messages and documentation.
     !(Maybe Text) ->
     -- |
     !(ObjectCodec value value) ->
