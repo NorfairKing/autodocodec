@@ -10,7 +10,6 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import qualified Data.HashMap.Strict as HM
-import Data.Maybe
 import qualified Data.Text as T
 
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
@@ -66,6 +65,10 @@ parseContextVia = flip go
       OptionalKeyCodec k c _ -> do
         let mValueAtKey = HM.lookup k value
         forM mValueAtKey $ \valueAtKey -> go valueAtKey c
-      DefaultCodec defaultValue _ c -> fromMaybe defaultValue <$> go value c
+      OptionalKeyWithDefaultCodec k c _ defaultValue _ -> do
+        let mValueAtKey = HM.lookup k value
+        case mValueAtKey of
+          Nothing -> pure defaultValue
+          Just valueAtKey -> go valueAtKey c
       PureCodec a -> pure a
       ApCodec ocf oca -> go value ocf <*> go value oca

@@ -109,9 +109,9 @@ instance GenValid JSONSchema where
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid
           ]
 
-instance GenUnchecked KeyRequirement
-
-instance GenValid KeyRequirement
+instance GenValid KeyRequirement where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 jsonSchemaSpec filePath =

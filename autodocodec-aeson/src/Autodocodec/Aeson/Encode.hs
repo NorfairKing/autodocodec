@@ -38,6 +38,6 @@ toContextVia = flip go
       OptionalKeyCodec k c _ -> case a of
         Nothing -> mempty
         Just b -> k JSON..= go b c
-      DefaultCodec _ _ c -> go (Just a) c -- Default value is ignored during encoding.
+      OptionalKeyWithDefaultCodec k c _ _ mdoc -> go (Just a) (OptionalKeyCodec k c mdoc)
       PureCodec _ -> error "Cannot toJSON a pure object codec."
       ApCodec oc1 oc2 -> go a oc1 <> go a oc2

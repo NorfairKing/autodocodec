@@ -150,6 +150,36 @@ optionalField' ::
   ObjectCodec (Maybe output) (Maybe output)
 optionalField' key = optionalFieldWith' key codec
 
+-- | An optional field with a default value
+--
+-- During decoding, the field may be in the object. The default value will be parsed otherwise.
+--
+-- During encoding, the field will be in the object. The default value is ignored.
+--
+-- The shown version of the default value will appear in the documentation.
+optionalFieldWithDefault ::
+  (Show output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  -- |
+  ObjectCodec output output
+optionalFieldWithDefault key defaultValue doc = optionalFieldWithDefaultWith key codec defaultValue doc
+
+-- | Like 'optionalFieldWithDefault', but without documentation
+optionalFieldWithDefault' ::
+  (Show output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  -- |
+  ObjectCodec output output
+optionalFieldWithDefault' key defaultValue = optionalFieldWithDefaultWith' key codec defaultValue
+
 -- | An optional, or null, field
 --
 -- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.

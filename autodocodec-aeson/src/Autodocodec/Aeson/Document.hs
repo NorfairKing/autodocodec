@@ -10,7 +10,6 @@ module Autodocodec.Aeson.Document where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode
-import Control.Arrow (second)
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -124,7 +123,9 @@ validateAccordingTo = go
                 Just (_, ks, _) -> go value' ks
               goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> Bool
               goKeySchema key (kr, ks, _) = case HM.lookup key hm of
-                Nothing -> kr == Optional
+                Nothing -> case kr of
+                  Required -> False
+                  Optional _ -> True
                 Just value' -> go value' ks
               actualKeys = HM.toList hm
            in all (uncurry goKey) actualKeys && all (uncurry goKeySchema) kss
@@ -151,7 +152,9 @@ instance Validity JSONSchema where
           _ -> valid
       ]
 
-data KeyRequirement = Required | Optional
+data KeyRequirement
+  = Required
+  | Optional (Maybe (Text, JSON.Value)) -- Default value, human readable and machine readible
   deriving (Show, Eq, Generic)
 
 instance Validity KeyRequirement
@@ -183,7 +186,7 @@ instance ToJSON JSONSchema where
                 ( (k, s) : ps,
                   case r of
                     Required -> S.insert k rps
-                    Optional -> rps
+                    Optional _ -> rps
                 )
               (props, requiredProps) = foldl' combine ([], S.empty) os
           propVals <- mapM (fmap JSON.object . go) $ HM.fromList props
@@ -245,7 +248,7 @@ instance FromJSON JSONSchema where
                   ( k,
                     ( if k `elem` requiredProps
                         then Required
-                        else Optional,
+                        else Optional Nothing, -- TODO
                       s,
                       Nothing -- TODO
                     )
@@ -265,10 +268,10 @@ instance FromJSON JSONSchema where
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
 
-jsonSchemaVia :: Codec context input output -> JSONSchema
+jsonSchemaVia :: ValueCodec input output -> JSONSchema
 jsonSchemaVia = go
   where
-    go :: Codec context input output -> JSONSchema
+    go :: ValueCodec input output -> JSONSchema
     go = \case
       ValueCodec -> AnySchema
       NullCodec -> NullSchema
@@ -282,11 +285,6 @@ jsonSchemaVia = go
       MapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
       ReferenceCodec t c -> ReferenceSchema t (go c)
-      PureCodec _ -> AnySchema -- TODO is this right?
-      ApCodec oc1 oc2 -> ObjectSchema (goObject oc1 ++ goObject oc2)
-      DefaultCodec value shownValue c -> DefaultSchema shownValue (JSON.Object (toContextVia c (Just value))) (go c)
-      RequiredKeyCodec k c mdoc -> ObjectSchema [(k, (Required, go c, mdoc))]
-      OptionalKeyCodec k c mdoc -> ObjectSchema [(k, (Optional, go c, mdoc))]
 
     goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goChoice (s :| rest) = case NE.nonEmpty rest of
@@ -301,9 +299,9 @@ jsonSchemaVia = go
     goObject :: ObjectCodec input output -> [(Text, (KeyRequirement, JSONSchema, Maybe Text))]
     goObject = \case
       RequiredKeyCodec k c mdoc -> [(k, (Required, go c, mdoc))]
-      OptionalKeyCodec k c mdoc -> [(k, (Optional, go c, mdoc))]
+      OptionalKeyCodec k c mdoc -> [(k, (Optional Nothing, go c, mdoc))]
+      OptionalKeyWithDefaultCodec k c hr mr mdoc -> [(k, (Optional (Just (hr, toJSONVia c mr)), go c, mdoc))]
       MapCodec _ _ c -> goObject c
-      DefaultCodec value shownValue c -> map (second (\(kr, s, mt) -> (kr, DefaultSchema shownValue (JSON.Object (toContextVia c (Just value))) s, mt))) (goObject c) -- TODO This isn't exactly clean, is it?
       PureCodec _ -> [] -- TODO show something ?
       ApCodec oc1 oc2 -> goObject oc1 ++ goObject oc2
 

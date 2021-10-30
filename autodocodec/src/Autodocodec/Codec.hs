@@ -134,30 +134,34 @@ data Codec context input output where
     -- |
     ValueCodec input output
   RequiredKeyCodec ::
-    -- | The key
+    -- | Key
     Text ->
-    -- |
+    -- | Codec for the value
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
     -- |
     ObjectCodec input output
   OptionalKeyCodec ::
-    -- | The key
+    -- | Key
     Text ->
-    -- |
+    -- | Codec for the value
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
     -- |
-    Codec JSON.Object (Maybe input) (Maybe output)
-  DefaultCodec ::
+    ObjectCodec (Maybe input) (Maybe output)
+  OptionalKeyWithDefaultCodec ::
+    -- | Key
+    Text ->
+    -- | Codec for the value
+    ValueCodec value value ->
+    -- | Human-readible version of the default value
+    Text ->
     -- | Default value
     value ->
-    -- | Shown version of the default value
-    Text ->
-    -- |
-    ObjectCodec (Maybe value) (Maybe value) ->
+    -- | Documentation
+    Maybe Text ->
     -- |
     ObjectCodec value value
   -- Pure is not available for non-object codecs
@@ -225,9 +229,9 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
             pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name . showString " " . s
       RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyWithDefaultCodec k c shownDefault _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec d k . showString " " . s . showString " " . showsPrec d shownDefault . showString " " . showsPrec d mdoc) <$> go 11 c
       PureCodec _ -> pure $ showString "PureCodec" -- TODO add show instance?
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
-      DefaultCodec _ defaultShown c -> (\s -> showParen (d > 10) $ showString "DefaultCodec " . showsPrec d defaultShown . showString " " . s) <$> go 11 c
 
 -- | Map the output part of a codec
 --
@@ -375,46 +379,37 @@ optionalFieldWith' ::
   ObjectCodec (Maybe input) (Maybe output)
 optionalFieldWith' key c = OptionalKeyCodec key c Nothing
 
--- | Add a default value to a codec, documented using its show instance.
+-- | An optional field with default value
 --
--- During encoding, the default value is not used.
--- During decoding, the default value will be parsed if the underlying codec decodes 'Nothing'.
-withDefault ::
-  forall value.
-  Show value =>
-  -- | default value
-  value ->
-  -- |
-  ObjectCodec (Maybe value) (Maybe value) ->
-  -- |
-  ObjectCodec value value
-withDefault defaultValue = DefaultCodec defaultValue (T.pack (show defaultValue))
+-- During decoding, the field may be in the object. The default value will be parsed otherwise.
+--
+-- During encoding, the field will be in the object. The default value is ignored.
+--
+-- The shown version of the default value will appear in the documentation.
+optionalFieldWithDefaultWith ::
+  Show output =>
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  ValueCodec output output ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCodec key c (T.pack (show defaultValue)) defaultValue (Just doc)
 
--- | Infix version of 'withDefault'
---
--- Example usage:
---
--- > data Example = Example
--- >   { exampleText :: !Text,
--- >     exampleOptionalWithDefault :: !Text
--- >   }
--- >
--- > instance HasCodec Example where
--- >   codec =
--- >     object "Example" $
--- >       Example
--- >         <$> requiredField "text" .= exampleText
--- >         <*> optionalField "optional-with-default" .!= "default-value" .= exampleOptionalWithDefault
-(.!=) ::
-  forall value.
-  Show value =>
-  -- |
-  ObjectCodec (Maybe value) (Maybe value) ->
-  -- | default value
-  value ->
-  -- |
-  ObjectCodec value value
-(.!=) = flip withDefault
+-- | Like 'optionalFieldWithDefaultWith', but without documentation.
+optionalFieldWithDefaultWith' ::
+  Show output =>
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  ValueCodec output output ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c (T.pack (show defaultValue)) defaultValue Nothing
 
 -- | Infix version of 'CommentCodec'
 (<?>) ::

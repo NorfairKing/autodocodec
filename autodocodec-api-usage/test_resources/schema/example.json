@@ -38,9 +38,6 @@
             ]
         },
         "optional-with-default": {
-            "default": {
-                "optional-with-default": "foobar"
-            },
             "type": "string"
         },
         "optional-or-null": {

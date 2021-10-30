@@ -19,8 +19,8 @@
   , [33m<string>[m
   ]
 [37moptional-with-default[m: # [34moptional[m
-  # an optional text with a default
   # default: [35m"foobar"[m
+  # an optional text with a default
   [33m<string>[m
 [37mfruit[m: # [31mrequired[m
   # fruit!!

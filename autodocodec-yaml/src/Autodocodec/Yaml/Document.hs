@@ -22,7 +22,7 @@ import Text.Colour
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]
 schemaChunksViaCodec = schemaChunksVia (codec @a)
 
-schemaChunksVia :: Codec context input output -> [Chunk]
+schemaChunksVia :: ValueCodec input output -> [Chunk]
 schemaChunksVia = jsonSchemaChunks . jsonSchemaVia
 
 jsonSchemaChunks :: JSONSchema -> [Chunk]
@@ -49,12 +49,18 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
       ObjectSchema s ->
         let requirementComment = \case
               Required -> fore red "required"
-              Optional -> fore blue "optional"
+              Optional _ -> fore blue "optional"
+            mDefaultValue = \case
+              Required -> Nothing
+              Optional mdv -> fst <$> mdv
             keySchemaFor k (kr, ks, mdoc) = do
               keySchemaChunks <- go ks
               let docToLines :: Text -> [[Chunk]]
                   docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
-              let prefixLines = ["# ", requirementComment kr] : maybe [] docToLines mdoc
+                  defaultValueLine = case mDefaultValue kr of
+                    Nothing -> []
+                    Just defaultValue -> [[chunk "# default: ", fore magenta $ chunk defaultValue]]
+              let prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
               pure $ addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
          in if null s
               then pure [["<object>"]]
