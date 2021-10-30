@@ -25,11 +25,7 @@
 [37mfruit[m: # [31mrequired[m
   # fruit!!
   [ Apple
-
   , Orange
-
   , Banana
-
   , Melon
-
   ]

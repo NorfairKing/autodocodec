@@ -65,7 +65,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
          in if null s
               then pure [["<object>"]]
               else concat <$> mapM (uncurry keySchemaFor) s
-      ValueSchema v -> pure [[chunk $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
+      ValueSchema v -> pure [[chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
               s_ :| [] -> do

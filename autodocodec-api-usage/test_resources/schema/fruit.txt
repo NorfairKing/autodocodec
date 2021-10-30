@@ -1,9 +1,5 @@
 [ Apple
-
 , Orange
-
 , Banana
-
 , Melon
-
 ]
