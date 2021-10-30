@@ -320,7 +320,10 @@ eitherCodec ::
   ValueCodec (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
 
--- | Value or null.
+-- | Also allow @null@ during decoding of a 'Maybe' value.
+--
+-- During decoding, also accept a @null@ value as 'Nothing'.
+-- During encoding, encode as usual.
 maybeCodec :: ValueCodec input output -> ValueCodec (Maybe input) (Maybe output)
 maybeCodec = dimapCodec f g . EitherCodec nullCodec
   where
