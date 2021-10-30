@@ -146,26 +146,3 @@ optionalFieldOrNull key =
     g = \case
       Nothing -> Nothing
       Just a -> Just (Just a)
-
--- | An optional field with a default value
---
--- During decoding, the field may be in the object. The default value will be parsed if it is not.
---
--- During encoding, the field will be always be in the object. The default value is not used.
-optionalFieldWithDefault ::
-  forall output.
-  HasCodec output =>
-  -- | The key
-  Text ->
-  -- | The default value to use during parsing
-  output ->
-  ObjectCodec output output
-optionalFieldWithDefault key defaultValue =
-  bimapObjectCodec f g $ OptionalKeyCodec key codec
-  where
-    f :: Maybe output -> output
-    f = \case
-      Nothing -> defaultValue
-      Just value -> value
-    g :: output -> Maybe output
-    g = Just

@@ -303,30 +303,107 @@ apObjectCodec = ApObjectCodec
 (.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
 (.=) = flip comapObjectCodec
 
-(<?>) :: Codec input output -> Text -> Codec input output
+-- | Add a default value to a codec
+--
+-- During encoding, the default value is not used.
+-- During decoding, the default value will be parsed if the underlying codec decodes 'Nothing'.
+withDefault ::
+  forall value.
+  -- | default value
+  value ->
+  -- |
+  ObjectCodec (Maybe value) (Maybe value) ->
+  -- |
+  ObjectCodec value value
+withDefault defaultValue = bimapObjectCodec f g
+  where
+    f :: Maybe value -> value
+    f = \case
+      Nothing -> defaultValue
+      Just value -> value
+    g :: value -> Maybe value
+    g = Just
+
+-- | Infix version of 'withDefault'
+--
+-- Example usage:
+--
+-- > data Example = Example
+-- >   { exampleText :: !Text,
+-- >     exampleOptionalWithDefault :: !Text
+-- >   }
+-- >
+-- > instance HasCodec Example where
+-- >   codec =
+-- >     object "Example" $
+-- >       Example
+-- >         <$> requiredField "text" .= exampleText
+-- >         <*> optionalField "optional-with-default" .!= "default-value" .= exampleOptionalWithDefault
+(.!=) ::
+  forall value.
+  -- |
+  ObjectCodec (Maybe value) (Maybe value) ->
+  -- | default value
+  value ->
+  -- |
+  ObjectCodec value value
+(.!=) = flip withDefault
+
+-- | Infix version of 'CommentCodec'
+(<?>) ::
+  Codec input output ->
+  -- | The comment
+  Text ->
+  Codec input output
 (<?>) = flip CommentCodec
 
-(<??>) :: Codec input output -> [Text] -> Codec input output
+-- | A version of '<?>' that lets you supply a list of lines of text instead of a single text.
+--
+-- This helps when you use an automated formatter that deals with lists more nicely than with multi-line strings.
+(<??>) ::
+  Codec input output ->
+  -- | The lines of comments
+  [Text] ->
+  Codec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
 
+-- | Forward-compatible version of 'NullCodec'
+--
+-- > nullCodec = NullCodec
 nullCodec :: Codec () ()
 nullCodec = NullCodec
 
+-- | Forward-compatible version of 'BoolCodec' without a name
+--
+-- > boolCodec = BoolCodec Nothing
 boolCodec :: Codec Bool Bool
 boolCodec = BoolCodec Nothing
 
+-- | Forward-compatible version of 'StringCodec' without a name
+--
+-- > textCodec = StringCodec Nothing
 textCodec :: Codec Text Text
 textCodec = StringCodec Nothing
 
+-- | A 'String' version of 'textCodec'.
+--
+-- WARNING: this codec uses 'T.unpack' and 'T.pack' to bimap a 'textCodec', so it DOES NOT ROUNDTRIP.
 stringCodec :: Codec String String
-stringCodec = bimapCodec T.unpack T.pack $ StringCodec Nothing
+stringCodec = bimapCodec T.unpack T.pack textCodec
 
+-- | Forward-compatible version of 'NumberCodec' without a name
+--
+-- > scientificCodec = NumberCodec Nothing
 scientificCodec :: Codec Scientific Scientific
 scientificCodec = NumberCodec Nothing
 
+-- | An object codec with a given name
 object :: Text -> ObjectCodec value value -> Codec value value
 object name = ObjectCodec (Just name)
 
+-- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
+--
+-- WARNING: This codec will fail to parse numbers that are too big, for security reasons.
 boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
 boundedIntegerCodec = MapCodec go fromIntegral $ NumberCodec Nothing
   where
@@ -334,16 +411,21 @@ boundedIntegerCodec = MapCodec go fromIntegral $ NumberCodec Nothing
       Nothing -> Left $ "Number too big: " <> show s
       Just i -> Right i
 
+-- | A codec for a literal piece of 'Text'.
 literalText :: Text -> Codec Text Text
 literalText text = EqCodec text textCodec
 
+-- | A codec for a literal value corresponding to a literal piece of 'Text'.
 literalTextValue :: a -> Text -> Codec a a
 literalTextValue value text = bimapCodec (const value) (const text) (literalText text)
 
 matchChoiceCodec ::
   forall input output newInput.
+  -- |
   (newInput -> Maybe input, Codec input output) ->
+  -- |
   (newInput -> Maybe input, Codec input output) ->
+  -- |
   Codec newInput output
 matchChoiceCodec (f1, c1) (f2, c2) =
   bimapCodec f g $
@@ -361,7 +443,9 @@ matchChoiceCodec (f1, c1) (f2, c2) =
 
 matchChoicesCodec ::
   forall input output.
+  -- |
   NonEmpty (input -> Maybe input, Codec input output) ->
+  -- |
   Codec input output
 matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
   Nothing -> c
@@ -373,7 +457,9 @@ matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
 enumCodec ::
   forall enum.
   Eq enum =>
+  -- |
   NonEmpty (enum, Codec enum enum) ->
+  -- |
   Codec enum enum
 enumCodec =
   matchChoicesCodec
@@ -390,7 +476,9 @@ enumCodec =
 stringConstCodec ::
   forall constant.
   Eq constant =>
+  -- |
   NonEmpty (constant, Text) ->
+  -- |
   Codec constant constant
 stringConstCodec =
   enumCodec
@@ -401,9 +489,11 @@ stringConstCodec =
           )
       )
 
+-- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
+  -- |
   Codec enum enum
 shownBoundedEnumCodec =
   let ls = [minBound .. maxBound]

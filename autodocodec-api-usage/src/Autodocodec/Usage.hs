@@ -68,7 +68,7 @@ instance HasCodec Example where
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
         <*> optionalFieldOrNull "optional-or-null" .= exampleOptionalOrNull
-        <*> optionalFieldWithDefault "optional-with-default" "foobar" .= exampleOptionalWithDefault
+        <*> optionalField "optional-with-default" .!= "foobar" .= exampleOptionalWithDefault
         <*> requiredField "fruit" .= exampleFruit
 
 instance ToJSON Example where
