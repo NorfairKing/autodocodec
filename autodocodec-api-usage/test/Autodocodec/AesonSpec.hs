@@ -21,7 +21,6 @@ import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
-import Debug.Trace
 import Test.Syd
 import Test.Syd.Validity
 import Test.Syd.Validity.Utils
@@ -68,7 +67,7 @@ aesonCodecSpec =
          in context ctx $ toJSONViaCodec a `shouldBe` JSON.toJSON a
     it "matches the aeson decoding" $
       forAllValid $ \(a :: a) ->
-        let encoded = traceShowId $ JSON.toJSON $ traceShowId a
+        let encoded = JSON.toJSON a
             ctx =
               unlines
                 [ "Encoded to this value:",
@@ -76,11 +75,10 @@ aesonCodecSpec =
                   "with this codec",
                   showCodecABit (codec @a)
                 ]
-            decodedWithAeson = traceShowId $ JSON.parseEither (parseJSON @a) encoded
-            decodedWithAutodocodec = traceShowId $ JSON.parseEither (parseJSONViaCodec @a) encoded
-         in trace (showCodecABit (codec @a)) $
-              context ctx $
-                decodedWithAutodocodec `shouldBe` decodedWithAeson
+            decodedWithAeson = JSON.parseEither (parseJSON @a) encoded
+            decodedWithAutodocodec = JSON.parseEither (parseJSONViaCodec @a) encoded
+         in context ctx $
+              decodedWithAutodocodec `shouldBe` decodedWithAeson
     codecSpec @a
 
 codecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, HasCodec a) => Spec
