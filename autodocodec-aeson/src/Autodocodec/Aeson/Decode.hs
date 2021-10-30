@@ -9,7 +9,6 @@ import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
-import Data.Foldable
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 
@@ -25,11 +24,25 @@ parseJSONVia = flip go
       NullCodec -> case value of
         Null -> pure ()
         _ -> fail $ "Expected Null, but got: " <> show value
-      BoolCodec -> parseJSON value
-      StringCodec -> parseJSON value
-      NumberCodec -> parseJSON value
-      ArrayCodec mname c -> withArray (maybe "Unnamed" T.unpack mname) (mapM (`go` c)) value
-      ObjectCodec mname c -> withObject (maybe "Unnamed" T.unpack mname) (\o -> goObject o c) value
+      BoolCodec mname -> case mname of
+        Nothing -> parseJSON value
+        Just name -> withBool (T.unpack name) pure value
+      StringCodec mname -> case mname of
+        Nothing -> parseJSON value
+        Just name -> withText (T.unpack name) pure value
+      NumberCodec mname -> case mname of
+        Nothing -> parseJSON value
+        Just name -> withScientific (T.unpack name) pure value
+      ArrayCodec mname c -> do
+        vector <- case mname of
+          Nothing -> parseJSON value
+          Just name -> withArray (T.unpack name) pure value
+        mapM (`go` c) vector
+      ObjectCodec mname c -> do
+        object_ <- case mname of
+          Nothing -> parseJSON value
+          Just name -> withObject (T.unpack name) pure value
+        (`goObject` c) object_
       EqCodec expected c -> do
         actual <- go value c
         if expected == actual

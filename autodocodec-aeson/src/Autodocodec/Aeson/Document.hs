@@ -260,9 +260,9 @@ jsonSchemaVia = go
     go = \case
       ValueCodec -> AnySchema
       NullCodec -> NullSchema
-      BoolCodec -> BoolSchema
-      StringCodec -> StringSchema
-      NumberCodec -> NumberSchema
+      BoolCodec mname -> maybe id CommentSchema mname BoolSchema
+      StringCodec mname -> maybe id CommentSchema mname StringSchema
+      NumberCodec mname -> maybe id CommentSchema mname NumberSchema
       ArrayCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
       ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
       EqCodec value c -> ValueSchema (toJSONVia c value)

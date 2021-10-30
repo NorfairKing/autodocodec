@@ -19,9 +19,9 @@ toJSONVia = flip go
     go a = \case
       ValueCodec -> a
       NullCodec -> JSON.Null
-      BoolCodec -> toJSON (a :: Bool)
-      StringCodec -> toJSON (a :: Text)
-      NumberCodec -> toJSON (a :: Scientific)
+      BoolCodec _ -> toJSON (a :: Bool)
+      StringCodec _ -> toJSON (a :: Text)
+      NumberCodec _ -> toJSON (a :: Scientific)
       ArrayCodec _ c -> toJSON (fmap (`go` c) a)
       ObjectCodec _ oc -> JSON.Object (goObject a oc)
       EqCodec value c -> go value c

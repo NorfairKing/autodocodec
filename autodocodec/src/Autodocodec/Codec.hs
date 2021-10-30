@@ -41,12 +41,16 @@ data Codec input output where
     Codec () ()
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
+    -- | Name of the @bool@, for error messages and documentation.
+    !(Maybe Text) ->
     -- |
     Codec Bool Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
+    -- | Name of the @string@, for error messages and documentation.
+    !(Maybe Text) ->
     -- |
     Codec Text Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
@@ -54,18 +58,21 @@ data Codec input output where
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   -- TODO: Can we do this without 'Scientific'? It has too many footguns.
   NumberCodec ::
+    -- | Name of the @number@, for error messages and documentation.
+    !(Maybe Text) ->
     -- |
     Codec Scientific Scientific
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayCodec ::
-    -- | Name of the array, for error messages and documentation.
+    -- | Name of the @array@, for error messages and documentation.
     !(Maybe Text) ->
     -- |
     !(Codec input output) ->
     -- |
     Codec (Vector input) (Vector output)
+  -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectCodec ::
-    -- | Name of the array, for error messages and documentation.
+    -- | Name of the @object@, for error messages and documentation.
     !(Maybe Text) ->
     -- |
     !(ObjectCodec value value) ->
@@ -138,11 +145,11 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
     go d = \case
       ValueCodec -> pure $ showString "ValueCodec"
       NullCodec -> pure $ showString "NullCodec"
-      BoolCodec -> pure $ showString "BoolCodec"
-      StringCodec -> pure $ showString "StringCodec"
-      NumberCodec -> pure $ showString "NumberCodec"
-      ArrayCodec name c -> (\s -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . s) <$> go 11 c
-      ObjectCodec name oc -> (\s -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . s) <$> goObject 11 oc
+      BoolCodec mname -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec d mname
+      StringCodec mname -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec d mname
+      NumberCodec mname -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec d mname
+      ArrayCodec mname c -> (\s -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d mname . showString " " . s) <$> go 11 c
+      ObjectCodec mname oc -> (\s -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d mname . showString " " . s) <$> goObject 11 oc
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
       MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
@@ -306,22 +313,22 @@ nullCodec :: Codec () ()
 nullCodec = NullCodec
 
 boolCodec :: Codec Bool Bool
-boolCodec = BoolCodec
+boolCodec = BoolCodec Nothing
 
 textCodec :: Codec Text Text
-textCodec = StringCodec
+textCodec = StringCodec Nothing
 
 stringCodec :: Codec String String
-stringCodec = bimapCodec T.unpack T.pack StringCodec
+stringCodec = bimapCodec T.unpack T.pack $ StringCodec Nothing
 
 scientificCodec :: Codec Scientific Scientific
-scientificCodec = NumberCodec
+scientificCodec = NumberCodec Nothing
 
 object :: Text -> ObjectCodec value value -> Codec value value
 object name = ObjectCodec (Just name)
 
 boundedIntegerCodec :: (Integral i, Bounded i) => Codec i i
-boundedIntegerCodec = MapCodec go fromIntegral NumberCodec
+boundedIntegerCodec = MapCodec go fromIntegral $ NumberCodec Nothing
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number too big: " <> show s
