@@ -152,7 +152,9 @@ data Codec context input output where
     -- |
     output ->
     -- |
-    ObjectCodec input output
+    --
+    -- We have to use 'void' instead of 'Void' here to be able to implement 'Applicative'.
+    ObjectCodec void output
   -- Ap is not available for non-object codecs
   ApCodec ::
     -- |
@@ -220,14 +222,14 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
 -- WARNING: This can be used to produce a codec that does not roundtrip.
 --
 -- TODO example
-fmapCodec ::
+rmapCodec ::
   (oldOutput -> newOutput) ->
   Codec context input oldOutput ->
   Codec context input newOutput
-fmapCodec f = MapCodec (Right . f) id
+rmapCodec f = MapCodec (Right . f) id
 
 instance Functor (Codec context input) where
-  fmap = fmapCodec
+  fmap = rmapCodec
 
 -- | Map the input part of a codec
 --
@@ -237,11 +239,32 @@ instance Functor (Codec context input) where
 -- WARNING: This can be used to produce a codec that does not roundtrip.
 --
 -- TODO example
-comapCodec ::
+lmapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput output ->
   Codec context newInput output
-comapCodec g = MapCodec Right g
+lmapCodec g = MapCodec Right g
+
+-- | Infix version of 'lmapCodec'
+--
+-- Use this function to supply the rendering side of a codec.
+--
+-- Example usage:
+--
+-- > data Example = Example
+-- >   { exampleText :: !Text,
+-- >     exampleBool :: !Bool
+-- >   }
+-- > instance HasCodec Example where
+-- >   codec =
+-- >     object "Example" $
+-- >       Example
+-- >         <$> requiredField "text" .= exampleText
+-- >         <*> requiredField "bool" .= exampleBool
+--
+-- > (.=) = flip lmapCodec
+(.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
+(.=) = flip lmapCodec
 
 -- | Map both directions of a codec
 --
@@ -288,9 +311,6 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
     g = \case
       Nothing -> Left ()
       Just r -> Right r
-
-(.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
-(.=) = flip comapCodec
 
 -- | A required field
 --
