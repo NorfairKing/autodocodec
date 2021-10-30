@@ -42,16 +42,20 @@ data Codec input output where
   BoolCodec ::
     -- |
     Codec Bool Bool
-  -- | A String value
+  -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
     -- |
     Codec Text Text
+  -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
+  --
+  -- NOTE: We use 'Scientific' here because that is what aeson uses.
+  -- TODO: Can we do this without 'Scientific'? It has too many footguns.
   NumberCodec ::
     -- |
-    Codec Scientific Scientific -- TODO can we do this without scientific?
-    -- TODO use a vector here because that's what aeson uses.
+    Codec Scientific Scientific
+  -- TODO use a vector here because that's what aeson uses.
   ArrayCodec ::
     -- |
     !(Maybe Text) ->
@@ -217,20 +221,62 @@ maybeCodec = bimapCodec f g . EitherCodec nullCodec
 instance Functor (Codec input) where
   fmap = fmapCodec
 
+-- | An autodocodec for objects.
+-- See 'Codec' for more information about the two type parameters.
 data ObjectCodec input output where
-  RequiredKeyCodec :: Text -> Codec input output -> ObjectCodec input output
-  OptionalKeyCodec :: Text -> Codec input output -> ObjectCodec (Maybe input) (Maybe output)
-  PureObjectCodec :: output -> ObjectCodec input output
-  BimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
-  ApObjectCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
+  RequiredKeyCodec ::
+    -- |
+    Text ->
+    -- |
+    Codec input output ->
+    -- |
+    ObjectCodec input output
+  OptionalKeyCodec ::
+    -- |
+    Text ->
+    -- |
+    Codec input output ->
+    -- |
+    ObjectCodec (Maybe input) (Maybe output)
+  PureObjectCodec ::
+    -- |
+    output ->
+    -- |
+    ObjectCodec input output
+  BimapObjectCodec ::
+    -- |
+    (oldOutput -> newOutput) ->
+    -- |
+    (newInput -> oldInput) ->
+    -- |
+    ObjectCodec oldInput oldOutput ->
+    -- |
+    ObjectCodec newInput newOutput
+  ApObjectCodec ::
+    -- |
+    ObjectCodec input (output -> newOutput) ->
+    -- |
+    ObjectCodec input output ->
+    -- |
+    ObjectCodec input newOutput
 
-fmapObjectCodec :: (oldOutput -> newOutput) -> ObjectCodec input oldOutput -> ObjectCodec input newOutput
+fmapObjectCodec ::
+  (oldOutput -> newOutput) ->
+  ObjectCodec input oldOutput ->
+  ObjectCodec input newOutput
 fmapObjectCodec f = BimapObjectCodec f id
 
-comapObjectCodec :: (newInput -> oldInput) -> ObjectCodec oldInput output -> ObjectCodec newInput output
+comapObjectCodec ::
+  (newInput -> oldInput) ->
+  ObjectCodec oldInput output ->
+  ObjectCodec newInput output
 comapObjectCodec g = BimapObjectCodec id g
 
-bimapObjectCodec :: (oldOutput -> newOutput) -> (newInput -> oldInput) -> ObjectCodec oldInput oldOutput -> ObjectCodec newInput newOutput
+bimapObjectCodec ::
+  (oldOutput -> newOutput) ->
+  (newInput -> oldInput) ->
+  ObjectCodec oldInput oldOutput ->
+  ObjectCodec newInput newOutput
 bimapObjectCodec = BimapObjectCodec
 
 instance Functor (ObjectCodec input) where
