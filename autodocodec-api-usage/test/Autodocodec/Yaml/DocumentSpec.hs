@@ -19,8 +19,6 @@ import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
-import GHC.Generics (Generic)
-import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity.Utils
 import Text.Colour

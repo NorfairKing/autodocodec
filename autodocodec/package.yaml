@@ -16,5 +16,7 @@ library:
   dependencies:
   - aeson
   - bytestring
+  - containers
+  - mtl
   - scientific
   - text

@@ -17,12 +17,8 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
-import Data.Int
 import Data.Maybe
-import Data.Scientific
 import Data.Text (Text)
-import qualified Data.Text.Lazy as LT
-import Data.Word
 import GHC.Generics (Generic)
 import Test.QuickCheck
 
@@ -124,13 +120,14 @@ instance FromJSON Recursive where
 
 instance HasCodec Recursive where
   codec =
-    let f = \case
-          Left i -> Base i
-          Right r -> Recurse r
-        g = \case
-          Base i -> Left i
-          Recurse r -> Right r
-     in bimapCodec f g $
-          eitherCodec
-            (codec @Int)
-            (object "Recurse" $ requiredField "recurse")
+    ReferenceCodec "recursive" $
+      let f = \case
+            Left i -> Base i
+            Right r -> Recurse r
+          g = \case
+            Base i -> Left i
+            Recurse r -> Right r
+       in bimapCodec f g $
+            eitherCodec
+              (codec @Int)
+              (object "Recurse" $ requiredField "recurse")

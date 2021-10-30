@@ -1,0 +1,7 @@
+[36mdef: recursive[m
+[ # Int
+  [33m<number>[m
+, # Recurse
+  [37mrecurse[m: # [31mrequired[m
+    [36mref: recursive[m
+]

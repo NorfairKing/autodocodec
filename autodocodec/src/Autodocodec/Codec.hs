@@ -6,10 +6,13 @@
 
 module Autodocodec.Codec where
 
+import Control.Monad.State
 import Data.Aeson as JSON
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Scientific as Scientific
+import Data.Set (Set)
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -63,30 +66,38 @@ data Codec input output where
 
 -- Jsut for debugging
 showCodecABit :: Codec input output -> String
-showCodecABit = ($ "") . go 0
+showCodecABit = ($ "") . (`evalState` S.empty) . go 0
   where
-    go :: Int -> Codec input output -> ShowS
+    go :: Int -> Codec input output -> State (Set Text) ShowS
     go d = \case
-      ValueCodec -> showString "ValueCodec"
-      NullCodec -> showString "NullCodec"
-      BoolCodec -> showString "BoolCodec"
-      StringCodec -> showString "StringCodec"
-      NumberCodec -> showString "NumberCodec"
-      ArrayCodec name c -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . go 11 c
-      ObjectCodec name oc -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . goObject 11 oc
-      EqCodec value c -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . go 11 c
-      BimapCodec _ _ c -> showParen (d > 10) $ showString "BimapCodec " . go 11 c
-      EitherCodec c1 c2 -> showParen (d > 10) $ showString "EitherCodec " . go 11 c1 . showString " " . go 11 c2
-      ExtraParserCodec _ _ c -> showParen (d > 10) $ showString "ExtraParserCodec " . go 11 c
-      CommentCodec comment c -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . go 11 c
-      ReferenceCodec comment c -> showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d comment . showString " " . go 11 c
-    goObject :: Int -> ObjectCodec input output -> ShowS
+      ValueCodec -> pure $ showString "ValueCodec"
+      NullCodec -> pure $ showString "NullCodec"
+      BoolCodec -> pure $ showString "BoolCodec"
+      StringCodec -> pure $ showString "StringCodec"
+      NumberCodec -> pure $ showString "NumberCodec"
+      ArrayCodec name c -> (\s -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d name . showString " " . s) <$> go 11 c
+      ObjectCodec name oc -> (\s -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d name . showString " " . s) <$> goObject 11 oc
+      EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
+      BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec " . s) <$> go 11 c
+      EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      ExtraParserCodec _ _ c -> (\s -> showParen (d > 10) $ showString "ExtraParserCodec " . s) <$> go 11 c
+      CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . s) <$> go 11 c
+      ReferenceCodec name c -> do
+        alreadySeen <- gets (S.member name)
+        if alreadySeen
+          then pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name
+          else do
+            modify (S.insert name)
+            s <- go d c
+            pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name . showString " " . s
+
+    goObject :: Int -> ObjectCodec input output -> State (Set Text) ShowS
     goObject d = \case
-      RequiredKeyCodec k c -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . go 11 c
-      OptionalKeyCodec k c -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . go 11 c
-      PureObjectCodec _ -> showString "PureObjectCodec" -- TODO add show instance?
-      BimapObjectCodec _ _ oc -> showParen (d > 10) $ showString "BimapObjectCodec " . goObject 11 oc
-      ApObjectCodec oc1 oc2 -> showParen (d > 10) $ showString "KeyCodec " . goObject 11 oc1 . showString " " . goObject 11 oc2
+      RequiredKeyCodec k c -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
+      OptionalKeyCodec k c -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
+      PureObjectCodec _ -> pure $ showString "PureObjectCodec" -- TODO add show instance?
+      BimapObjectCodec _ _ oc -> (\s -> showParen (d > 10) $ showString "BimapObjectCodec " . s) <$> goObject 11 oc
+      ApObjectCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "KeyCodec " . s1 . showString " " . s2) <$> goObject 11 oc1 <*> goObject 11 oc2
 
 fmapCodec :: (oldOutput -> newOutput) -> Codec input oldOutput -> Codec input newOutput
 fmapCodec f = BimapCodec f id

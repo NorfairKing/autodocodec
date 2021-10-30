@@ -23,6 +23,8 @@ import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Monoid
+import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import Data.Validity
@@ -47,7 +49,44 @@ data JSONSchema
   | ChoiceSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
   | ReferenceSchema !Text !JSONSchema
-  deriving (Show, Eq, Generic)
+  deriving (Eq, Generic)
+
+instance Show JSONSchema where
+  show = showJSONSchemaABit
+
+showJSONSchemaABit :: JSONSchema -> String
+showJSONSchemaABit = ($ "") . (`evalState` S.empty) . go 0
+  where
+    go :: Int -> JSONSchema -> State (Set Text) ShowS
+    go d = \case
+      AnySchema -> pure $ showString "AnySchema"
+      NullSchema -> pure $ showString "NullSchema"
+      BoolSchema -> pure $ showString "BoolSchema"
+      StringSchema -> pure $ showString "StringSchema"
+      NumberSchema -> pure $ showString "NumberSchema"
+      ArraySchema c -> (\s -> showParen (d > 10) $ showString "ArraySchema " . s) <$> go 11 c
+      ObjectSchema kss -> do
+        fs <- forM kss $ \(k, (kr, ks)) -> do
+          let f1 = showsPrec d k
+          let f2 = showsPrec d kr
+          f3 <- go d ks
+          pure $ f1 . showString " " . f2 . showString " " . f3
+        let s = appEndo $ mconcat $ map Endo fs
+        pure $ showParen (d > 10) $ showString "ObjectSchema " . s
+      ValueSchema v -> pure $ showString "ValueSchema" . showsPrec d v
+      ChoiceSchema jcs -> do
+        fs <- mapM (go d) (NE.toList jcs)
+        let s = appEndo $ mconcat $ map Endo fs
+        pure $ showParen (d > 10) $ showString "ChoiceSchema " . s
+      CommentSchema comment c -> (\s -> showParen (d > 10) $ showString "CommentSchema " . showsPrec d comment . showString " " . s) <$> go 11 c
+      ReferenceSchema name c -> do
+        alreadySeen <- gets (S.member name)
+        if alreadySeen
+          then pure $ showParen (d > 10) $ showString "ReferenceSchema " . showsPrec d name
+          else do
+            modify (S.insert name)
+            s <- go d c
+            pure $ showParen (d > 10) $ showString "ReferenceSchema " . showsPrec d name . showString " " . s
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo = go
