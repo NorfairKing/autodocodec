@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Autodocodec.Class where
 
@@ -106,7 +107,7 @@ requiredField ::
   -- | The key
   Text ->
   ObjectCodec output output
-requiredField k = RequiredKeyCodec k codec
+requiredField key = RequiredKeyCodec key codec
 
 -- | An optional field
 --
@@ -118,7 +119,7 @@ optionalField ::
   -- | The key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalField k = OptionalKeyCodec k codec
+optionalField key = OptionalKeyCodec key codec
 
 -- | An optional, or null, field
 --
@@ -127,16 +128,43 @@ optionalField k = OptionalKeyCodec k codec
 --
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
 optionalFieldOrNull ::
+  forall output.
   HasCodec output =>
   -- | The key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull k = bimapObjectCodec f g $ OptionalKeyCodec k (maybeCodec codec)
+optionalFieldOrNull key =
+  bimapObjectCodec f g $ OptionalKeyCodec key (maybeCodec codec)
   where
+    f :: Maybe (Maybe output) -> Maybe output
     f = \case
       Nothing -> Nothing
       Just Nothing -> Nothing
       Just (Just a) -> Just a
+    g :: Maybe output -> Maybe (Maybe output)
     g = \case
       Nothing -> Nothing
       Just a -> Just (Just a)
+
+-- | An optional field with a default value
+--
+-- During decoding, the field may be in the object. The default value will be parsed if it is not.
+--
+-- During encoding, the field will be always be in the object. The default value is not used.
+optionalFieldWithDefault ::
+  forall output.
+  HasCodec output =>
+  -- | The key
+  Text ->
+  -- | The default value to use during parsing
+  output ->
+  ObjectCodec output output
+optionalFieldWithDefault key defaultValue =
+  bimapObjectCodec f g $ OptionalKeyCodec key codec
+  where
+    f :: Maybe output -> output
+    f = \case
+      Nothing -> defaultValue
+      Just value -> value
+    g :: output -> Maybe output
+    g = Just

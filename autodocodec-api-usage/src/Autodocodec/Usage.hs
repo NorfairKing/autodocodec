@@ -48,6 +48,7 @@ data Example = Example
     exampleRequiredMaybe :: !(Maybe Text),
     exampleOptional :: !(Maybe Text),
     exampleOptionalOrNull :: !(Maybe Text),
+    exampleOptionalWithDefault :: !Text,
     exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
@@ -67,6 +68,7 @@ instance HasCodec Example where
         <*> requiredField "maybe" .= exampleRequiredMaybe
         <*> optionalField "optional" .= exampleOptional
         <*> optionalFieldOrNull "optional-or-null" .= exampleOptionalOrNull
+        <*> optionalFieldWithDefault "optional-with-default" "foobar" .= exampleOptionalWithDefault
         <*> requiredField "fruit" .= exampleFruit
 
 instance ToJSON Example where
@@ -76,7 +78,8 @@ instance ToJSON Example where
         [ [ "text" JSON..= exampleText,
             "bool" JSON..= exampleBool,
             "maybe" JSON..= exampleRequiredMaybe,
-            "fruit" JSON..= exampleFruit
+            "fruit" JSON..= exampleFruit,
+            "optional-with-default" JSON..= exampleOptionalWithDefault
           ],
           [ "optional" JSON..= opt
             | opt <- maybeToList exampleOptional
@@ -94,6 +97,7 @@ instance FromJSON Example where
       <*> o JSON..: "maybe"
       <*> o JSON..:? "optional"
       <*> o JSON..:? "optional-or-null"
+      <*> o JSON..:? "optional-with-default" JSON..!= "foobar"
       <*> o JSON..: "fruit"
 
 -- Recursive type

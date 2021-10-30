@@ -37,6 +37,9 @@
                 }
             ]
         },
+        "optional-with-default": {
+            "type": "string"
+        },
         "optional-or-null": {
             "anyOf": [
                 {
