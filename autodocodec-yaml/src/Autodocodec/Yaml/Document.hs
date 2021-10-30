@@ -70,6 +70,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
                     map (addInFrontOfFirstInList [", "]) restChunks
                       ++ [[["]"]]]
          in addListAround s
+      DefaultSchema shownValue _ s -> ([chunk "# default: ", fore magenta $ chunk shownValue] :) <$> go s
       CommentSchema comment s -> ([chunk $ "# " <> comment] :) <$> go s
       ReferenceSchema name s -> do
         alreadySeen <- gets (S.member name)

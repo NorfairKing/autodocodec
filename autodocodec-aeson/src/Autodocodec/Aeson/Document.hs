@@ -10,6 +10,7 @@ module Autodocodec.Aeson.Document where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode
+import Control.Arrow (second)
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -36,6 +37,8 @@ import GHC.Generics (Generic)
 -- TODO think about putting this value in a separate package or directly in autodocodec
 --
 -- http://json-schema.org/understanding-json-schema/reference/index.html
+--
+-- NOTE: This schema roundtrips to JSON, but it cannot expres everything that a fully-featured json-schema may be able to express.
 data JSONSchema
   = AnySchema
   | NullSchema
@@ -47,6 +50,10 @@ data JSONSchema
     ObjectSchema ![(Text, (KeyRequirement, JSONSchema))]
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
+  | DefaultSchema
+      !Text -- Human-readible version of the default value
+      !JSON.Value -- Machine-readible version of the default value
+      JSONSchema
   | CommentSchema !Text !JSONSchema
   | ReferenceSchema !Text !JSONSchema
   deriving (Eq, Generic)
@@ -73,11 +80,12 @@ showJSONSchemaABit = ($ "") . (`evalState` S.empty) . go 0
           pure $ f1 . showString " " . f2 . showString " " . f3
         let s = appEndo $ mconcat $ map Endo fs
         pure $ showParen (d > 10) $ showString "ObjectSchema " . s
-      ValueSchema v -> pure $ showString "ValueSchema" . showsPrec d v
+      ValueSchema v -> pure $ showString "ValueSchema " . showsPrec d v
       ChoiceSchema jcs -> do
         fs <- mapM (go d) (NE.toList jcs)
         let s = appEndo $ mconcat $ map Endo fs
         pure $ showParen (d > 10) $ showString "ChoiceSchema " . s
+      DefaultSchema hr mr c -> (\s -> showParen (d > 10) $ showString "DefaultSchema " . showsPrec d hr . showString " " . showsPrec d mr . showString " " . s) <$> go 11 c
       CommentSchema comment c -> (\s -> showParen (d > 10) $ showString "CommentSchema " . showsPrec d comment . showString " " . s) <$> go 11 c
       ReferenceSchema name c -> do
         alreadySeen <- gets (S.member name)
@@ -122,6 +130,7 @@ validateAccordingTo = go
         _ -> False
       ValueSchema v -> v == value
       ChoiceSchema ss -> any (go value) ss
+      DefaultSchema _ _ s -> go value s
       CommentSchema _ s -> go value s
       ReferenceSchema _ s -> go value s
 
@@ -199,6 +208,7 @@ instance ToJSON JSONSchema where
           let val :: JSON.Value
               val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
           pure [("anyOf", val)]
+        DefaultSchema _ value s -> (("default", value) :) <$> go s
         CommentSchema comment s -> (("$comment" JSON..= comment) :) <$> go s
         ReferenceSchema name s -> do
           alreadySeen <- gets (M.member name)
@@ -272,6 +282,7 @@ jsonSchemaVia = go
       ReferenceCodec t c -> ReferenceSchema t (go c)
       PureCodec _ -> AnySchema -- TODO is this right?
       ApCodec oc1 oc2 -> ObjectSchema (goObject oc1 ++ goObject oc2)
+      DefaultCodec value shownValue c -> DefaultSchema shownValue (JSON.Object (toContextVia c (Just value))) (go c)
       RequiredKeyCodec k c -> ObjectSchema [(k, (Required, go c))]
       OptionalKeyCodec k c -> ObjectSchema [(k, (Optional, go c))]
 
@@ -290,5 +301,6 @@ jsonSchemaVia = go
       RequiredKeyCodec k c -> [(k, (Required, go c))]
       OptionalKeyCodec k c -> [(k, (Optional, go c))]
       MapCodec _ _ c -> goObject c
+      DefaultCodec value shownValue c -> map (second (second (DefaultSchema shownValue (JSON.Object (toContextVia c (Just value)))))) (goObject c) -- TODO This isn't exactly clean, is it?
       PureCodec _ -> [] -- TODO show something ?
       ApCodec oc1 oc2 -> goObject oc1 ++ goObject oc2

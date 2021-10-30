@@ -147,7 +147,17 @@ data Codec context input output where
     ValueCodec input output ->
     -- |
     Codec JSON.Object (Maybe input) (Maybe output)
+  DefaultCodec ::
+    -- | Default value
+    value ->
+    -- | Shown version of the default value
+    Text ->
+    -- |
+    ObjectCodec (Maybe value) (Maybe value) ->
+    -- |
+    ObjectCodec value value
   -- Pure is not available for non-object codecs
+  -- TODO why again?
   PureCodec ::
     -- |
     output ->
@@ -213,6 +223,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       OptionalKeyCodec k c -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
       PureCodec _ -> pure $ showString "PureCodec" -- TODO add show instance?
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
+      DefaultCodec _ defaultShown c -> (\s -> showParen (d > 10) $ showString "DefaultCodec " . showsPrec d defaultShown . showString " " . s) <$> go 11 c
 
 -- | Map the output part of a codec
 --
@@ -347,26 +358,20 @@ optionalFieldWith ::
   ObjectCodec (Maybe input) (Maybe output)
 optionalFieldWith = OptionalKeyCodec
 
--- | Add a default value to a codec
+-- | Add a default value to a codec, documented using its show instance.
 --
 -- During encoding, the default value is not used.
 -- During decoding, the default value will be parsed if the underlying codec decodes 'Nothing'.
 withDefault ::
-  forall value context.
+  forall value.
+  Show value =>
   -- | default value
   value ->
   -- |
-  Codec context (Maybe value) (Maybe value) ->
+  ObjectCodec (Maybe value) (Maybe value) ->
   -- |
-  Codec context value value
-withDefault defaultValue = dimapCodec f g
-  where
-    f :: Maybe value -> value
-    f = \case
-      Nothing -> defaultValue
-      Just value -> value
-    g :: value -> Maybe value
-    g = Just
+  ObjectCodec value value
+withDefault defaultValue = DefaultCodec defaultValue (T.pack (show defaultValue))
 
 -- | Infix version of 'withDefault'
 --
@@ -385,6 +390,7 @@ withDefault defaultValue = dimapCodec f g
 -- >         <*> optionalField "optional-with-default" .!= "default-value" .= exampleOptionalWithDefault
 (.!=) ::
   forall value.
+  Show value =>
   -- |
   ObjectCodec (Maybe value) (Maybe value) ->
   -- | default value

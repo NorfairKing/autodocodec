@@ -80,6 +80,9 @@ instance GenValid JSONSchema where
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
       _ -> ChoiceSchema <$> shrinkValid ss
+    DefaultSchema hr mr s -> (s :) $ do
+      (hr', mr', s') <- shrinkValid (hr, mr, s)
+      pure $ DefaultSchema hr' mr' s'
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
