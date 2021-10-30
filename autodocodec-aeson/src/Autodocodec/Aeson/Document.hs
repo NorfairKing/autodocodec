@@ -253,10 +253,10 @@ instance FromJSON JSONSchema where
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
 
-jsonSchemaVia :: Codec input output -> JSONSchema
+jsonSchemaVia :: Codec context input output -> JSONSchema
 jsonSchemaVia = go
   where
-    go :: Codec input output -> JSONSchema
+    go :: Codec context input output -> JSONSchema
     go = \case
       ValueCodec -> AnySchema
       NullCodec -> NullSchema
@@ -270,6 +270,10 @@ jsonSchemaVia = go
       MapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t (go c)
       ReferenceCodec t c -> ReferenceSchema t (go c)
+      PureCodec _ -> AnySchema -- TODO is this right?
+      ApCodec oc1 oc2 -> ObjectSchema (goObject oc1 ++ goObject oc2)
+      RequiredKeyCodec k c -> ObjectSchema [(k, (Required, go c))]
+      OptionalKeyCodec k c -> ObjectSchema [(k, (Optional, go c))]
 
     goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goChoice (s :| rest) = case NE.nonEmpty rest of
@@ -285,6 +289,6 @@ jsonSchemaVia = go
     goObject = \case
       RequiredKeyCodec k c -> [(k, (Required, go c))]
       OptionalKeyCodec k c -> [(k, (Optional, go c))]
-      DimapObjectCodec _ _ oc -> goObject oc
-      PureObjectCodec _ -> []
-      ApObjectCodec oc1 oc2 -> goObject oc1 ++ goObject oc2
+      MapCodec _ _ c -> goObject c
+      PureCodec _ -> [] -- TODO show something ?
+      ApCodec oc1 oc2 -> goObject oc1 ++ goObject oc2

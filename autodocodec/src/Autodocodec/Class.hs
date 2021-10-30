@@ -19,12 +19,12 @@ class HasCodec a where
   -- | A codec for a single value
   --
   -- See the sections on helper functions for implementing this for plenty of examples.
-  codec :: Codec a a
+  codec :: JSONCodec a
 
   -- | A codec for a list of values
   --
   -- This is really only useful for cases like 'Char' and 'String'
-  listCodec :: Codec [a] [a]
+  listCodec :: JSONCodec [a]
   listCodec = dimapCodec V.toList V.fromList $ ArrayCodec Nothing codec
 
   {-# MINIMAL codec #-}
@@ -139,7 +139,7 @@ optionalFieldOrNull ::
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
 optionalFieldOrNull key =
-  dimapObjectCodec f g $ OptionalKeyCodec key (maybeCodec codec)
+  dimapCodec f g $ OptionalKeyCodec key (maybeCodec codec)
   where
     f :: Maybe (Maybe output) -> Maybe output
     f = \case

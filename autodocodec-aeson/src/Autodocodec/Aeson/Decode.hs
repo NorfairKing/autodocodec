@@ -15,10 +15,13 @@ import qualified Data.Text as T
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
 
-parseJSONVia :: Codec void a -> JSON.Value -> JSON.Parser a
-parseJSONVia = flip go
+parseJSONVia :: ValueCodec void a -> JSON.Value -> JSON.Parser a
+parseJSONVia = parseContextVia
+
+parseContextVia :: Codec context void a -> context -> JSON.Parser a
+parseContextVia = flip go
   where
-    go :: JSON.Value -> Codec void a -> JSON.Parser a
+    go :: context -> Codec context void a -> JSON.Parser a
     go value = \case
       ValueCodec -> pure value
       NullCodec -> case value of
@@ -42,7 +45,7 @@ parseJSONVia = flip go
         object_ <- case mname of
           Nothing -> parseJSON value
           Just name -> withObject (T.unpack name) pure value
-        (`goObject` c) object_
+        (`go` c) object_
       EqCodec expected c -> do
         actual <- go value c
         if expected == actual
@@ -56,15 +59,11 @@ parseJSONVia = flip go
       EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
-
-    goObject :: JSON.Object -> ObjectCodec void a -> JSON.Parser a
-    goObject object_ = \case
       RequiredKeyCodec k c -> do
-        value <- object_ JSON..: k
-        go value c
+        valueAtKey <- value JSON..: k
+        go valueAtKey c
       OptionalKeyCodec k c -> do
-        let mValue = HM.lookup k object_
-        forM mValue $ \value -> go value c
-      DimapObjectCodec f _ oc -> f <$> goObject object_ oc
-      PureObjectCodec a -> pure a
-      ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca
+        let mValueAtKey = HM.lookup k value
+        forM mValueAtKey $ \valueAtKey -> go valueAtKey c
+      PureCodec a -> pure a
+      ApCodec ocf oca -> go value ocf <*> go value oca

@@ -21,7 +21,7 @@ import Text.Colour
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]
 schemaChunksViaCodec = schemaChunksVia (codec @a)
 
-schemaChunksVia :: Codec input output -> [Chunk]
+schemaChunksVia :: Codec context input output -> [Chunk]
 schemaChunksVia = jsonSchemaChunks . jsonSchemaVia
 
 jsonSchemaChunks :: JSONSchema -> [Chunk]
