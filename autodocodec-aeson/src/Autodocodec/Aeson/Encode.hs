@@ -39,5 +39,5 @@ toJSONVia = flip go
         Nothing -> mempty
         Just b -> k JSON..= go b c
       PureObjectCodec _ -> error "Cannot toJSON a pure object codec."
-      BimapObjectCodec _ g oc -> goObject (g a) oc
+      DimapObjectCodec _ g oc -> goObject (g a) oc
       ApObjectCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2

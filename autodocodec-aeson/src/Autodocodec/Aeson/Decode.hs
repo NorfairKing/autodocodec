@@ -65,6 +65,6 @@ parseJSONVia = flip go
       OptionalKeyCodec k c -> do
         let mValue = HM.lookup k object_
         forM mValue $ \value -> go value c
-      BimapObjectCodec f _ oc -> f <$> goObject object_ oc
+      DimapObjectCodec f _ oc -> f <$> goObject object_ oc
       PureObjectCodec a -> pure a
       ApObjectCodec ocf oca -> goObject object_ ocf <*> goObject object_ oca

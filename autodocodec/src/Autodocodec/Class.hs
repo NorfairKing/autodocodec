@@ -25,7 +25,7 @@ class HasCodec a where
   --
   -- This is really only useful for cases like 'Char' and 'String'
   listCodec :: Codec [a] [a]
-  listCodec = bimapCodec V.toList V.fromList $ ArrayCodec Nothing codec
+  listCodec = dimapCodec V.toList V.fromList $ ArrayCodec Nothing codec
 
   {-# MINIMAL codec #-}
 
@@ -48,7 +48,7 @@ instance HasCodec Text where
   codec = textCodec
 
 instance HasCodec LT.Text where
-  codec = bimapCodec LT.fromStrict LT.toStrict textCodec
+  codec = dimapCodec LT.fromStrict LT.toStrict textCodec
 
 instance HasCodec Scientific where
   codec = scientificCodec
@@ -103,24 +103,28 @@ instance HasCodec a => HasCodec [a] where
 -- During decoding, the field must be in the object.
 --
 -- During encoding, the field will always be in the object.
+--
+-- See 'requiredFieldWith'
 requiredField ::
   HasCodec output =>
   -- | The key
   Text ->
   ObjectCodec output output
-requiredField key = RequiredKeyCodec key codec
+requiredField key = requiredFieldWith key codec
 
 -- | An optional field
 --
 -- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
 --
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+--
+-- See 'optionalFieldWith'
 optionalField ::
   HasCodec output =>
   -- | The key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalField key = OptionalKeyCodec key codec
+optionalField key = optionalFieldWith key codec
 
 -- | An optional, or null, field
 --
@@ -135,7 +139,7 @@ optionalFieldOrNull ::
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
 optionalFieldOrNull key =
-  bimapObjectCodec f g $ OptionalKeyCodec key (maybeCodec codec)
+  dimapObjectCodec f g $ OptionalKeyCodec key (maybeCodec codec)
   where
     f :: Maybe (Maybe output) -> Maybe output
     f = \case

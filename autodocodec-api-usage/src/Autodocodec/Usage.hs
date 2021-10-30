@@ -145,7 +145,7 @@ instance HasCodec Recursive where
           g = \case
             Base i -> Left i
             Recurse r -> Right r
-       in bimapCodec f g $
+       in dimapCodec f g $
             eitherCodec
               (codec @Int)
               (object "Recurse" $ requiredField "recurse")

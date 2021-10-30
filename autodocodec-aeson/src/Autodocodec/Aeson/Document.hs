@@ -285,6 +285,6 @@ jsonSchemaVia = go
     goObject = \case
       RequiredKeyCodec k c -> [(k, (Required, go c))]
       OptionalKeyCodec k c -> [(k, (Optional, go c))]
-      BimapObjectCodec _ _ oc -> goObject oc
+      DimapObjectCodec _ _ oc -> goObject oc
       PureObjectCodec _ -> []
       ApObjectCodec oc1 oc2 -> goObject oc1 ++ goObject oc2

@@ -86,10 +86,10 @@ data Codec input output where
     !(Codec value value) ->
     -- |
     Codec value value
-  -- | To implement 'fmap', and to map a codec in both directions.
+  -- | Map a codec in both directions.
   --
-  -- This is not strictly bimap, because the decoding function is allowed to fail,
-  -- but we can implement bimap using this function by using a decoding function that does not fail.
+  -- This is not strictly dimap, because the decoding function is allowed to fail,
+  -- but we can implement dimap using this function by using a decoding function that does not fail.
   -- Otherwise we would have to have another constructor here.
   MapCodec ::
     -- |
@@ -168,7 +168,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       RequiredKeyCodec k c -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . s) <$> go 11 c
       PureObjectCodec _ -> pure $ showString "PureObjectCodec" -- TODO add show instance?
-      BimapObjectCodec _ _ oc -> (\s -> showParen (d > 10) $ showString "BimapObjectCodec " . s) <$> goObject 11 oc
+      DimapObjectCodec _ _ oc -> (\s -> showParen (d > 10) $ showString "DimapObjectCodec " . s) <$> goObject 11 oc
       ApObjectCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "KeyCodec " . s1 . showString " " . s2) <$> goObject 11 oc1 <*> goObject 11 oc2
 
 -- | Map the output part of a codec
@@ -202,12 +202,12 @@ comapCodec g = MapCodec Right g
 -- | Map both directions of a codec
 --
 -- You can use this function to change the type of a codec.
-bimapCodec ::
+dimapCodec ::
   (oldOutput -> newOutput) ->
   (newInput -> oldInput) ->
   Codec oldInput oldOutput ->
   Codec newInput newOutput
-bimapCodec f g = MapCodec (Right . f) g
+dimapCodec f g = MapCodec (Right . f) g
 
 eitherCodec ::
   Codec input1 output1 ->
@@ -217,7 +217,7 @@ eitherCodec = EitherCodec
 
 -- | Value or null.
 maybeCodec :: Codec input output -> Codec (Maybe input) (Maybe output)
-maybeCodec = bimapCodec f g . EitherCodec nullCodec
+maybeCodec = dimapCodec f g . EitherCodec nullCodec
   where
     f = \case
       Left () -> Nothing
@@ -251,7 +251,7 @@ data ObjectCodec input output where
     output ->
     -- |
     ObjectCodec input output
-  BimapObjectCodec ::
+  DimapObjectCodec ::
     -- |
     (oldOutput -> newOutput) ->
     -- |
@@ -272,20 +272,20 @@ fmapObjectCodec ::
   (oldOutput -> newOutput) ->
   ObjectCodec input oldOutput ->
   ObjectCodec input newOutput
-fmapObjectCodec f = BimapObjectCodec f id
+fmapObjectCodec f = DimapObjectCodec f id
 
 comapObjectCodec ::
   (newInput -> oldInput) ->
   ObjectCodec oldInput output ->
   ObjectCodec newInput output
-comapObjectCodec g = BimapObjectCodec id g
+comapObjectCodec g = DimapObjectCodec id g
 
-bimapObjectCodec ::
+dimapObjectCodec ::
   (oldOutput -> newOutput) ->
   (newInput -> oldInput) ->
   ObjectCodec oldInput oldOutput ->
   ObjectCodec newInput newOutput
-bimapObjectCodec = BimapObjectCodec
+dimapObjectCodec = DimapObjectCodec
 
 instance Functor (ObjectCodec input) where
   fmap = fmapObjectCodec
@@ -303,6 +303,41 @@ apObjectCodec = ApObjectCodec
 (.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
 (.=) = flip comapObjectCodec
 
+-- | A required field
+--
+-- During decoding, the field must be in the object.
+--
+-- During encoding, the field will always be in the object.
+--
+--
+-- This is a forward-compatible version of 'RequiredField'
+--
+-- > requiredFieldWith = RequiredKeyCodec
+requiredFieldWith ::
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  Codec input output ->
+  ObjectCodec input output
+requiredFieldWith = RequiredKeyCodec
+
+-- | An optional field
+--
+-- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
+--
+-- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+--
+-- This is a forward-compatible version of 'OptionalField'
+--
+-- > optionalFieldWith = OptionalKeyCodec
+optionalFieldWith ::
+  -- | The key
+  Text ->
+  -- | The codec for the value
+  Codec input output ->
+  ObjectCodec (Maybe input) (Maybe output)
+optionalFieldWith = OptionalKeyCodec
+
 -- | Add a default value to a codec
 --
 -- During encoding, the default value is not used.
@@ -315,7 +350,7 @@ withDefault ::
   ObjectCodec (Maybe value) (Maybe value) ->
   -- |
   ObjectCodec value value
-withDefault defaultValue = bimapObjectCodec f g
+withDefault defaultValue = dimapObjectCodec f g
   where
     f :: Maybe value -> value
     f = \case
@@ -387,9 +422,9 @@ textCodec = StringCodec Nothing
 
 -- | A 'String' version of 'textCodec'.
 --
--- WARNING: this codec uses 'T.unpack' and 'T.pack' to bimap a 'textCodec', so it DOES NOT ROUNDTRIP.
+-- WARNING: this codec uses 'T.unpack' and 'T.pack' to dimap a 'textCodec', so it DOES NOT ROUNDTRIP.
 stringCodec :: Codec String String
-stringCodec = bimapCodec T.unpack T.pack textCodec
+stringCodec = dimapCodec T.unpack T.pack textCodec
 
 -- | Forward-compatible version of 'NumberCodec' without a name
 --
@@ -417,7 +452,7 @@ literalText text = EqCodec text textCodec
 
 -- | A codec for a literal value corresponding to a literal piece of 'Text'.
 literalTextValue :: a -> Text -> Codec a a
-literalTextValue value text = bimapCodec (const value) (const text) (literalText text)
+literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
 
 matchChoiceCodec ::
   forall input output newInput.
@@ -428,7 +463,7 @@ matchChoiceCodec ::
   -- |
   Codec newInput output
 matchChoiceCodec (f1, c1) (f2, c2) =
-  bimapCodec f g $
+  dimapCodec f g $
     eitherCodec c1 c2
   where
     f = \case
