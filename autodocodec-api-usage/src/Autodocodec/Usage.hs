@@ -115,8 +115,8 @@ instance ToJSON Recursive where
 
 instance FromJSON Recursive where
   parseJSON v =
-    JSON.withObject "Base" (\o -> Base <$> o JSON..: "recurse") v
-      <|> (Recurse <$> JSON.parseJSON v)
+    JSON.withObject "Recurse" (\o -> Recurse <$> o JSON..: "recurse") v
+      <|> (Base <$> JSON.parseJSON v)
 
 instance HasCodec Recursive where
   codec =

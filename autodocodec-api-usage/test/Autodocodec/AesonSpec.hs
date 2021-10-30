@@ -53,8 +53,7 @@ spec = do
   aesonCodecSpec @[Text]
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
-
--- aesonCodecSpec @Recursive
+  aesonCodecSpec @Recursive
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =
