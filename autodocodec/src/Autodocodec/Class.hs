@@ -27,51 +27,6 @@ class HasCodec a where
 
   {-# MINIMAL codec #-}
 
--- | A required field
---
--- During decoding, the field must be in the object.
---
--- During encoding, the field will always be in the object.
-requiredField ::
-  HasCodec output =>
-  -- | The key
-  Text ->
-  ObjectCodec output output
-requiredField k = RequiredKeyCodec k codec
-
--- | An optional field
---
--- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
---
--- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
-optionalField ::
-  HasCodec output =>
-  -- | The key
-  Text ->
-  ObjectCodec (Maybe output) (Maybe output)
-optionalField k = OptionalKeyCodec k codec
-
--- | An optional, or null, field
---
--- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.
--- If the field is @null@, then it will be parsed as 'Nothing' as well.
---
--- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
-optionalFieldOrNull ::
-  HasCodec output =>
-  -- | The key
-  Text ->
-  ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull k = bimapObjectCodec f g $ OptionalKeyCodec k (maybeCodec codec)
-  where
-    f = \case
-      Nothing -> Nothing
-      Just Nothing -> Nothing
-      Just (Just a) -> Just a
-    g = \case
-      Nothing -> Nothing
-      Just a -> Just (Just a)
-
 instance HasCodec Bool where
   codec = boolCodec
 
@@ -140,3 +95,48 @@ instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodec
+
+-- | A required field
+--
+-- During decoding, the field must be in the object.
+--
+-- During encoding, the field will always be in the object.
+requiredField ::
+  HasCodec output =>
+  -- | The key
+  Text ->
+  ObjectCodec output output
+requiredField k = RequiredKeyCodec k codec
+
+-- | An optional field
+--
+-- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
+--
+-- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+optionalField ::
+  HasCodec output =>
+  -- | The key
+  Text ->
+  ObjectCodec (Maybe output) (Maybe output)
+optionalField k = OptionalKeyCodec k codec
+
+-- | An optional, or null, field
+--
+-- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.
+-- If the field is @null@, then it will be parsed as 'Nothing' as well.
+--
+-- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+optionalFieldOrNull ::
+  HasCodec output =>
+  -- | The key
+  Text ->
+  ObjectCodec (Maybe output) (Maybe output)
+optionalFieldOrNull k = bimapObjectCodec f g $ OptionalKeyCodec k (maybeCodec codec)
+  where
+    f = \case
+      Nothing -> Nothing
+      Just Nothing -> Nothing
+      Just (Just a) -> Just a
+    g = \case
+      Nothing -> Nothing
+      Just a -> Just (Just a)
