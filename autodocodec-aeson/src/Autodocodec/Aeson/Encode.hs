@@ -20,13 +20,13 @@ toContextVia = flip go
   where
     go :: a -> Codec context a void -> context
     go a = \case
-      ValueCodec -> a
       NullCodec -> JSON.Null
       BoolCodec _ -> toJSON (a :: Bool)
       StringCodec _ -> toJSON (a :: Text)
       NumberCodec _ -> toJSON (a :: Scientific)
-      ArrayCodec _ c -> toJSON (fmap (`go` c) a)
-      ObjectCodec _ oc -> JSON.Object (go a oc)
+      ArrayOfCodec _ c -> toJSON (fmap (`go` c) a)
+      ObjectOfCodec _ oc -> JSON.Object (go a oc)
+      ValueCodec -> a
       EqCodec value c -> go value c
       MapCodec _ g c -> go (g a) c
       EitherCodec c1 c2 -> case a of

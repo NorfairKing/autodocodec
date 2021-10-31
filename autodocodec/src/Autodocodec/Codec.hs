@@ -32,10 +32,6 @@ import qualified Data.Vector as V
 -- * The @output@ parameter is used for the type that is used during decoding of a value.
 -- * Both parameters are usused during documentation.
 data Codec context input output where
-  -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
-  ValueCodec ::
-    -- |
-    ValueCodec JSON.Value JSON.Value
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
     -- |
@@ -64,7 +60,7 @@ data Codec context input output where
     -- |
     ValueCodec Scientific Scientific
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
-  ArrayCodec ::
+  ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
     !(Maybe Text) ->
     -- |
@@ -72,13 +68,17 @@ data Codec context input output where
     -- |
     ValueCodec (Vector input) (Vector output)
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
-  ObjectCodec ::
+  ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
     !(Maybe Text) ->
     -- |
     !(ObjectCodec input output) ->
     -- |
     ValueCodec input output
+  -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
+  ValueCodec ::
+    -- |
+    ValueCodec JSON.Value JSON.Value
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
     (Show value, Eq value) =>
@@ -223,13 +223,13 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
   where
     go :: Int -> Codec context input output -> State (Set Text) ShowS
     go d = \case
-      ValueCodec -> pure $ showString "ValueCodec"
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mname -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec d mname
       StringCodec mname -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec d mname
       NumberCodec mname -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec d mname
-      ArrayCodec mname c -> (\s -> showParen (d > 10) $ showString "ArrayCodec " . showsPrec d mname . showString " " . s) <$> go 11 c
-      ObjectCodec mname oc -> (\s -> showParen (d > 10) $ showString "ObjectCodec " . showsPrec d mname . showString " " . s) <$> go 11 oc
+      ArrayOfCodec mname c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 c
+      ObjectOfCodec mname oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 oc
+      ValueCodec -> pure $ showString "ValueCodec"
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
       MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
@@ -360,8 +360,10 @@ bimapCodec ::
 bimapCodec = MapCodec
 
 -- | Forward-compatible version of 'ArrayCodec' without a name
+--
+-- > arrayCodec = ArrayOfCodec Nothing
 arrayCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
-arrayCodec = ArrayCodec Nothing
+arrayCodec = ArrayOfCodec Nothing
 
 -- | Build a codec for lists of values from a codec for a single value.
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
@@ -534,8 +536,10 @@ scientificCodec :: ValueCodec Scientific Scientific
 scientificCodec = NumberCodec Nothing
 
 -- | An object codec with a given name
+--
+-- > object name = ObjectOfCodec (Just name)
 object :: Text -> ObjectCodec input output -> ValueCodec input output
-object name = ObjectCodec (Just name)
+object name = ObjectOfCodec (Just name)
 
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --

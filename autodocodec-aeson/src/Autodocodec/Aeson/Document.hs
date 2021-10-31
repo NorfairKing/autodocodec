@@ -273,13 +273,13 @@ jsonSchemaVia = go
   where
     go :: ValueCodec input output -> JSONSchema
     go = \case
-      ValueCodec -> AnySchema
       NullCodec -> NullSchema
       BoolCodec mname -> maybe id CommentSchema mname BoolSchema
       StringCodec mname -> maybe id CommentSchema mname StringSchema
       NumberCodec mname -> maybe id CommentSchema mname NumberSchema
-      ArrayCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
-      ObjectCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
+      ArrayOfCodec mname c -> maybe id CommentSchema mname $ ArraySchema (go c)
+      ObjectOfCodec mname oc -> maybe id CommentSchema mname $ ObjectSchema (goObject oc)
+      ValueCodec -> AnySchema
       EqCodec value c -> ValueSchema (toJSONVia c value)
       EitherCodec c1 c2 -> ChoiceSchema (goChoice (go c1 :| [go c2]))
       MapCodec _ _ c -> go c

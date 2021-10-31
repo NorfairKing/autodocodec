@@ -23,7 +23,6 @@ parseContextVia = flip go
   where
     go :: context -> Codec context void a -> JSON.Parser a
     go value = \case
-      ValueCodec -> pure value
       NullCodec -> case value of
         Null -> pure ()
         _ -> fail $ "Expected Null, but got: " <> show value
@@ -36,16 +35,17 @@ parseContextVia = flip go
       NumberCodec mname -> case mname of
         Nothing -> parseJSON value
         Just name -> withScientific (T.unpack name) pure value
-      ArrayCodec mname c -> do
+      ArrayOfCodec mname c -> do
         vector <- case mname of
           Nothing -> parseJSON value
           Just name -> withArray (T.unpack name) pure value
         mapM (`go` c) vector
-      ObjectCodec mname c -> do
+      ObjectOfCodec mname c -> do
         object_ <- case mname of
           Nothing -> parseJSON value
           Just name -> withObject (T.unpack name) pure value
         (`go` c) object_
+      ValueCodec -> pure value
       EqCodec expected c -> do
         actual <- go value c
         if expected == actual

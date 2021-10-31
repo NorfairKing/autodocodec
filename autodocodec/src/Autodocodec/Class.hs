@@ -91,8 +91,8 @@ instance HasCodec a => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     eitherCodec
-      (ObjectCodec Nothing (requiredField' "Left"))
-      (ObjectCodec Nothing (requiredField' "Right"))
+      (ObjectOfCodec Nothing (requiredField' "Left"))
+      (ObjectOfCodec Nothing (requiredField' "Right"))
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodecForStringCompatibility
