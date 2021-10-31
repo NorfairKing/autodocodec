@@ -78,11 +78,12 @@ data Codec context input output where
     !(ObjectCodec input output) ->
     -- |
     ValueCodec input output
+  -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
     (Show value, Eq value) =>
-    -- |
+    -- | Value to match
     !value ->
-    -- |
+    -- | Codec for the value
     !(ValueCodec value value) ->
     -- |
     ValueCodec value value
@@ -164,8 +165,9 @@ data Codec context input output where
     Maybe Text ->
     -- |
     ObjectCodec value value
-  -- Pure is not available for non-object codecs
-  -- TODO why again?
+  -- | To implement 'pure' from 'Applicative'.
+  --
+  -- Pure is not available for non-object codecs because there is no 'mempty' for 'JSON.Value', which we would need during encoding.
   PureCodec ::
     -- |
     output ->
@@ -173,7 +175,9 @@ data Codec context input output where
     --
     -- We have to use 'void' instead of 'Void' here to be able to implement 'Applicative'.
     ObjectCodec void output
-  -- Ap is not available for non-object codecs
+  -- | To implement '<*>' from 'Applicative'.
+  --
+  -- Ap is not available for non-object codecs because we cannot combine ('mappend') two encoded 'JSON.Value's
   ApCodec ::
     -- |
     ObjectCodec input (output -> newOutput) ->
@@ -184,7 +188,7 @@ data Codec context input output where
 
 -- | A codec within the 'JSON.Value' context.
 --
--- An 'ValueCodec' can be used to turn a Haskell value into a 'JSON.Object' or to parse a 'JSON.Object' into a haskell value.
+-- An 'ValueCodec' can be used to turn a Haskell value into a 'JSON.Value' or to parse a 'JSON.Value' into a haskell value.
 --
 -- This cannot be used in certain places where 'ObjectCodec' could be used, and vice versa.
 type ValueCodec = Codec JSON.Value
@@ -511,6 +515,9 @@ literalText text = EqCodec text textCodec
 literalTextValue :: a -> Text -> JSONCodec a
 literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
 
+-- |
+--
+-- TODO docs, example and footguns
 matchChoiceCodec ::
   forall input output newInput.
   -- |
@@ -533,6 +540,9 @@ matchChoiceCodec (f1, c1) (f2, c2) =
         Just input -> Right input
         Nothing -> error "no match"
 
+-- |
+--
+-- TODO docs, example  and footguns
 matchChoicesCodec ::
   forall input output.
   -- |
