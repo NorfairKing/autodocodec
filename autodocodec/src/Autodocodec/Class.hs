@@ -14,16 +14,16 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
 
-class HasCodec a where
+class HasCodec value where
   -- | A codec for a single value
   --
   -- See the sections on helper functions for implementing this for plenty of examples.
-  codec :: JSONCodec a
+  codec :: JSONCodec value
 
   -- | A codec for a list of values
   --
   -- This is really only useful for cases like 'Char' and 'String'
-  listCodecForStringCompatibility :: JSONCodec [a]
+  listCodecForStringCompatibility :: JSONCodec [value]
   listCodecForStringCompatibility = listCodec codec
 
   {-# MINIMAL codec #-}

@@ -461,24 +461,22 @@ optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec k
 --
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
 optionalFieldOrNullWith ::
-  forall output.
   -- | Key
   Text ->
   -- | The codec for the value
-  ValueCodec output output ->
+  ValueCodec input output ->
   -- | Documentation
   Text ->
-  ObjectCodec (Maybe output) (Maybe output)
+  ObjectCodec (Maybe input) (Maybe output)
 optionalFieldOrNullWith key c doc = orNullHelper $ OptionalKeyCodec key (maybeCodec c) (Just doc)
 
 -- | Like 'optionalFieldOrNullWith', but without documentation
 optionalFieldOrNullWith' ::
-  forall output.
   -- | Key
   Text ->
   -- | The codec for the value
-  ValueCodec output output ->
-  ObjectCodec (Maybe output) (Maybe output)
+  ValueCodec input output ->
+  ObjectCodec (Maybe input) (Maybe output)
 optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec c) Nothing
 
 -- | Infix version of 'CommentCodec'
@@ -561,7 +559,7 @@ literalText :: Text -> JSONCodec Text
 literalText text = EqCodec text textCodec
 
 -- | A codec for a literal value corresponding to a literal piece of 'Text'.
-literalTextValue :: a -> Text -> JSONCodec a
+literalTextValue :: value -> Text -> JSONCodec value
 literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
 
 -- |
@@ -653,10 +651,12 @@ shownBoundedEnumCodec =
         Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
 
 -- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
-orNullHelper :: ObjectCodec (Maybe (Maybe value)) (Maybe (Maybe value)) -> ObjectCodec (Maybe value) (Maybe value)
+orNullHelper ::
+  ObjectCodec (Maybe (Maybe input)) (Maybe (Maybe output)) ->
+  ObjectCodec (Maybe input) (Maybe output)
 orNullHelper = dimapCodec f g
   where
-    f :: Maybe (Maybe output) -> Maybe output
+    f :: Maybe (Maybe input) -> Maybe input
     f = \case
       Nothing -> Nothing
       Just Nothing -> Nothing
