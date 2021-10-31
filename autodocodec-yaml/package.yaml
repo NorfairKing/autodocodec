@@ -16,6 +16,7 @@ library:
   dependencies:
   - autodocodec
   - autodocodec-aeson
+  - bytestring
   - containers
   - mtl
   - safe-coloured-text

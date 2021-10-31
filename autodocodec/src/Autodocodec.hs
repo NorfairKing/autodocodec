@@ -1,31 +1,12 @@
+{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
+
 module Autodocodec
   ( -- * Codec
     JSONCodec,
-    ValueCodec,
-    ObjectCodec,
     HasCodec (..),
 
     -- * Writing a codec
     object,
-    dimapCodec,
-    (.=),
-    eitherCodec,
-    maybeCodec,
-    (<?>),
-    (<??>),
-    nullCodec,
-    boolCodec,
-    textCodec,
-    stringCodec,
-    scientificCodec,
-    boundedIntegerCodec,
-    literalText,
-    literalTextValue,
-    shownBoundedEnumCodec,
-    stringConstCodec,
-    enumCodec,
-    matchChoicesCodec,
-    matchChoiceCodec,
 
     -- ** Field codecs
     requiredField,
@@ -47,10 +28,41 @@ module Autodocodec
     optionalFieldOrNullWith',
     optionalFieldWithDefaultWith',
 
-    -- * Bare codec
-    Codec (..),
+    -- ** Writing your own value codecs.
+    (<?>),
+    (<??>),
+    (.=),
+    maybeCodec,
+    eitherCodec,
+    arrayCodec,
+    listCodec,
+    valueCodec,
+    nullCodec,
+    boolCodec,
+    textCodec,
+    stringCodec,
+    scientificCodec,
+    boundedIntegerCodec,
+    literalText,
+    literalTextValue,
+
+    -- *** Mapping
     rmapCodec,
     lmapCodec,
+    dimapCodec,
+    bimapCodec,
+
+    -- *** Enums
+    shownBoundedEnumCodec,
+    stringConstCodec,
+    enumCodec,
+    matchChoicesCodec,
+    matchChoiceCodec,
+
+    -- * Bare codec
+    Codec (..),
+    ValueCodec,
+    ObjectCodec,
     pureCodec,
     apCodec,
 

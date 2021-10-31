@@ -12,7 +12,6 @@ import Data.Int
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
-import qualified Data.Vector as V
 import Data.Word
 
 class HasCodec a where
@@ -24,8 +23,8 @@ class HasCodec a where
   -- | A codec for a list of values
   --
   -- This is really only useful for cases like 'Char' and 'String'
-  listCodec :: JSONCodec [a]
-  listCodec = dimapCodec V.toList V.fromList $ ArrayCodec Nothing codec
+  listCodecForStringCompatibility :: JSONCodec [a]
+  listCodecForStringCompatibility = listCodec codec
 
   {-# MINIMAL codec #-}
 
@@ -42,7 +41,7 @@ instance HasCodec Char where
           [c] -> Right c
           _ -> Left "Expected exactly 1 character, but got more."
      in MapCodec parseChar (: []) stringCodec
-  listCodec = stringCodec
+  listCodecForStringCompatibility = stringCodec
 
 instance HasCodec Text where
   codec = textCodec
@@ -96,7 +95,7 @@ instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
       (ObjectCodec Nothing (requiredField' "Right"))
 
 instance HasCodec a => HasCodec [a] where
-  codec = listCodec
+  codec = listCodecForStringCompatibility
 
 -- | A required field
 --

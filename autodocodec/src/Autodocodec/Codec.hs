@@ -16,6 +16,7 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- | A Self-documenting encoder and decoder,
 --
@@ -201,6 +202,16 @@ type ValueCodec = Codec JSON.Value
 type ObjectCodec = Codec JSON.Object
 
 -- | A completed autodocodec
+--
+-- Note that a value of this type does nothing by itself.
+-- You will need a companion library to make something happen.
+--
+-- For example:
+--
+-- * Encode values to JSON using 'toJSONViaCodec' from @autodocodec-aeson@
+-- * Decode values from JSON using 'parseJSONViaCodec' from @autodocodec-aeson@
+-- * Produce a JSON Schema using 'jsonSchemaViaCodec' from @autodocodec-aeson@
+-- * Produce a human-readible YAML schema using @renderColouredSchemaViaCodec@ from @autodocodec-yaml@
 type JSONCodec a = ValueCodec a a
 
 -- | Show a codec to a human.
@@ -249,7 +260,7 @@ rmapCodec ::
   (oldOutput -> newOutput) ->
   Codec context input oldOutput ->
   Codec context input newOutput
-rmapCodec f = MapCodec (Right . f) id
+rmapCodec f = dimapCodec f id
 
 instance Functor (Codec context input) where
   fmap = rmapCodec
@@ -266,7 +277,7 @@ lmapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput output ->
   Codec context newInput output
-lmapCodec g = MapCodec Right g
+lmapCodec g = dimapCodec id g
 
 -- | Infix version of 'lmapCodec'
 --
@@ -297,7 +308,7 @@ dimapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput oldOutput ->
   Codec context newInput newOutput
-dimapCodec f g = MapCodec (Right . f) g
+dimapCodec f g = bimapCodec (Right . f) g
 
 -- | Forward-compatible version of 'PureCodec'
 --
@@ -315,15 +326,6 @@ instance Applicative (ObjectCodec input) where
   pure = pureCodec
   (<*>) = apCodec
 
--- | Forward-compatible version of 'EitherCodec'
---
--- > eitherCodec = EitherCodec
-eitherCodec ::
-  ValueCodec input1 output1 ->
-  ValueCodec input2 output2 ->
-  ValueCodec (Either input1 input2) (Either output1 output2)
-eitherCodec = EitherCodec
-
 -- | Also allow @null@ during decoding of a 'Maybe' value.
 --
 -- During decoding, also accept a @null@ value as 'Nothing'.
@@ -337,6 +339,33 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
     g = \case
       Nothing -> Left ()
       Just r -> Right r
+
+-- | Forward-compatible version of 'EitherCodec'
+--
+-- > eitherCodec = EitherCodec
+eitherCodec ::
+  ValueCodec input1 output1 ->
+  ValueCodec input2 output2 ->
+  ValueCodec (Either input1 input2) (Either output1 output2)
+eitherCodec = EitherCodec
+
+-- | Map a codec's input and output types.
+--
+-- This function allows you to have the parsing fail in a new way.
+bimapCodec ::
+  (oldOutput -> Either String newOutput) ->
+  (newInput -> oldInput) ->
+  Codec context oldInput oldOutput ->
+  Codec context newInput newOutput
+bimapCodec = MapCodec
+
+-- | Forward-compatible version of 'ArrayCodec' without a name
+arrayCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
+arrayCodec = ArrayCodec Nothing
+
+-- | Build a codec for lists of values from a codec for a single value.
+listCodec :: ValueCodec input output -> ValueCodec [input] [output]
+listCodec = dimapCodec V.toList V.fromList . arrayCodec
 
 -- | A required field
 --
@@ -462,6 +491,17 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
   [Text] ->
   ValueCodec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
+
+-- | Forward-compatible version of 'ValueCodec'
+--
+-- > valueCodec = ValueCodec
+--
+-- This is essentially your escape-hatch for when you would normally need a monad instance for 'Codec'.
+-- You can build monad parsing by using 'valueCodec' together with 'bimapCodec' and supplying your own parsing function.
+--
+-- Note that this _does_ mean that the documentation will just say that you are parsing and rendering a value, so you may want to document the extra parsing further using '<?>'.
+valueCodec :: JSONCodec JSON.Value
+valueCodec = ValueCodec
 
 -- | Forward-compatible version of 'NullCodec'
 --

@@ -9,6 +9,7 @@ module Autodocodec.Yaml.Document where
 import Autodocodec
 import Autodocodec.Aeson
 import Control.Monad.State
+import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -18,6 +19,18 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml as Yaml
 import Text.Colour
+
+renderColouredSchemaViaCodec :: forall a. HasCodec a => ByteString
+renderColouredSchemaViaCodec = renderColouredSchemaVia (codec @a)
+
+renderColouredSchemaVia :: ValueCodec input output -> ByteString
+renderColouredSchemaVia = renderChunksBS With24BitColours . schemaChunksVia
+
+renderPlainSchemaViaCodec :: forall a. HasCodec a => ByteString
+renderPlainSchemaViaCodec = renderPlainSchemaVia (codec @a)
+
+renderPlainSchemaVia :: ValueCodec input output -> ByteString
+renderPlainSchemaVia = renderChunksBS WithoutColours . schemaChunksVia
 
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]
 schemaChunksViaCodec = schemaChunksVia (codec @a)
