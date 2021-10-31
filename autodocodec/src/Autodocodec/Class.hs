@@ -204,17 +204,3 @@ optionalFieldOrNull' ::
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
 optionalFieldOrNull' key = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) Nothing
-
--- Helper function for 'optionalFieldOrNull'.
-orNullHelper :: ObjectCodec (Maybe (Maybe value)) (Maybe (Maybe value)) -> ObjectCodec (Maybe value) (Maybe value)
-orNullHelper = dimapCodec f g
-  where
-    f :: Maybe (Maybe output) -> Maybe output
-    f = \case
-      Nothing -> Nothing
-      Just Nothing -> Nothing
-      Just (Just a) -> Just a
-    g :: Maybe output -> Maybe (Maybe output)
-    g = \case
-      Nothing -> Nothing
-      Just a -> Just (Just a)

@@ -414,6 +414,33 @@ optionalFieldWithDefaultWith' ::
   ObjectCodec output output
 optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c (T.pack (show defaultValue)) defaultValue Nothing
 
+-- | An optional, or null, field
+--
+-- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.
+-- If the field is @null@, then it will be parsed as 'Nothing' as well.
+--
+-- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+optionalFieldOrNullWith ::
+  forall output.
+  -- | Key
+  Text ->
+  -- | The codec for the value
+  ValueCodec output output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec (Maybe output) (Maybe output)
+optionalFieldOrNullWith key c doc = orNullHelper $ OptionalKeyCodec key (maybeCodec c) (Just doc)
+
+-- | Like 'optionalFieldOrNullWith', but without documentation
+optionalFieldOrNullWith' ::
+  forall output.
+  -- | Key
+  Text ->
+  -- | The codec for the value
+  ValueCodec output output ->
+  ObjectCodec (Maybe output) (Maybe output)
+optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec c) Nothing
+
 -- | Infix version of 'CommentCodec'
 (<?>) ::
   ValueCodec input output ->
@@ -565,3 +592,17 @@ shownBoundedEnumCodec =
    in case NE.nonEmpty ls of
         Nothing -> error "0 enum values ?!"
         Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
+
+-- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
+orNullHelper :: ObjectCodec (Maybe (Maybe value)) (Maybe (Maybe value)) -> ObjectCodec (Maybe value) (Maybe value)
+orNullHelper = dimapCodec f g
+  where
+    f :: Maybe (Maybe output) -> Maybe output
+    f = \case
+      Nothing -> Nothing
+      Just Nothing -> Nothing
+      Just (Just a) -> Just a
+    g :: Maybe output -> Maybe (Maybe output)
+    g = \case
+      Nothing -> Nothing
+      Just a -> Just (Just a)
