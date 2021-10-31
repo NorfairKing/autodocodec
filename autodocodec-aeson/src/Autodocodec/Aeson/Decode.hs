@@ -45,6 +45,7 @@ parseContextVia = flip go
           Nothing -> parseJSON value
           Just name -> withObject (T.unpack name) pure value
         (`go` c) object_
+      ObjectCodec -> parseJSON value
       ValueCodec -> pure value
       EqCodec expected c -> do
         actual <- go value c

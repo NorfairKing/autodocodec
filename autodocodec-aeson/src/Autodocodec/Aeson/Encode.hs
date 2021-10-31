@@ -26,6 +26,7 @@ toContextVia = flip go
       NumberCodec _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) a)
       ObjectOfCodec _ oc -> JSON.Object (go a oc)
+      ObjectCodec -> JSON.Object a
       ValueCodec -> a
       EqCodec value c -> go value c
       MapCodec _ g c -> go (g a) c

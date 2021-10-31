@@ -75,6 +75,10 @@ data Codec context input output where
     !(ObjectCodec input output) ->
     -- |
     ValueCodec input output
+  -- | Encode a 'JSON.Object', and decode any 'JSON.Object'.
+  ObjectCodec ::
+    -- |
+    ValueCodec JSON.Object JSON.Object
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
     -- |
@@ -230,6 +234,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ArrayOfCodec mname c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 c
       ObjectOfCodec mname oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
+      ObjectCodec -> pure $ showString "ObjectCodec"
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
       MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
