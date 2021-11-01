@@ -14,5 +14,8 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - aeson
   - autodocodec
+  - scientific
   - swagger2
+  - text

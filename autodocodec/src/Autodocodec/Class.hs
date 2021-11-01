@@ -82,6 +82,9 @@ instance HasCodec Word32 where
 instance HasCodec Word64 where
   codec = boundedIntegerCodec <?> "Word64"
 
+instance HasCodec JSON.Object where
+  codec = ObjectCodec
+
 instance HasCodec JSON.Value where
   codec = ValueCodec
 

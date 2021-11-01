@@ -1,5 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -8,8 +8,6 @@
 module Autodocodec.SwaggerSpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
-import Autodocodec.Aeson.Schema
 import Autodocodec.Swagger
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
@@ -20,15 +18,17 @@ import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
-import Data.List.NonEmpty (NonEmpty (..))
+import Data.Maybe
 import Data.Scientific
+import Data.Swagger (Swagger (..))
+import qualified Data.Swagger as Swagger
+import qualified Data.Swagger.Declare as Swagger
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Word
-import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Aeson
-import Test.Syd.Validity
 import Test.Syd.Validity.Utils
 
 spec :: Spec
@@ -40,6 +40,7 @@ spec = do
   swaggerSchemaSpec @LT.Text "lazy-text"
   swaggerSchemaSpec @String "string"
   swaggerSchemaSpec @Scientific "scientific"
+  swaggerSchemaSpec @JSON.Object "object"
   swaggerSchemaSpec @JSON.Value "value"
   swaggerSchemaSpec @Int "int"
   swaggerSchemaSpec @Int8 "int8"
@@ -63,6 +64,11 @@ swaggerSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a
 swaggerSchemaSpec filePath =
   describe ("swaggerSchemaSpec @" <> nameOf @a) $ do
     it "outputs the same schema as before" $
-      pureGoldenJSONFile
-        ("test_resources/swagger/" <> filePath <> ".json")
-        (JSON.toJSON (jsonSchemaViaCodec @a))
+      let definitions = flip Swagger.execDeclare mempty $ do
+            Swagger.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
+            Swagger.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
+            pure ()
+          swagger = mempty {_swaggerDefinitions = definitions}
+       in pureGoldenJSONFile
+            ("test_resources/swagger/" <> filePath <> ".json")
+            (JSON.toJSON swagger)

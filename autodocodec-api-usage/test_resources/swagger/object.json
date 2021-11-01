@@ -1,0 +1,14 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "definitions": {
+        "Object": {
+            "additionalProperties": true,
+            "type": "object",
+            "description": "Arbitrary JSON object."
+        }
+    }
+}

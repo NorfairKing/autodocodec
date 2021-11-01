@@ -19,6 +19,7 @@ library:
   - autodocodec
   - autodocodec-aeson
   - autodocodec-aeson-schema
+  - autodocodec-swagger2
   - autodocodec-yaml
   - bytestring
   - genvalidity
@@ -26,6 +27,7 @@ library:
   - genvalidity-scientific
   - genvalidity-text
   - scientific
+  - swagger2
   - text
 
 
@@ -46,6 +48,7 @@ tests:
     - autodocodec-aeson
     - autodocodec-aeson-schema
     - autodocodec-api-usage
+    - autodocodec-swagger2
     - autodocodec-yaml
     - bytestring
     - containers
@@ -58,6 +61,7 @@ tests:
     - genvalidity-text
     - safe-coloured-text
     - scientific
+    - swagger2
     - sydtest
     - sydtest-aeson
     - text
