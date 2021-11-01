@@ -10,6 +10,7 @@ import Autodocodec
 import Autodocodec.Aeson
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -90,4 +91,4 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       DefaultSchema shownValue _ s -> [chunk "# default: ", fore magenta $ chunk shownValue] : go s
       CommentSchema comment s -> [chunk $ "# " <> comment] : go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
-      WithDefSchema name s -> [fore cyan $ chunk $ "def: " <> name] : go s
+      WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s

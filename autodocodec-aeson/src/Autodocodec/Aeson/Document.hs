@@ -27,6 +27,7 @@ import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Validity
 import Data.Validity.Aeson ()
 import Data.Validity.Containers ()
@@ -55,7 +56,7 @@ data JSONSchema
       JSONSchema
   | CommentSchema !Text !JSONSchema
   | RefSchema !Text
-  | WithDefSchema !Text !JSONSchema
+  | WithDefSchema !(Map Text JSONSchema) JSONSchema
   deriving (Show, Eq, Generic)
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
@@ -101,9 +102,9 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         case mSchema of
           Nothing -> pure False -- Referred to a schema that's not defined, we have no choice but to reject the value.
           Just s -> go value s
-      WithDefSchema name s -> do
-        modify (M.insert name s)
-        go value (RefSchema name)
+      WithDefSchema defs s -> do
+        modify (M.union defs)
+        go value s
 
 instance Validity JSONSchema where
   validate js =
@@ -176,15 +177,17 @@ instance ToJSON JSONSchema where
            in [("anyOf", val)]
         DefaultSchema _ value s -> ("default", value) : go s
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
-        RefSchema name -> ["$ref" JSON..= ("#/$defs/" <> name :: Text)]
-        WithDefSchema name s -> ["$ref" JSON..= ("#/$defs/" <> name :: Text), "$defs" JSON..= JSON.object [name JSON..= go s]]
+        RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
+        WithDefSchema defs s -> ("$defs" JSON..= defs) : go s
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do
     mt <- o JSON..:? "type"
     mc <- o JSON..:? "$comment"
     let commentFunc = maybe id CommentSchema mc
-    fmap commentFunc $ case mt :: Maybe Text of
+    md <- o JSON..:? "$defs"
+    let defsFunc = maybe id WithDefSchema md
+    fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
@@ -216,10 +219,19 @@ instance FromJSON JSONSchema where
           Just anies -> pure $ ChoiceSchema anies
           Nothing -> do
             mConst <- o JSON..:? "const"
-            pure $ case mConst of
-              Just constant -> ValueSchema constant
-              Nothing -> AnySchema
+            case mConst of
+              Just constant -> pure $ ValueSchema constant
+              Nothing -> do
+                mRef <- o JSON..:? "$ref"
+                pure $ case mRef of
+                  Just ref -> case T.stripPrefix defsPrefix ref of
+                    Just name -> RefSchema name
+                    Nothing -> AnySchema
+                  Nothing -> AnySchema
       t -> fail $ "unknown schema type:" <> show t
+
+defsPrefix :: Text
+defsPrefix = "#/$defs/"
 
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
@@ -248,14 +260,14 @@ jsonSchemaVia = (`evalState` S.empty) . go
         pure $ ChoiceSchema (goChoice (s1 :| [s2]))
       MapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t <$> go c
-      ReferenceCodec t c -> do
-        alreadySeen <- gets (S.member t)
+      ReferenceCodec name c -> do
+        alreadySeen <- gets (S.member name)
         if alreadySeen
-          then pure $ RefSchema t
+          then pure $ RefSchema name
           else do
-            modify (S.insert t)
+            modify (S.insert name)
             s <- go c
-            pure $ WithDefSchema t s
+            pure $ WithDefSchema (M.singleton name s) (RefSchema name)
 
     goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goChoice (s :| rest) = case NE.nonEmpty rest of

@@ -17,6 +17,7 @@ library:
   - autodocodec
   - autodocodec-aeson
   - bytestring
+  - containers
   - safe-coloured-text
   - text
   - yaml
