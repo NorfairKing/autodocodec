@@ -32,6 +32,7 @@ library
     , aeson
     , autodocodec
     , autodocodec-aeson
+    , autodocodec-aeson-schema
     , autodocodec-yaml
     , base >=4.7 && <5
     , bytestring
@@ -61,6 +62,7 @@ test-suite autodocodec-api-usage-test
     , aeson
     , autodocodec
     , autodocodec-aeson
+    , autodocodec-aeson-schema
     , autodocodec-api-usage
     , autodocodec-yaml
     , base >=4.7 && <5

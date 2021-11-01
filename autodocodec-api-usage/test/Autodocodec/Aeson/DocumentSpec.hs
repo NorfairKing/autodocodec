@@ -9,6 +9,7 @@ module Autodocodec.Aeson.DocumentSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
+import Autodocodec.Aeson.Document
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data

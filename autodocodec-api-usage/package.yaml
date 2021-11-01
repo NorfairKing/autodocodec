@@ -18,6 +18,7 @@ library:
   - aeson
   - autodocodec
   - autodocodec-aeson
+  - autodocodec-aeson-schema
   - autodocodec-yaml
   - bytestring
   - genvalidity
@@ -43,6 +44,7 @@ tests:
     - aeson
     - autodocodec
     - autodocodec-aeson
+    - autodocodec-aeson-schema
     - autodocodec-api-usage
     - autodocodec-yaml
     - bytestring

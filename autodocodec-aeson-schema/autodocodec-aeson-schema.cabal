@@ -4,9 +4,9 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           autodocodec-aeson
+name:           autodocodec-aeson-schema
 version:        0.0.0.0
-synopsis:       Self-documenting encoder and decoder for aeson
+synopsis:       Autodocodec JSON Schemas
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
 author:         Tom Sydney Kerckhove
@@ -22,27 +22,22 @@ source-repository head
 
 library
   exposed-modules:
-      Autodocodec.Aeson
-      Autodocodec.Aeson.Decode
-      Autodocodec.Aeson.DerivingVia
-      Autodocodec.Aeson.Encode
+      Autodocodec.Aeson.Document
   other-modules:
-      Paths_autodocodec_aeson
+      Paths_autodocodec_aeson_schema
   hs-source-dirs:
       src
   build-depends:
       aeson
     , autodocodec
+    , autodocodec-aeson
     , base >=4.7 && <5
-    , bytestring
     , containers
     , mtl
-    , scientific
     , text
     , unordered-containers
     , validity
     , validity-aeson
     , validity-containers
     , validity-text
-    , vector
   default-language: Haskell2010

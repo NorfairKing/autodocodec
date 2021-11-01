@@ -1,4 +1,4 @@
-name: autodocodec-yaml
+name: autodocodec-aeson-schema
 version: 0.0.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
@@ -6,7 +6,7 @@ license-file: LICENSE
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
-synopsis: Self-documenting encoder and decoder for yaml
+synopsis: Autodocodec JSON Schemas
 
 dependencies:
 - base >= 4.7 && < 5
@@ -14,10 +14,14 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - aeson
   - autodocodec
-  - autodocodec-aeson-schema
-  - bytestring
+  - autodocodec-aeson
   - containers
-  - safe-coloured-text
+  - mtl
   - text
-  - yaml
+  - unordered-containers
+  - validity
+  - validity-aeson
+  - validity-containers
+  - validity-text
