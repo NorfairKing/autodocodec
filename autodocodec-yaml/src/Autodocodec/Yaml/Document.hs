@@ -95,5 +95,5 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
          in addListAround s
       DefaultSchema shownValue _ s -> ([chunk "# default: ", fore magenta $ chunk shownValue] :) <$> go s
       CommentSchema comment s -> ([chunk $ "# " <> comment] :) <$> go s
-      RefSchema _ -> undefined
-      WithDefSchema _ _ -> undefined
+      RefSchema name -> pure [[fore cyan $ chunk $ "ref: " <> name]]
+      WithDefSchema name s -> ([fore cyan $ chunk $ "def: " <> name] :) <$> go s

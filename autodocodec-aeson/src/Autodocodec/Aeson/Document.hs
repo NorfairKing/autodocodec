@@ -177,7 +177,7 @@ instance ToJSON JSONSchema where
         DefaultSchema _ value s -> ("default", value) : go s
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
         RefSchema name -> ["$ref" JSON..= ("#/$defs/" <> name :: Text)]
-        WithDefSchema name s -> ["$ref" JSON..= ("#/$defs/" <> name :: Text), "$defs" JSON..= JSON.object (go s)]
+        WithDefSchema name s -> ["$ref" JSON..= ("#/$defs/" <> name :: Text), "$defs" JSON..= JSON.object [name JSON..= go s]]
 
 instance FromJSON JSONSchema where
   parseJSON = JSON.withObject "JSONSchema" $ \o -> do

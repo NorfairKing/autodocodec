@@ -1,25 +1,28 @@
 {
     "$ref": "#/$defs/recursive",
     "$defs": {
-        "recursive": {
-            "anyOf": [
-                {
-                    "$comment": "Int",
-                    "type": "number"
-                },
-                {
-                    "$comment": "Recurse",
-                    "required": [
-                        "recurse"
-                    ],
-                    "type": "object",
-                    "properties": {
-                        "recurse": {
-                            "$ref": "#/$defs/recursive"
+        "recursive": [
+            [
+                "anyOf",
+                [
+                    {
+                        "$comment": "Int",
+                        "type": "number"
+                    },
+                    {
+                        "$comment": "Recurse",
+                        "required": [
+                            "recurse"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "recurse": {
+                                "$ref": "#/$defs/recursive"
+                            }
                         }
                     }
-                }
+                ]
             ]
-        }
+        ]
     }
 }
