@@ -8,11 +8,8 @@ module Autodocodec.Yaml.Document where
 
 import Autodocodec
 import Autodocodec.Aeson
-import Control.Monad.State
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.Set (Set)
-import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -39,7 +36,7 @@ schemaChunksVia :: ValueCodec input output -> [Chunk]
 schemaChunksVia = jsonSchemaChunks . jsonSchemaVia
 
 jsonSchemaChunks :: JSONSchema -> [Chunk]
-jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
+jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
   where
     indent :: [[Chunk]] -> [[Chunk]]
     indent = map ("  " :)
@@ -49,16 +46,16 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
       [] -> [cs] -- Shouldn't happen, but fine if it doesn't
       (l : ls) -> (cs ++ l) : indent ls
 
-    go :: JSONSchema -> State (Set Text) [[Chunk]]
+    go :: JSONSchema -> [[Chunk]]
     go = \case
-      AnySchema -> pure [[fore yellow "<any>"]]
-      NullSchema -> pure [[fore yellow "null"]]
-      BoolSchema -> pure [[fore yellow "<boolean>"]]
-      StringSchema -> pure [[fore yellow "<string>"]]
-      NumberSchema -> pure [[fore yellow "<number>"]]
+      AnySchema -> [[fore yellow "<any>"]]
+      NullSchema -> [[fore yellow "null"]]
+      BoolSchema -> [[fore yellow "<boolean>"]]
+      StringSchema -> [[fore yellow "<string>"]]
+      NumberSchema -> [[fore yellow "<number>"]]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
-         in addListMarker <$> go s
+         in addListMarker $ go s
       ObjectSchema s ->
         let requirementComment = \case
               Required -> fore red "required"
@@ -66,34 +63,31 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . (`evalState` S.empty) . go
             mDefaultValue = \case
               Required -> Nothing
               Optional mdv -> fst <$> mdv
-            keySchemaFor k (kr, ks, mdoc) = do
-              keySchemaChunks <- go ks
-              let docToLines :: Text -> [[Chunk]]
+            keySchemaFor k (kr, ks, mdoc) =
+              let keySchemaChunks = go ks
+                  docToLines :: Text -> [[Chunk]]
                   docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
                   defaultValueLine = case mDefaultValue kr of
                     Nothing -> []
                     Just defaultValue -> [[chunk "# default: ", fore magenta $ chunk defaultValue]]
-              let prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
-              pure $ addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
+                  prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
+               in addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
          in if null s
-              then pure [["<object>"]]
-              else concat <$> mapM (uncurry keySchemaFor) s
-      ValueSchema v -> pure [[chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
+              then [["<object>"]]
+              else concatMap (uncurry keySchemaFor) s
+      ValueSchema v -> [[chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
       ChoiceSchema s ->
         let addListAround = \case
-              s_ :| [] -> do
-                chunks <- go s_
-                pure $ addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
-              (s_ :| rest) -> do
-                chunks <- go s_
-                restChunks <- mapM go rest
-                pure $
-                  concat $
-                    addInFrontOfFirstInList ["[ "] chunks :
-                    map (addInFrontOfFirstInList [", "]) restChunks
-                      ++ [[["]"]]]
+              s_ :| [] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
+              (s_ :| rest) ->
+                let chunks = go s_
+                    restChunks = map go rest
+                 in concat $
+                      addInFrontOfFirstInList ["[ "] chunks :
+                      map (addInFrontOfFirstInList [", "]) restChunks
+                        ++ [[["]"]]]
          in addListAround s
-      DefaultSchema shownValue _ s -> ([chunk "# default: ", fore magenta $ chunk shownValue] :) <$> go s
-      CommentSchema comment s -> ([chunk $ "# " <> comment] :) <$> go s
-      RefSchema name -> pure [[fore cyan $ chunk $ "ref: " <> name]]
-      WithDefSchema name s -> ([fore cyan $ chunk $ "def: " <> name] :) <$> go s
+      DefaultSchema shownValue _ s -> [chunk "# default: ", fore magenta $ chunk shownValue] : go s
+      CommentSchema comment s -> [chunk $ "# " <> comment] : go s
+      RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
+      WithDefSchema name s -> [fore cyan $ chunk $ "def: " <> name] : go s

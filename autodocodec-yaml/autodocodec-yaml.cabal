@@ -33,8 +33,6 @@ library
     , autodocodec-aeson
     , base >=4.7 && <5
     , bytestring
-    , containers
-    , mtl
     , safe-coloured-text
     , text
     , yaml
