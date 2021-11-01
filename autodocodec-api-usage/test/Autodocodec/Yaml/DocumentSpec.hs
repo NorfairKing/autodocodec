@@ -55,4 +55,4 @@ spec = do
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenByteStringFile ("test_resources/schema/" <> filePath <> ".txt") (renderChunksBS With24BitColours $ schemaChunksViaCodec @a)
+    pureGoldenByteStringFile ("test_resources/yaml-schema/" <> filePath <> ".txt") (renderChunksBS With24BitColours $ schemaChunksViaCodec @a)

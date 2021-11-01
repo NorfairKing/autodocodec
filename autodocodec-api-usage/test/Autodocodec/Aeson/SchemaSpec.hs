@@ -126,7 +126,7 @@ jsonSchemaSpec filePath =
   describe ("jsonSchemaSpec @" <> nameOf @a) $ do
     it "outputs the same schema as before" $
       pureGoldenJSONFile
-        ("test_resources/schema/" <> filePath <> ".json")
+        ("test_resources/json-schema/" <> filePath <> ".json")
         (JSON.toJSON (jsonSchemaViaCodec @a))
     it "validates all encoded values" $
       forAllValid $ \(a :: a) ->

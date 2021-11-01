@@ -70,5 +70,5 @@ swaggerSchemaSpec filePath =
             pure ()
           swagger = mempty {_swaggerDefinitions = definitions}
        in pureGoldenJSONFile
-            ("test_resources/swagger/" <> filePath <> ".json")
+            ("test_resources/swagger-schema/" <> filePath <> ".json")
             (JSON.toJSON swagger)
