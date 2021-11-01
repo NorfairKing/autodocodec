@@ -260,7 +260,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
 --
 -- WARNING: This can be used to produce a codec that does not roundtrip.
 --
--- TODO example
+-- >>> JSON.parseMaybe (parseJSONVia (rmapCodec (*2) codec)) (Number 5) :: Maybe Int
+-- Just 10
 rmapCodec ::
   (oldOutput -> newOutput) ->
   Codec context input oldOutput ->
@@ -277,7 +278,8 @@ instance Functor (Codec context input) where
 --
 -- WARNING: This can be used to produce a codec that does not roundtrip.
 --
--- TODO example
+-- >>> toJSONVia (lmapCodec (*2) (codec :: JSONCodec Int)) 5
+-- Number 10.0
 lmapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput output ->
@@ -288,7 +290,7 @@ lmapCodec g = dimapCodec id g
 --
 -- Use this function to supply the rendering side of a codec.
 --
--- Example usage:
+-- === Example usage
 --
 -- > data Example = Example
 -- >   { exampleText :: !Text,
@@ -308,6 +310,8 @@ lmapCodec g = dimapCodec id g
 -- | Map both directions of a codec
 --
 -- You can use this function to change the type of a codec.
+--
+-- > stringCodec = dimapCodec T.unpack T.pack textCodec
 dimapCodec ::
   (oldOutput -> newOutput) ->
   (newInput -> oldInput) ->
@@ -357,6 +361,15 @@ eitherCodec = EitherCodec
 -- | Map a codec's input and output types.
 --
 -- This function allows you to have the parsing fail in a new way.
+--
+-- === Example usage
+--
+-- > boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
+-- > boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
+-- >   where
+-- >     go s = case Scientific.toBoundedInteger s of
+-- >       Nothing -> Left $ "Number too big: " <> show s
+-- >       Just i -> Right i
 bimapCodec ::
   (oldOutput -> Either String newOutput) ->
   (newInput -> oldInput) ->
@@ -548,17 +561,27 @@ object name = ObjectOfCodec (Just name)
 --
 -- WARNING: This codec will fail to parse numbers that are too big, for security reasons.
 boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
-boundedIntegerCodec = MapCodec go fromIntegral $ NumberCodec Nothing
+boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number too big: " <> show s
       Just i -> Right i
 
 -- | A codec for a literal piece of 'Text'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia (literalText "hello") "hello"
+-- String "hello"
 literalText :: Text -> JSONCodec Text
 literalText text = EqCodec text textCodec
 
 -- | A codec for a literal value corresponding to a literal piece of 'Text'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia (literalTextValue True "yes") True
+-- String "yes"
 literalTextValue :: value -> Text -> JSONCodec value
 literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
 
@@ -622,6 +645,19 @@ enumCodec =
           )
       )
 
+-- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
+--
+-- === Example usage
+--
+-- > data Fruit = Apple | Orange
+-- >  deriving (Show, Eq)
+-- >
+-- > instance HasCodec Fruit
+-- >   codec = stringConstCodec [(Apple, "foo"), (Orange, "bar")]
+-- >
+--
+-- >>> toJSONVia shownBoundedEnumCodec Orange
+-- String "bar"
 stringConstCodec ::
   forall constant.
   Eq constant =>
@@ -639,6 +675,18 @@ stringConstCodec =
       )
 
 -- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
+--
+-- === Example usage
+--
+-- > data Fruit = Apple | Orange
+-- >  deriving (Show, Eq, Enum, Bounded)
+-- >
+-- > instance HasCodec Fruit
+-- >   codec = shownBoundedEnumCodec
+-- >
+--
+-- >>> toJSONVia shownBoundedEnumCodec Apple
+-- String "Apple"
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
@@ -651,6 +699,8 @@ shownBoundedEnumCodec =
         Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
 
 -- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
+--
+-- You probably don't need this.
 orNullHelper ::
   ObjectCodec (Maybe (Maybe input)) (Maybe (Maybe output)) ->
   ObjectCodec (Maybe input) (Maybe output)
