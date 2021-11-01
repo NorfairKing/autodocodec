@@ -26,3 +26,4 @@ library:
   - validity-aeson
   - validity-containers
   - validity-text
+  - vector
