@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.Aeson.Document where
+module Autodocodec.Aeson.Schema where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode

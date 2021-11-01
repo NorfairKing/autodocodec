@@ -7,7 +7,7 @@
 module Autodocodec.Yaml.Document where
 
 import Autodocodec
-import Autodocodec.Aeson.Document
+import Autodocodec.Aeson.Schema
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as M

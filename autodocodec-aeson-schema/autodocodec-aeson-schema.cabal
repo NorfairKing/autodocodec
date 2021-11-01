@@ -22,7 +22,7 @@ source-repository head
 
 library
   exposed-modules:
-      Autodocodec.Aeson.Document
+      Autodocodec.Aeson.Schema
   other-modules:
       Paths_autodocodec_aeson_schema
   hs-source-dirs:
