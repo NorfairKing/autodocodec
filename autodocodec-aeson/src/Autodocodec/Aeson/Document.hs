@@ -59,47 +59,51 @@ data JSONSchema
   deriving (Show, Eq, Generic)
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
-validateAccordingTo = go
+validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
   where
-    go :: JSON.Value -> JSONSchema -> Bool
+    go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
-      AnySchema -> True
-      NullSchema -> value == JSON.Null
-      BoolSchema -> case value of
+      AnySchema -> pure True
+      NullSchema -> pure $ value == JSON.Null
+      BoolSchema -> pure $ case value of
         JSON.Bool _ -> True
         _ -> False
-      StringSchema -> case value of
+      StringSchema -> pure $ case value of
         JSON.String _ -> True
         _ -> False
-      NumberSchema -> case value of
+      NumberSchema -> pure $ case value of
         JSON.Number _ -> True
         _ -> False
       ArraySchema as -> case value of
-        JSON.Array v -> all (`validateAccordingTo` as) v
-        _ -> False
+        JSON.Array v -> and <$> mapM (`go` as) v
+        _ -> pure False
       ObjectSchema kss -> case value of
         JSON.Object hm ->
-          let goKey :: Text -> JSON.Value -> Bool
+          let goKey :: Text -> JSON.Value -> State (Map Text JSONSchema) Bool
               goKey key value' = case lookup key kss of
-                Nothing -> False
+                Nothing -> pure False
                 Just (_, ks, _) -> go value' ks
-              goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> Bool
+              goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> State (Map Text JSONSchema) Bool
               goKeySchema key (kr, ks, _) = case HM.lookup key hm of
                 Nothing -> case kr of
-                  Required -> False
-                  Optional _ -> True
+                  Required -> pure False
+                  Optional _ -> pure True
                 Just value' -> go value' ks
               actualKeys = HM.toList hm
-           in all (uncurry goKey) actualKeys && all (uncurry goKeySchema) kss
-        _ -> False
-      ValueSchema v -> v == value
-      ChoiceSchema ss -> any (go value) ss
+           in liftA2 (&&) (and <$> mapM (uncurry goKey) actualKeys) (and <$> mapM (uncurry goKeySchema) kss)
+        _ -> pure False
+      ValueSchema v -> pure $ v == value
+      ChoiceSchema ss -> or <$> mapM (go value) ss
       DefaultSchema _ _ s -> go value s
       CommentSchema _ s -> go value s
-      RefSchema _ -> undefined -- TODO Will have to do some state tracking here.
-      WithDefSchema _ _ -> undefined
-
--- ReferenceSchema _ s -> go value s
+      RefSchema name -> do
+        mSchema <- gets (M.lookup name)
+        case mSchema of
+          Nothing -> pure False -- Referred to a schema that's not defined, we have no choice but to reject the value.
+          Just s -> go value s
+      WithDefSchema name s -> do
+        modify (M.insert name s)
+        go value (RefSchema name)
 
 instance Validity JSONSchema where
   validate js =
