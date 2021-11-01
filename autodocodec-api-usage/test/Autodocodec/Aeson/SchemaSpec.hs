@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Autodocodec.Aeson.DocumentSpec (spec) where
+module Autodocodec.Aeson.SchemaSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Aeson
