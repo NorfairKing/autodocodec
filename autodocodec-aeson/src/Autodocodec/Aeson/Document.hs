@@ -55,8 +55,11 @@ data JSONSchema
       JSONSchema
   | CommentSchema !Text !JSONSchema
   | RefSchema !Text
-  | WithDefSchema !(Map Text JSONSchema) JSONSchema
+  | WithDefSchema !(Map Text JSONSchema) !JSONSchema
   deriving (Show, Eq, Generic)
+
+-- NOTE, this is a recursive schema so we've had to manually write our generators for it.
+-- If you add any constructors here, make sure to go add the constructor to the GenValid instance as well.
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
@@ -219,7 +222,7 @@ instance FromJSON JSONSchema where
         case mAny of
           Just anies -> pure $ ChoiceSchema anies
           Nothing -> do
-            mConst <- o JSON..:? "const"
+            let mConst = HM.lookup "const" o
             case mConst of
               Just constant -> pure $ ValueSchema constant
               Nothing -> do

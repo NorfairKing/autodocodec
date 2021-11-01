@@ -100,6 +100,7 @@ instance GenValid JSONSchema where
         oneof
           [ ArraySchema <$> resize (n -1) genValid,
             (ObjectSchema <$> resize (n -1) genValid) `suchThat` isValid,
+            ValueSchema <$> genValid,
             do
               (a, b, c) <- genSplit3 (n -1)
               choice1 <- resize a genValid
