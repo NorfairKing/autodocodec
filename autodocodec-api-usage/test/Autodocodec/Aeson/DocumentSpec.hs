@@ -86,9 +86,10 @@ instance GenValid JSONSchema where
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
-    ReferenceSchema k s -> (s :) $ do
-      (k', s') <- shrinkValid (k, s)
-      pure $ ReferenceSchema k' s'
+    RefSchema name -> RefSchema <$> shrinkValid name
+    WithDefSchema name s -> (s :) $ do
+      (name', s') <- shrinkValid (name, s)
+      pure $ CommentSchema name' s'
   genValid = sized $ \n ->
     if n <= 1
       then elements [AnySchema, NullSchema, BoolSchema, StringSchema, NumberSchema]
@@ -107,6 +108,8 @@ instance GenValid JSONSchema where
             do
               (a, b) <- genSplit (n -1)
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid
+              -- TODO generate default value schemas
+              -- TODO generate ref and def schemas
           ]
 
 instance GenValid KeyRequirement where

@@ -28,3 +28,15 @@ This is not ready for production, it is not in use in any of my own projects yet
 * Would be nice: support for recursive types.
 
 
+## Fully featured example
+
+TODO
+
+## Tests and guarantees
+
+* [Error messages are still good](TODO)
+* [Encoding and decoding roundtrips](TODO)
+* [Encoding and decoding is still fast](TODO)
+* [Generated Human-readible documentation looks good](TODO)
+* [Genertaed values are accepted by the corresponding generated Machine-readible schemas](TODO)
+* [We try to make sure that backward compatibility is maintained](./autodocodec-api-usage/src/Autodocodec/Usage.hs)
