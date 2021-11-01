@@ -24,6 +24,7 @@ library
   exposed-modules:
       Autodocodec.Aeson
       Autodocodec.Aeson.Decode
+      Autodocodec.Aeson.DerivingVia
       Autodocodec.Aeson.Document
       Autodocodec.Aeson.Encode
   other-modules:

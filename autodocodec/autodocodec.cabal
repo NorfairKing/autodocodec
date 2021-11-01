@@ -25,6 +25,7 @@ library
       Autodocodec
       Autodocodec.Class
       Autodocodec.Codec
+      Autodocodec.DerivingVia
   other-modules:
       Paths_autodocodec
   hs-source-dirs:

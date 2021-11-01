@@ -68,14 +68,19 @@ module Autodocodec
     pureCodec,
     apCodec,
 
+    -- * Deriving Via
+    Autodocodec (..),
+
     -- ** Internals you most likely don't need
     showCodecABit,
 
     -- * To make sure we definitely export everything
     module Autodocodec.Class,
+    module Autodocodec.DerivingVia,
     module Autodocodec.Codec,
   )
 where
 
 import Autodocodec.Class
 import Autodocodec.Codec
+import Autodocodec.DerivingVia

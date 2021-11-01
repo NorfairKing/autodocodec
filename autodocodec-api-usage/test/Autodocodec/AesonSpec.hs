@@ -53,6 +53,7 @@ spec = do
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecSpec @Recursive
+  aesonCodecSpec @Via
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =

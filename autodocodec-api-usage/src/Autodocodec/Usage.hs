@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -10,6 +11,7 @@
 module Autodocodec.Usage where
 
 import Autodocodec
+import Autodocodec.Aeson ()
 import Control.Applicative
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -32,8 +34,8 @@ data Fruit
 instance Validity Fruit
 
 instance GenValid Fruit where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec Fruit where
   codec = shownBoundedEnumCodec
@@ -149,3 +151,20 @@ instance HasCodec Recursive where
             eitherCodec
               (codec @Int <?> "base case")
               (object "Recurse" $ requiredField "recurse" "recursive case")
+
+data Via = Via {viaOne :: !Text, viaTwo :: !Text}
+  deriving stock (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Via)
+
+instance Validity Via
+
+instance GenValid Via where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Via where
+  codec =
+    object "Via" $
+      Via
+        <$> requiredField "one" "first field" .= viaOne
+        <*> requiredField "two" "second field" .= viaTwo
