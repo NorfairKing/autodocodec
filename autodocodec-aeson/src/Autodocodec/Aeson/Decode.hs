@@ -74,7 +74,7 @@ parseContextVia = flip go
       OptionalKeyCodec k c _ -> do
         let mValueAtKey = HM.lookup k (value :: JSON.Object)
         forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c
-      OptionalKeyWithDefaultCodec k c _ defaultValue _ -> do
+      OptionalKeyWithDefaultCodec k c defaultValue _ -> do
         let mValueAtKey = HM.lookup k (value :: JSON.Object)
         case mValueAtKey of
           Nothing -> pure defaultValue

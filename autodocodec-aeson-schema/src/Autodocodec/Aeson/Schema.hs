@@ -52,9 +52,6 @@ data JSONSchema
     ObjectSchema ![(Text, (KeyRequirement, JSONSchema, Maybe Text))]
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
-  | DefaultSchema
-      !JSON.Value -- Machine-readible version of the default value
-      JSONSchema
   | CommentSchema !Text !JSONSchema
   | RefSchema !Text
   | WithDefSchema !(Map Text JSONSchema) !JSONSchema
@@ -99,7 +96,6 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         _ -> pure False
       ValueSchema v -> pure $ v == value
       ChoiceSchema ss -> or <$> mapM (go value) ss
-      DefaultSchema _ s -> go value s
       CommentSchema _ s -> go value s
       RefSchema name -> do
         mSchema <- gets (M.lookup name)
@@ -128,7 +124,7 @@ instance Validity JSONSchema where
 
 data KeyRequirement
   = Required
-  | Optional (Maybe (Text, JSON.Value)) -- Default value, human readable and machine readible
+  | Optional (Maybe JSON.Value) -- Default value
   deriving (Show, Eq, Generic)
 
 instance Validity KeyRequirement
@@ -179,7 +175,6 @@ instance ToJSON JSONSchema where
               val :: JSON.Value
               val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
            in [("anyOf", val)]
-        DefaultSchema value s -> ("default", value) : go s
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
         RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
         WithDefSchema defs s -> ("$defs" JSON..= defs) : go s
@@ -189,11 +184,9 @@ instance FromJSON JSONSchema where
     mt <- o JSON..:? "type"
     mc <- o JSON..:? "$comment"
     let commentFunc = maybe id CommentSchema mc
-    let mDefault = HM.lookup "default" o
-    let defaultFunc = maybe id DefaultSchema mDefault
     mdefs <- o JSON..:? "$defs"
     let defsFunc = maybe id WithDefSchema mdefs
-    fmap (commentFunc . defaultFunc . defsFunc) $ case mt :: Maybe Text of
+    fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
@@ -293,9 +286,9 @@ jsonSchemaVia = (`evalState` S.empty) . go
       OptionalKeyCodec k c mdoc -> do
         s <- go c
         pure [(k, (Optional Nothing, s, mdoc))]
-      OptionalKeyWithDefaultCodec k c hr mr mdoc -> do
+      OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
-        pure [(k, (Optional (Just (hr, toJSONVia c mr)), s, mdoc))]
+        pure [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))]
       MapCodec _ _ c -> goObject c
       PureCodec _ -> pure []
       ApCodec oc1 oc2 -> liftA2 (++) (goObject oc1) (goObject oc2)

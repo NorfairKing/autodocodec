@@ -65,14 +65,14 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
               Optional _ -> fore blue "optional"
             mDefaultValue = \case
               Required -> Nothing
-              Optional mdv -> fst <$> mdv
+              Optional mdv -> mdv
             keySchemaFor k (kr, ks, mdoc) =
               let keySchemaChunks = go ks
                   docToLines :: Text -> [[Chunk]]
                   docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
                   defaultValueLine = case mDefaultValue kr of
                     Nothing -> []
-                    Just defaultValue -> [[chunk "# default: ", fore magenta $ chunk defaultValue]]
+                    Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
                   prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
                in addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
          in if null s
@@ -90,7 +90,6 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                       map (addInFrontOfFirstInList [", "]) restChunks
                         ++ [[["]"]]]
          in addListAround s
-      DefaultSchema v s -> [chunk "# default: ", fore magenta $ jsonValueChunk v] : go s
       CommentSchema comment s -> [chunk $ "# " <> comment] : go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
       WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s

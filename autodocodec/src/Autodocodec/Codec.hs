@@ -161,8 +161,6 @@ data Codec context input output where
     Text ->
     -- | Codec for the value
     ValueCodec value value ->
-    -- | Human-readible version of the default value
-    Text ->
     -- | Default value
     value ->
     -- | Documentation
@@ -245,7 +243,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
             pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name . showString " " . s
       RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
-      OptionalKeyWithDefaultCodec k c shownDefault _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec d k . showString " " . s . showString " " . showsPrec d shownDefault . showString " " . showsPrec d mdoc) <$> go 11 c
+      OptionalKeyWithDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec d k . showString " " . s . showString " " . showsPrec d mdoc) <$> go 11 c
       PureCodec _ -> pure $ showString "PureCodec"
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
 
@@ -464,7 +462,6 @@ optionalFieldWith' key c = OptionalKeyCodec key c Nothing
 --
 -- The shown version of the default value will appear in the documentation.
 optionalFieldWithDefaultWith ::
-  Show output =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -474,11 +471,10 @@ optionalFieldWithDefaultWith ::
   -- | Documentation
   Text ->
   ObjectCodec output output
-optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCodec key c (T.pack (show defaultValue)) defaultValue (Just doc)
+optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCodec key c defaultValue (Just doc)
 
 -- | Like 'optionalFieldWithDefaultWith', but without documentation.
 optionalFieldWithDefaultWith' ::
-  Show output =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -486,7 +482,7 @@ optionalFieldWithDefaultWith' ::
   -- | Default value
   output ->
   ObjectCodec output output
-optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c (T.pack (show defaultValue)) defaultValue Nothing
+optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c defaultValue Nothing
 
 -- | An optional, or null, field
 --

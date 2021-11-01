@@ -85,9 +85,6 @@ instance GenValid JSONSchema where
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
       _ -> ChoiceSchema <$> shrinkValid ss
-    DefaultSchema mr s -> (s :) $ do
-      (mr', s') <- shrinkValid (mr, s)
-      pure $ DefaultSchema mr' s'
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
@@ -111,9 +108,6 @@ instance GenValid JSONSchema where
               pure $
                 ChoiceSchema $
                   choice1 :| (choice2 : rest),
-            do
-              (a, b) <- genSplit (n -1)
-              DefaultSchema <$> resize a genValid <*> resize b genValid,
             do
               (a, b) <- genSplit (n -1)
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid,
