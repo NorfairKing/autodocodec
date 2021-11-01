@@ -1,0 +1,34 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           autodocodec-swagger2
+version:        0.0.0.0
+synopsis:       Swagger support for autodocodecs
+homepage:       https://github.com/NorfairKing/autodocodec#readme
+bug-reports:    https://github.com/NorfairKing/autodocodec/issues
+author:         Tom Sydney Kerckhove
+maintainer:     syd@cs-syd.eu
+copyright:      2021 Tom Sydney Kerckhove
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/NorfairKing/autodocodec
+
+library
+  exposed-modules:
+      Autodocodec.Swagger
+  other-modules:
+      Paths_autodocodec_swagger2
+  hs-source-dirs:
+      src
+  build-depends:
+      autodocodec
+    , base >=4.7 && <5
+    , swagger2
+  default-language: Haskell2010

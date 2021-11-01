@@ -4,6 +4,7 @@ packages:
 - autodocodec-aeson
 - autodocodec-aeson-schema
 - autodocodec-yaml
+- autodocodec-swagger2
 # Test-only
 - autodocodec-api-usage
 extra-deps:
