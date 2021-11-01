@@ -9,8 +9,11 @@ module Autodocodec
     object,
 
     -- ** Field codecs
+
+    -- *** With documentation
     requiredField,
     optionalField,
+    (.=),
     optionalFieldOrNull,
     optionalFieldWithDefault,
     requiredFieldWith,
@@ -18,7 +21,7 @@ module Autodocodec
     optionalFieldOrNullWith,
     optionalFieldWithDefaultWith,
 
-    -- ** Documentation-less versions of field codecs
+    -- *** Documentation-less versions of field codecs
     requiredField',
     optionalField',
     optionalFieldOrNull',
@@ -29,9 +32,6 @@ module Autodocodec
     optionalFieldWithDefaultWith',
 
     -- ** Writing your own value codecs.
-    (<?>),
-    (<??>),
-    (.=),
     maybeCodec,
     eitherCodec,
     arrayCodec,
@@ -45,12 +45,14 @@ module Autodocodec
     boundedIntegerCodec,
     literalText,
     literalTextValue,
+    (<?>),
+    (<??>),
 
     -- *** Mapping
-    rmapCodec,
-    lmapCodec,
     dimapCodec,
     bimapCodec,
+    rmapCodec,
+    lmapCodec,
 
     -- *** Enums
     shownBoundedEnumCodec,

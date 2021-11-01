@@ -207,10 +207,7 @@ type ObjectCodec = Codec JSON.Object
 
 -- | A completed autodocodec
 --
--- Note that a value of this type does nothing by itself.
--- You will need a companion library to make something happen.
---
--- For example:
+-- You can use a value of this type to get everything else for free:
 --
 -- * Encode values to JSON using 'toJSONViaCodec' from @autodocodec-aeson@
 -- * Decode values from JSON using 'parseJSONViaCodec' from @autodocodec-aeson@
@@ -290,6 +287,8 @@ lmapCodec g = dimapCodec id g
 --
 -- Use this function to supply the rendering side of a codec.
 --
+-- > (.=) = flip lmapCodec
+--
 -- === Example usage
 --
 -- > data Example = Example
@@ -302,8 +301,6 @@ lmapCodec g = dimapCodec id g
 -- >       Example
 -- >         <$> requiredField "text" .= exampleText
 -- >         <*> requiredField "bool" .= exampleBool
---
--- > (.=) = flip lmapCodec
 (.=) :: ObjectCodec oldInput output -> (newInput -> oldInput) -> ObjectCodec newInput output
 (.=) = flip lmapCodec
 
@@ -339,6 +336,14 @@ instance Applicative (ObjectCodec input) where
 --
 -- During decoding, also accept a @null@ value as 'Nothing'.
 -- During encoding, encode as usual.
+--
+--
+-- === Example usage
+--
+-- >>> toJSONVia (maybeCodec codec) (Just 'a')
+-- String "a"
+-- >>> toJSONVia (maybeCodec codec) (Nothing :: Maybe Char)
+-- Null
 maybeCodec :: ValueCodec input output -> ValueCodec (Maybe input) (Maybe output)
 maybeCodec = dimapCodec f g . EitherCodec nullCodec
   where
@@ -352,6 +357,13 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 -- | Forward-compatible version of 'EitherCodec'
 --
 -- > eitherCodec = EitherCodec
+--
+-- === Example usage
+--
+-- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Left 5)
+-- Number 5.0
+-- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
+-- String "hello"
 eitherCodec ::
   ValueCodec input1 output1 ->
   ValueCodec input2 output2 ->
@@ -380,10 +392,20 @@ bimapCodec = MapCodec
 -- | Forward-compatible version of 'ArrayCodec' without a name
 --
 -- > arrayCodec = ArrayOfCodec Nothing
+--
+-- === Example usage
+--
+-- >>> toJSONVia (listCodec codec) (Array.fromList ['a','b'])
+-- Array [String "a",String "b"]
 arrayCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
 arrayCodec = ArrayOfCodec Nothing
 
 -- | Build a codec for lists of values from a codec for a single value.
+--
+-- === Example usage
+--
+-- >>> toJSONVia (listCodec codec) ['a','b']
+-- Array [String "a",String "b"]
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
 listCodec = dimapCodec V.toList V.fromList . arrayCodec
 
@@ -393,9 +415,9 @@ listCodec = dimapCodec V.toList V.fromList . arrayCodec
 --
 -- During encoding, the field will always be in the object.
 requiredFieldWith ::
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   -- | Documentation
   Text ->
@@ -404,9 +426,9 @@ requiredFieldWith key c doc = RequiredKeyCodec key c (Just doc)
 
 -- | Like 'requiredFieldWith', but without documentation.
 requiredFieldWith' ::
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec input output
 requiredFieldWith' key c = RequiredKeyCodec key c Nothing
@@ -417,9 +439,9 @@ requiredFieldWith' key c = RequiredKeyCodec key c Nothing
 --
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
 optionalFieldWith ::
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   -- | Documentation
   Text ->
@@ -428,9 +450,9 @@ optionalFieldWith key c doc = OptionalKeyCodec key c (Just doc)
 
 -- | Like 'optionalFieldWith', but without documentation.
 optionalFieldWith' ::
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec (Maybe input) (Maybe output)
 optionalFieldWith' key c = OptionalKeyCodec key c Nothing
@@ -444,9 +466,9 @@ optionalFieldWith' key c = OptionalKeyCodec key c Nothing
 -- The shown version of the default value will appear in the documentation.
 optionalFieldWithDefaultWith ::
   Show output =>
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec output output ->
   -- | Default value
   output ->
@@ -458,9 +480,9 @@ optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCode
 -- | Like 'optionalFieldWithDefaultWith', but without documentation.
 optionalFieldWithDefaultWith' ::
   Show output =>
-  -- | The key
+  -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec output output ->
   -- | Default value
   output ->
@@ -476,7 +498,7 @@ optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec k
 optionalFieldOrNullWith ::
   -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   -- | Documentation
   Text ->
@@ -487,15 +509,18 @@ optionalFieldOrNullWith key c doc = orNullHelper $ OptionalKeyCodec key (maybeCo
 optionalFieldOrNullWith' ::
   -- | Key
   Text ->
-  -- | The codec for the value
+  -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec (Maybe input) (Maybe output)
 optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec c) Nothing
 
--- | Infix version of 'CommentCodec'
+-- | Add a comment to a codec
+--
+-- This is an infix version of 'CommentCodec'
+-- > (<?>) = flip CommentCodec
 (<?>) ::
   ValueCodec input output ->
-  -- | The comment
+  -- | Comment
   Text ->
   ValueCodec input output
 (<?>) = flip CommentCodec
@@ -505,7 +530,7 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
 -- This helps when you use an automated formatter that deals with lists more nicely than with multi-line strings.
 (<??>) ::
   ValueCodec input output ->
-  -- | The lines of comments
+  -- | Lines of comments
   [Text] ->
   ValueCodec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
@@ -524,42 +549,102 @@ valueCodec = ValueCodec
 -- | Forward-compatible version of 'NullCodec'
 --
 -- > nullCodec = NullCodec
+--
+-- === Example usage
+--
+-- >>> toJSONVia nullCodec ()
+-- Null
 nullCodec :: JSONCodec ()
 nullCodec = NullCodec
 
 -- | Forward-compatible version of 'BoolCodec' without a name
 --
 -- > boolCodec = BoolCodec Nothing
+--
+-- === Example usage
+--
+-- >>> toJSONVia boolCodec True
+-- Bool True
 boolCodec :: JSONCodec Bool
 boolCodec = BoolCodec Nothing
 
 -- | Forward-compatible version of 'StringCodec' without a name
 --
 -- > textCodec = StringCodec Nothing
+--
+-- === Example usage
+--
+-- >>> toJSONVia textCodec "hello"
+-- String "hello"
 textCodec :: JSONCodec Text
 textCodec = StringCodec Nothing
 
 -- | A 'String' version of 'textCodec'.
 --
--- WARNING: this codec uses 'T.unpack' and 'T.pack' to dimap a 'textCodec', so it DOES NOT ROUNDTRIP.
+-- === Example usage
+--
+-- >>> toJSONVia stringCodec "hello"
+-- String "hello"
+--
+-- === WARNING
+--
+-- This codec uses 'T.unpack' and 'T.pack' to dimap a 'textCodec', so it DOES NOT ROUNDTRIP.
+--
+-- >>> toJSONVia stringCodec "\55296"
+-- String "\65533"
 stringCodec :: JSONCodec String
 stringCodec = dimapCodec T.unpack T.pack textCodec
 
 -- | Forward-compatible version of 'NumberCodec' without a name
 --
+-- === Example usage
+--
 -- > scientificCodec = NumberCodec Nothing
-scientificCodec :: ValueCodec Scientific Scientific
+--
+-- >>> toJSONVia scientificCodec 5
+-- Number 5.0
+--
+-- === WARNING
+--
+-- 'Scientific' is a type that is only for JSON parsing and rendering.
+-- Do not use it for any calculations.
+-- Instead, convert to another number type before doing any calculations.
+--
+-- >>> (1 / 3) :: Scientific
+-- *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
+-- CallStack (from HasCallStack):
+--   error, called at src/Data/Scientific.hs:311:23 in scientific-0.3.6.2-19iaXRaHwRdEEucqiDAVk5:Data.Scientific
+scientificCodec :: JSONCodec Scientific
 scientificCodec = NumberCodec Nothing
 
 -- | An object codec with a given name
 --
 -- > object name = ObjectOfCodec (Just name)
+--
+-- === Example usage
+--
+-- > data Example = Example
+-- >   { exampleText :: !Text,
+-- >     exampleBool :: !Bool
+-- >   }
+-- >
+-- > instance HasCodec Example where
+-- >   codec =
+-- >     object "Example" $
+-- >       Example
+-- >         <$> requiredField "text" "a text" .= exampleText
+-- >         <*> requiredField "bool" "a bool" .= exampleBool
 object :: Text -> ObjectCodec input output -> ValueCodec input output
 object name = ObjectOfCodec (Just name)
 
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --
--- WARNING: This codec will fail to parse numbers that are too big, for security reasons.
+-- === WARNING
+--
+-- This codec will fail to parse numbers that are too big, for security reasons.
+--
+-- >>> JSON.parseEither( parseJSONVia boundedIntegerCodec) (Number 1e100) :: Either String Int
+-- Left "Error in $: Number too big: 1.0e100"
 boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
 boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
   where
