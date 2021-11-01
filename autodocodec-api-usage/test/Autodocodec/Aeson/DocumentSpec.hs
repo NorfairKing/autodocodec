@@ -61,11 +61,14 @@ spec = do
       forAllValid $ \jsonSchema ->
         -- We use the reencode version to survive the ordering change through map
         let encoded = JSON.encode (jsonSchema :: JSONSchema)
-         in case JSON.eitherDecode encoded of
+            encodedCtx = unwords ["encoded: ", show encoded]
+         in context encodedCtx $ case JSON.eitherDecode encoded of
               Left err -> expectationFailure err
               Right decoded ->
-                let encodedAgain = JSON.encode (decoded :: JSONSchema)
-                 in encodedAgain `shouldBe` encoded
+                let decodedCtx = unwords ["decoded: ", show decoded]
+                 in context decodedCtx $
+                      let encodedAgain = JSON.encode (decoded :: JSONSchema)
+                       in encodedAgain `shouldBe` encoded
 
 instance GenValid JSONSchema where
   shrinkValid = \case
@@ -80,9 +83,9 @@ instance GenValid JSONSchema where
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
       _ -> ChoiceSchema <$> shrinkValid ss
-    DefaultSchema hr mr s -> (s :) $ do
-      (hr', mr', s') <- shrinkValid (hr, mr, s)
-      pure $ DefaultSchema hr' mr' s'
+    DefaultSchema mr s -> (s :) $ do
+      (mr', s') <- shrinkValid (mr, s)
+      pure $ DefaultSchema mr' s'
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
@@ -105,7 +108,9 @@ instance GenValid JSONSchema where
               pure $
                 ChoiceSchema $
                   choice1 :| (choice2 : rest),
-            -- TODO generate default value schemas
+            do
+              (a, b) <- genSplit (n -1)
+              DefaultSchema <$> resize a genValid <*> resize b genValid,
             do
               (a, b) <- genSplit (n -1)
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid,

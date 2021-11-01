@@ -47,6 +47,8 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       [] -> [cs] -- Shouldn't happen, but fine if it doesn't
       (l : ls) -> (cs ++ l) : indent ls
 
+    jsonValueChunk :: Yaml.Value -> Chunk
+    jsonValueChunk v = chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)
     go :: JSONSchema -> [[Chunk]]
     go = \case
       AnySchema -> [[fore yellow "<any>"]]
@@ -76,7 +78,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
          in if null s
               then [["<object>"]]
               else concatMap (uncurry keySchemaFor) s
-      ValueSchema v -> [[chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)]]
+      ValueSchema v -> [[jsonValueChunk v]]
       ChoiceSchema s ->
         let addListAround = \case
               s_ :| [] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
@@ -88,7 +90,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                       map (addInFrontOfFirstInList [", "]) restChunks
                         ++ [[["]"]]]
          in addListAround s
-      DefaultSchema shownValue _ s -> [chunk "# default: ", fore magenta $ chunk shownValue] : go s
+      DefaultSchema v s -> [chunk "# default: ", fore magenta $ jsonValueChunk v] : go s
       CommentSchema comment s -> [chunk $ "# " <> comment] : go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
       WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s

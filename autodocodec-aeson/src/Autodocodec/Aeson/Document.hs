@@ -51,7 +51,6 @@ data JSONSchema
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
   | DefaultSchema
-      !Text -- Human-readible version of the default value
       !JSON.Value -- Machine-readible version of the default value
       JSONSchema
   | CommentSchema !Text !JSONSchema
@@ -95,7 +94,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         _ -> pure False
       ValueSchema v -> pure $ v == value
       ChoiceSchema ss -> or <$> mapM (go value) ss
-      DefaultSchema _ _ s -> go value s
+      DefaultSchema _ s -> go value s
       CommentSchema _ s -> go value s
       RefSchema name -> do
         mSchema <- gets (M.lookup name)
@@ -175,7 +174,7 @@ instance ToJSON JSONSchema where
               val :: JSON.Value
               val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
            in [("anyOf", val)]
-        DefaultSchema _ value s -> ("default", value) : go s
+        DefaultSchema value s -> ("default", value) : go s
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
         RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
         WithDefSchema defs s -> ("$defs" JSON..= defs) : go s
@@ -185,9 +184,11 @@ instance FromJSON JSONSchema where
     mt <- o JSON..:? "type"
     mc <- o JSON..:? "$comment"
     let commentFunc = maybe id CommentSchema mc
-    md <- o JSON..:? "$defs"
-    let defsFunc = maybe id WithDefSchema md
-    fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
+    let mDefault = HM.lookup "default" o
+    let defaultFunc = maybe id DefaultSchema mDefault
+    mdefs <- o JSON..:? "$defs"
+    let defsFunc = maybe id WithDefSchema mdefs
+    fmap (commentFunc . defaultFunc . defsFunc) $ case mt :: Maybe Text of
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
