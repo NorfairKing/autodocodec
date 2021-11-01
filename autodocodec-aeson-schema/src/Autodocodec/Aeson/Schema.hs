@@ -34,9 +34,11 @@ import Data.Validity.Containers ()
 import Data.Validity.Text ()
 import GHC.Generics (Generic)
 
--- TODO think about putting this value in a separate package or directly in autodocodec
+-- | A JSON Schema
 --
 -- http://json-schema.org/understanding-json-schema/reference/index.html
+--
+-- Contrary to a 'Codec', values of this type should be finite.
 --
 -- NOTE: This schema roundtrips to JSON, but it cannot expres everything that a fully-featured json-schema may be able to express.
 data JSONSchema
@@ -295,7 +297,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
         s <- go c
         pure [(k, (Optional (Just (hr, toJSONVia c mr)), s, mdoc))]
       MapCodec _ _ c -> goObject c
-      PureCodec _ -> pure [] -- TODO show something ?
+      PureCodec _ -> pure []
       ApCodec oc1 oc2 -> liftA2 (++) (goObject oc1) (goObject oc2)
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)

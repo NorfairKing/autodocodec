@@ -108,7 +108,7 @@ instance FromJSON Example where
 --
 -- 1. We can define recursive types
 -- 2. We can encode, decode, and document a recursive type finitely.
--- 3. TODO We can roundtrip its json schema through json.
+-- 3. We can roundtrip its json schema through json.
 data Recursive
   = Base Int
   | Recurse Recursive

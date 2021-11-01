@@ -53,7 +53,6 @@ data Codec context input output where
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
-  -- TODO: Can we do this without 'Scientific'? It has too many footguns.
   NumberCodec ::
     -- | Name of the @number@, for error messages and documentation.
     !(Maybe Text) ->
@@ -247,7 +246,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
       OptionalKeyWithDefaultCodec k c shownDefault _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec d k . showString " " . s . showString " " . showsPrec d shownDefault . showString " " . showsPrec d mdoc) <$> go 11 c
-      PureCodec _ -> pure $ showString "PureCodec" -- TODO add show instance?
+      PureCodec _ -> pure $ showString "PureCodec"
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
 
 -- | Map the output part of a codec
