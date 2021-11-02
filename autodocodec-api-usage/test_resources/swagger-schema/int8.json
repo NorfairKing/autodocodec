@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Int8": {}
+        "Int8": {
+            "type": "number",
+            "description": "Int8"
+        }
     }
 }

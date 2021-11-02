@@ -16,6 +16,7 @@ library:
   dependencies:
   - aeson
   - autodocodec
+  - insert-ordered-containers
   - scientific
   - swagger2
   - text

@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Word64": {}
+        "Word64": {
+            "type": "number",
+            "description": "Word64"
+        }
     }
 }

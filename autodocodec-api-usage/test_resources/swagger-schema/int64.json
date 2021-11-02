@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Int64": {}
+        "Int64": {
+            "type": "number",
+            "description": "Int64"
+        }
     }
 }

@@ -31,6 +31,7 @@ library
       aeson
     , autodocodec
     , base >=4.7 && <5
+    , insert-ordered-containers
     , scientific
     , swagger2
     , text

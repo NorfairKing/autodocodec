@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Word8": {}
+        "Word8": {
+            "type": "number",
+            "description": "Word8"
+        }
     }
 }

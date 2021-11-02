@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Int16": {}
+        "Int16": {
+            "type": "number",
+            "description": "Int16"
+        }
     }
 }

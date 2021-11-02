@@ -5,6 +5,11 @@
         "title": ""
     },
     "definitions": {
-        "[Text]": {}
+        "[Text]": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        }
     }
 }

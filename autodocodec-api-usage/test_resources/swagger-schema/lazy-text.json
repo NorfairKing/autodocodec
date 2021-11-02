@@ -5,6 +5,8 @@
         "title": ""
     },
     "definitions": {
-        "Text": {}
+        "Text": {
+            "type": "string"
+        }
     }
 }

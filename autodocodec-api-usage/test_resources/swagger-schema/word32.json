@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Word32": {}
+        "Word32": {
+            "type": "number",
+            "description": "Word32"
+        }
     }
 }

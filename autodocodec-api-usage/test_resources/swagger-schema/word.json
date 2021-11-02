@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Word": {}
+        "Word": {
+            "type": "number",
+            "description": "Word"
+        }
     }
 }

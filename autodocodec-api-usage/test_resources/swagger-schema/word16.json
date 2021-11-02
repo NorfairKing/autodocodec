@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Word16": {}
+        "Word16": {
+            "type": "number",
+            "description": "Word16"
+        }
     }
 }

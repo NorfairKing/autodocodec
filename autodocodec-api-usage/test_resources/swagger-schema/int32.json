@@ -5,6 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Int32": {}
+        "Int32": {
+            "type": "number",
+            "description": "Int32"
+        }
     }
 }

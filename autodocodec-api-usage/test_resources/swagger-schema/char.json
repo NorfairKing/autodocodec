@@ -5,6 +5,8 @@
         "title": ""
     },
     "definitions": {
-        "Char": {}
+        "Char": {
+            "type": "string"
+        }
     }
 }
