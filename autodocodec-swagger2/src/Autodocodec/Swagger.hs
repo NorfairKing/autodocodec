@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Autodocodec.Swagger where
@@ -29,7 +30,7 @@ declareNamedSchemaVia c' Proxy = go c'
       ArrayOfCodec mname c -> do
         traceM "hello"
         itemsSchema <- go c
-        itemsSchemaRef <- declareNamedSchemaRef itemsSchema
+        itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
           NamedSchema mname $
             mempty
@@ -47,10 +48,18 @@ declareNamedSchemaVia c' Proxy = go c'
               Nothing -> Just t
               Just d -> Just $ t <> "\n" <> d
         pure $ NamedSchema mName $ s {_schemaDescription = desc}
+      ReferenceCodec n c -> do
+        mSchema <- looks (InsOrdHashMap.lookup n)
+        case mSchema of
+          Nothing -> do
+            ns <- go c
+            declare [(n, _namedSchemaSchema ns)]
+            pure ns
+          Just s -> pure $ NamedSchema (Just n) s
       _ -> pure $ NamedSchema Nothing mempty -- TODO
 
-declareNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
-declareNamedSchemaRef namedSchema =
+declareSpecificNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
+declareSpecificNamedSchemaRef namedSchema =
   fmap (NamedSchema (_namedSchemaName namedSchema))
     <$> declareSpecificSchemaRef (_namedSchemaName namedSchema) (_namedSchemaSchema namedSchema)
 
