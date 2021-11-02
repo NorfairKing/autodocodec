@@ -5,6 +5,7 @@
         "title": ""
     },
     "definitions": {
-        "Recursive": {}
+        "Recursive": {},
+        "recursive": {}
     }
 }
