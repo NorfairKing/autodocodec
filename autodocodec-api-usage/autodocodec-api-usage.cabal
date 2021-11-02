@@ -52,6 +52,7 @@ test-suite autodocodec-api-usage-test
   other-modules:
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
+      Autodocodec.ShowSpec
       Autodocodec.SwaggerSpec
       Autodocodec.Yaml.DocumentSpec
       Paths_autodocodec_api_usage

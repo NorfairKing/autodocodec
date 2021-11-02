@@ -1,0 +1,1 @@
+MapCodec (EitherCodec (MapCodec (EqCodec "Apple" (StringCodec Nothing))) (MapCodec (EitherCodec (MapCodec (EqCodec "Orange" (StringCodec Nothing))) (MapCodec (EitherCodec (MapCodec (EqCodec "Banana" (StringCodec Nothing))) (MapCodec (EqCodec "Melon" (StringCodec Nothing))))))))

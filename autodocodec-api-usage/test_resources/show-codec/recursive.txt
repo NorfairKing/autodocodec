@@ -1,0 +1,1 @@
+ReferenceCodec "recursive" MapCodec (EitherCodec (CommentCodec "base case" (CommentCodec "Int" (MapCodec (NumberCodec Nothing)))) (ObjectOfCodec (Just "Recurse") (RequiredKeyCodec "recurse" (Just "recursive case") (ReferenceCodec "recursive"))))
