@@ -56,6 +56,7 @@ spec = do
   swaggerSchemaSpec @(Either Bool Text) "either-bool-text"
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   swaggerSchemaSpec @[Text] "list-text"
+  swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @Via "via"

@@ -24,6 +24,15 @@ declareNamedSchemaVia c' Proxy = go c'
   where
     go :: ValueCodec input output -> Declare (Definitions Schema) NamedSchema
     go = \case
+      NullCodec ->
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaParamSchema =
+                  mempty
+                    { _paramSchemaType = Just SwaggerNull
+                    }
+              }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
       NumberCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Scientific)
@@ -43,7 +52,15 @@ declareNamedSchemaVia c' Proxy = go c'
         ss <- goObject oc
         pure $ NamedSchema mname $ mconcat ss
       ObjectCodec -> declareNamedSchema (Proxy :: Proxy JSON.Object)
+      ValueCodec -> pure $ NamedSchema Nothing mempty -- TODO
+      EqCodec val valCodec ->
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
+              }
       MapCodec _ _ c -> go c
+      EitherCodec _ _ -> pure $ NamedSchema Nothing mempty -- TODO
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         let desc = case _schemaDescription s of
@@ -58,7 +75,6 @@ declareNamedSchemaVia c' Proxy = go c'
             declare [(n, _namedSchemaSchema ns)]
             pure ns
           Just s -> pure $ NamedSchema (Just n) s
-      _ -> pure $ NamedSchema Nothing mempty -- TODO
     goObject :: ObjectCodec input output -> Declare (Definitions Schema) [Schema]
     goObject = \case
       RequiredKeyCodec key vs mDoc -> do
