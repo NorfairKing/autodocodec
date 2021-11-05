@@ -25,6 +25,7 @@ import Text.Colour
 
 spec :: Spec
 spec = do
+  yamlSchemaSpec @NullUnit "null"
   yamlSchemaSpec @Bool "bool"
   yamlSchemaSpec @Ordering "ordering"
   yamlSchemaSpec @Char "char"

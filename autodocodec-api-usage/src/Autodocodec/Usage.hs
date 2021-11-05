@@ -24,6 +24,26 @@ import Data.Text (Text)
 import GHC.Generics (Generic)
 import Test.QuickCheck
 
+data NullUnit = NullUnit
+  deriving (Show, Eq, Generic)
+
+instance Validity NullUnit
+
+instance GenValid NullUnit where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec NullUnit where
+  codec = dimapCodec (\() -> NullUnit) (\NullUnit -> ()) nullCodec
+
+instance FromJSON NullUnit where
+  parseJSON = \case
+    JSON.Null -> pure NullUnit
+    _ -> fail "not a null."
+
+instance ToJSON NullUnit where
+  toJSON NullUnit = JSON.Null
+
 data Fruit
   = Apple
   | Orange

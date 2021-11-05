@@ -33,6 +33,7 @@ import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
+  openAPISchemaSpec @NullUnit "null"
   openAPISchemaSpec @Bool "bool"
   openAPISchemaSpec @Ordering "ordering"
   openAPISchemaSpec @Char "char"

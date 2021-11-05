@@ -33,6 +33,7 @@ import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
+  swaggerSchemaSpec @NullUnit "null"
   swaggerSchemaSpec @Bool "bool"
   swaggerSchemaSpec @Ordering "ordering"
   swaggerSchemaSpec @Char "char"

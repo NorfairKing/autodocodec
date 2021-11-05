@@ -23,6 +23,7 @@ import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
+  showCodecSpec @NullUnit "null"
   showCodecSpec @Bool "bool"
   showCodecSpec @Ordering "ordering"
   showCodecSpec @Char "char"

@@ -27,6 +27,7 @@ import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
+  aesonCodecSpec @NullUnit
   aesonCodecSpec @Bool
   aesonCodecSpec @Ordering
   -- Does not hold

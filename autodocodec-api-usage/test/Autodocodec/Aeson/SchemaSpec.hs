@@ -32,6 +32,7 @@ import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
+  jsonSchemaSpec @NullUnit "null"
   jsonSchemaSpec @Bool "bool"
   jsonSchemaSpec @Ordering "ordering"
   jsonSchemaSpec @Char "char"

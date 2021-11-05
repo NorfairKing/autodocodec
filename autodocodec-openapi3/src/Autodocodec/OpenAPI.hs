@@ -29,7 +29,7 @@ declareNamedSchemaVia c' Proxy = go c'
         pure $
           NamedSchema Nothing $
             mempty
-              { _schemaNullable = Just True
+              { _schemaType = Just OpenApiNull
               }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
