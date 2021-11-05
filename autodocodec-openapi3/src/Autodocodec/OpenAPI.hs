@@ -71,10 +71,9 @@ declareNamedSchemaVia c' Proxy = go c'
         mSchema <- looks (InsOrdHashMap.lookup n)
         case mSchema of
           Nothing -> do
-            -- TODO this dummy idea actually doesn't work.
-            declare [(n, mempty)] -- dummy
-            ns <- go c
-            declare [(n, _namedSchemaSchema ns)]
+            d <- look
+            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n mempty d)
+            declare $ InsOrdHashMap.insert n (_namedSchemaSchema ns) d'
             pure ns
           Just s -> pure $ NamedSchema (Just n) s
     goObject :: ObjectCodec input output -> Declare (Definitions Schema) [Schema]

@@ -23,7 +23,17 @@
                     }
                 ]
             },
-            "recursive": {}
+            "recursive": {
+                "anyOf": [
+                    {
+                        "type": "number",
+                        "description": "base case\nInt"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Recurse"
+                    }
+                ]
+            }
         }
     },
     "openapi": "3.0.0",
