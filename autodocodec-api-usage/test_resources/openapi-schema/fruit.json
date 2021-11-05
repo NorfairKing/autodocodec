@@ -9,26 +9,18 @@
                         ]
                     },
                     {
-                        "anyOf": [
-                            {
-                                "enum": [
-                                    "Orange"
-                                ]
-                            },
-                            {
-                                "anyOf": [
-                                    {
-                                        "enum": [
-                                            "Banana"
-                                        ]
-                                    },
-                                    {
-                                        "enum": [
-                                            "Melon"
-                                        ]
-                                    }
-                                ]
-                            }
+                        "enum": [
+                            "Orange"
+                        ]
+                    },
+                    {
+                        "enum": [
+                            "Banana"
+                        ]
+                    },
+                    {
+                        "enum": [
+                            "Melon"
                         ]
                     }
                 ]
