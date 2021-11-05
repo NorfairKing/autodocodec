@@ -56,6 +56,7 @@ spec = do
   jsonSchemaSpec @(Either Bool Text) "either-bool-text"
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   jsonSchemaSpec @[Text] "list-text"
+  jsonSchemaSpec @(NonEmpty Text) "nonempty-text"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @Via "via"

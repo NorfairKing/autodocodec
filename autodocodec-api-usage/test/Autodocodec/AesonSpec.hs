@@ -17,6 +17,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -51,6 +52,7 @@ spec = do
   aesonCodecSpec @(Either Bool Text)
   aesonCodecSpec @(Either (Either Bool Scientific) Text)
   aesonCodecSpec @[Text]
+  aesonCodecSpec @(NonEmpty Text)
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecSpec @Recursive

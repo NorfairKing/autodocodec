@@ -18,6 +18,7 @@ import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe
 import Data.OpenApi (Components (..), OpenApi (..))
 import qualified Data.OpenApi as OpenAPI
@@ -57,6 +58,7 @@ spec = do
   openAPISchemaSpec @(Either Bool Text) "either-bool-text"
   openAPISchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   openAPISchemaSpec @[Text] "list-text"
+  openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"

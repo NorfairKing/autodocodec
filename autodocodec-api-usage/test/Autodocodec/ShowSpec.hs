@@ -14,6 +14,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -47,6 +48,7 @@ spec = do
   showCodecSpec @(Either Bool Text) "either-bool-text"
   showCodecSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   showCodecSpec @[Text] "list-text"
+  showCodecSpec @(NonEmpty Text) "nonempty-text"
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"

@@ -15,6 +15,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -48,6 +49,7 @@ spec = do
   yamlSchemaSpec @(Either Bool Text) "either-bool-text"
   yamlSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   yamlSchemaSpec @[Text] "list-text"
+  yamlSchemaSpec @(NonEmpty Text) "nonempty-text"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"

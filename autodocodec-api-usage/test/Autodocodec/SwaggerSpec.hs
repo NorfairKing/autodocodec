@@ -18,6 +18,7 @@ import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe
 import Data.Scientific
 import Data.Swagger (Swagger (..))
@@ -57,6 +58,7 @@ spec = do
   swaggerSchemaSpec @(Either Bool Text) "either-bool-text"
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   swaggerSchemaSpec @[Text] "list-text"
+  swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"

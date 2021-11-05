@@ -9,6 +9,8 @@ module Autodocodec.Class where
 import Autodocodec.Codec
 import qualified Data.Aeson as JSON
 import Data.Int
+import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -99,6 +101,13 @@ instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodecForStringCompatibility
+
+instance HasCodec a => HasCodec (NonEmpty a) where
+  codec = bimapCodec parseNonEmptyList NE.toList codec
+    where
+      parseNonEmptyList l = case NE.nonEmpty l of
+        Nothing -> Left "Expected a nonempty list, but got an empty list."
+        Just ne -> Right ne
 
 -- | A required field
 --
