@@ -222,29 +222,29 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
     go :: Int -> Codec context input output -> State (Set Text) ShowS
     go d = \case
       NullCodec -> pure $ showString "NullCodec"
-      BoolCodec mname -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec d mname
-      StringCodec mname -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec d mname
-      NumberCodec mname -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec d mname
-      ArrayOfCodec mname c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 c
-      ObjectOfCodec mname oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec d mname . showString " " . s) <$> go 11 oc
+      BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
+      StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
+      NumberCodec mName -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName
+      ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
+      ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
       ObjectCodec -> pure $ showString "ObjectCodec"
-      EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec d value . showString " " . s) <$> go 11 c
-      MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec " . s) <$> go 11 c
+      EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
+      MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec _ _ " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
-      CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec d comment . showString " " . s) <$> go 11 c
+      CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
         if alreadySeen
-          then pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name
+          then pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name
           else do
             modify (S.insert name)
             s <- go d c
-            pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec d name . showString " " . s
-      RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
-      OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec d k . showString " " . showsPrec d mdoc . showString " " . s) <$> go 11 c
-      OptionalKeyWithDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec d k . showString " " . s . showString " " . showsPrec d mdoc) <$> go 11 c
-      PureCodec _ -> pure $ showString "PureCodec"
+            pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name . showString " " . s
+      RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyWithDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
+      PureCodec _ -> pure $ showString "PureCodec _"
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
 
 -- | Map the output part of a codec

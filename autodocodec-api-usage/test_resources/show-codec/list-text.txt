@@ -1,1 +1,1 @@
-MapCodec (ArrayOfCodec Nothing (StringCodec Nothing))
+MapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing))

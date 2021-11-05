@@ -1,1 +1,1 @@
-MapCodec (EitherCodec (MapCodec (EqCodec "LT" (StringCodec Nothing))) (MapCodec (EitherCodec (MapCodec (EqCodec "EQ" (StringCodec Nothing))) (MapCodec (EqCodec "GT" (StringCodec Nothing))))))
+MapCodec _ _ (EitherCodec (MapCodec _ _ (EqCodec "LT" (StringCodec Nothing))) (MapCodec _ _ (EitherCodec (MapCodec _ _ (EqCodec "EQ" (StringCodec Nothing))) (MapCodec _ _ (EqCodec "GT" (StringCodec Nothing))))))
