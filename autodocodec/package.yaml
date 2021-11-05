@@ -19,5 +19,6 @@ library:
   - containers
   - mtl
   - scientific
+  - swagger
   - text
   - vector

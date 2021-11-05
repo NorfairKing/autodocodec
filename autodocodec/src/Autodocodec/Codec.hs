@@ -2,7 +2,9 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData #-}
 
 module Autodocodec.Codec where
 
@@ -39,7 +41,7 @@ data Codec context input output where
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
     -- | Name of the @bool@, for error messages and documentation.
-    !(Maybe Text) ->
+    (Maybe Text) ->
     -- |
     ValueCodec Bool Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
@@ -47,7 +49,7 @@ data Codec context input output where
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
     -- | Name of the @string@, for error messages and documentation.
-    !(Maybe Text) ->
+    (Maybe Text) ->
     -- |
     ValueCodec Text Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
@@ -55,23 +57,23 @@ data Codec context input output where
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
     -- | Name of the @number@, for error messages and documentation.
-    !(Maybe Text) ->
+    (Maybe Text) ->
     -- |
     ValueCodec Scientific Scientific
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
-    !(Maybe Text) ->
+    (Maybe Text) ->
     -- |
-    !(ValueCodec input output) ->
+    (ValueCodec input output) ->
     -- |
     ValueCodec (Vector input) (Vector output)
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
-    !(Maybe Text) ->
+    (Maybe Text) ->
     -- |
-    !(ObjectCodec input output) ->
+    (ObjectCodec input output) ->
     -- |
     ValueCodec input output
   -- | Encode a 'JSON.Object', and decode any 'JSON.Object'.
@@ -86,9 +88,9 @@ data Codec context input output where
   EqCodec ::
     (Show value, Eq value) =>
     -- | Value to match
-    !value ->
+    value ->
     -- | Codec for the value
-    !(ValueCodec value value) ->
+    (ValueCodec value value) ->
     -- |
     ValueCodec value value
   -- | Map a codec in both directions.
@@ -98,11 +100,11 @@ data Codec context input output where
   -- Otherwise we would have to have another constructor here.
   MapCodec ::
     -- |
-    !(oldOutput -> Either String newOutput) ->
+    (oldOutput -> Either String newOutput) ->
     -- |
-    !(newInput -> oldInput) ->
+    (newInput -> oldInput) ->
     -- |
-    !(Codec context oldInput oldOutput) ->
+    (Codec context oldInput oldOutput) ->
     Codec context newInput newOutput
   -- | Encode/Decode an 'Either' value
   --
@@ -113,9 +115,9 @@ data Codec context input output where
   -- This codec is used to implement choice.
   EitherCodec ::
     -- | Codec for the 'Left' side
-    !(ValueCodec input1 output1) ->
+    (ValueCodec input1 output1) ->
     -- | Codec for the 'Right' side
-    !(ValueCodec input2 output2) ->
+    (ValueCodec input2 output2) ->
     -- |
     ValueCodec (Either input1 input2) (Either output1 output2)
   -- | A comment codec
