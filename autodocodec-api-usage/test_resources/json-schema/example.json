@@ -9,6 +9,7 @@
     "type": "object",
     "properties": {
         "maybe": {
+            "$comment": "a maybe text",
             "anyOf": [
                 {
                     "type": "null"
@@ -19,9 +20,11 @@
             ]
         },
         "text": {
+            "$comment": "a text",
             "type": "string"
         },
         "fruit": {
+            "$comment": "fruit!!",
             "anyOf": [
                 {
                     "const": "Apple"
@@ -38,9 +41,11 @@
             ]
         },
         "optional-with-default": {
+            "$comment": "an optional text with a default",
             "type": "string"
         },
         "optional-or-null": {
+            "$comment": "an optional-or-null text",
             "anyOf": [
                 {
                     "type": "null"
@@ -51,9 +56,11 @@
             ]
         },
         "bool": {
+            "$comment": "a bool",
             "type": "boolean"
         },
         "optional": {
+            "$comment": "an optional text",
             "type": "string"
         }
     }

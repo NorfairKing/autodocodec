@@ -144,8 +144,8 @@ instance ToJSON JSONSchema where
            in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
         ValueSchema v -> ["const" JSON..= v]
         ObjectSchema os ->
-          let combine (ps, rps) (k, (r, s, _)) =
-                ( (k, s) : ps,
+          let combine (ps, rps) (k, (r, s, mDoc)) =
+                ( (k, maybe id CommentSchema mDoc s) : ps,
                   case r of
                     Required -> S.insert k rps
                     Optional _ -> rps

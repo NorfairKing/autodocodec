@@ -15,6 +15,7 @@
                     "type": "object",
                     "properties": {
                         "recurse": {
+                            "$comment": "recursive case",
                             "$ref": "#/$defs/recursive"
                         }
                     }
