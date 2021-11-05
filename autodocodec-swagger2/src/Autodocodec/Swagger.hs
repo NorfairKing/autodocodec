@@ -114,7 +114,8 @@ declareNamedSchemaVia c' Proxy = go c'
           [ mempty
               { _schemaDescription = mDoc,
                 _schemaRequired = [key],
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)]
+                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+                _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
       OptionalKeyCodec key vs mDoc -> do
@@ -123,7 +124,8 @@ declareNamedSchemaVia c' Proxy = go c'
         pure
           [ mempty
               { _schemaDescription = mDoc, -- TODO the docs should probably go in the ns?
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)]
+                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+                _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
       OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
@@ -133,7 +135,11 @@ declareNamedSchemaVia c' Proxy = go c'
           [ mempty
               { _schemaDescription = mDoc,
                 _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
-                _schemaParamSchema = mempty {_paramSchemaDefault = Just $ toJSONVia vs defaultValue}
+                _schemaParamSchema =
+                  mempty
+                    { _paramSchemaDefault = Just $ toJSONVia vs defaultValue,
+                      _paramSchemaType = Just SwaggerObject
+                    }
               }
           ]
       PureCodec _ -> pure []
@@ -141,7 +147,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
-      _ -> pure []
+      MapCodec _ _ oc -> goObject oc
 
 declareSpecificNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

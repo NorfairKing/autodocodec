@@ -1,7 +1,83 @@
 {
     "components": {
         "schemas": {
-            "Example": {}
+            "Example": {
+                "default": "foobar",
+                "required": [
+                    "text",
+                    "bool",
+                    "maybe",
+                    "fruit"
+                ],
+                "type": "object",
+                "description": "fruit!!",
+                "properties": {
+                    "maybe": {
+                        "anyOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "fruit": {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "Apple"
+                                ]
+                            },
+                            {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "Orange"
+                                        ]
+                                    },
+                                    {
+                                        "anyOf": [
+                                            {
+                                                "enum": [
+                                                    "Banana"
+                                                ]
+                                            },
+                                            {
+                                                "enum": [
+                                                    "Melon"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "optional-with-default": {
+                        "type": "string"
+                    },
+                    "optional-or-null": {
+                        "anyOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "bool": {
+                        "type": "boolean"
+                    },
+                    "optional": {
+                        "type": "string"
+                    }
+                }
+            }
         }
     },
     "openapi": "3.0.0",

@@ -5,6 +5,40 @@
         "title": ""
     },
     "definitions": {
-        "Example": {}
+        "Example": {
+            "default": "foobar",
+            "required": [
+                "text",
+                "bool",
+                "maybe",
+                "fruit"
+            ],
+            "type": "object",
+            "description": "fruit!!",
+            "properties": {
+                "maybe": {},
+                "text": {
+                    "type": "string"
+                },
+                "fruit": {
+                    "enum": [
+                        "Apple",
+                        "Orange",
+                        "Banana",
+                        "Melon"
+                    ]
+                },
+                "optional-with-default": {
+                    "type": "string"
+                },
+                "optional-or-null": {},
+                "bool": {
+                    "type": "boolean"
+                },
+                "optional": {
+                    "type": "string"
+                }
+            }
+        }
     }
 }

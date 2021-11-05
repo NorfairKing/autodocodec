@@ -19,6 +19,7 @@ import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
 import Data.Typeable
+import Debug.Trace
 
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
 declareNamedSchemaViaCodec proxy = declareNamedSchemaVia codec proxy
@@ -57,6 +58,7 @@ declareNamedSchemaVia c' Proxy = go c'
       MapCodec _ _ c -> go c
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
+        traceShowM ss
         pure $ NamedSchema mname $ mconcat ss
       EitherCodec c1 c2 -> do
         ns1 <- go c1
@@ -89,7 +91,8 @@ declareNamedSchemaVia c' Proxy = go c'
           [ mempty
               { _schemaDescription = mDoc,
                 _schemaRequired = [key],
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)]
+                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+                _schemaType = Just OpenApiObject
               }
           ]
       OptionalKeyCodec key vs mDoc -> do
@@ -98,7 +101,8 @@ declareNamedSchemaVia c' Proxy = go c'
         pure
           [ mempty
               { _schemaDescription = mDoc, -- TODO the docs should probably go in the ns?
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)]
+                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+                _schemaType = Just OpenApiObject
               }
           ]
       OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
@@ -108,7 +112,8 @@ declareNamedSchemaVia c' Proxy = go c'
           [ mempty
               { _schemaDescription = mDoc,
                 _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
-                _schemaDefault = Just $ toJSONVia vs defaultValue
+                _schemaDefault = Just $ toJSONVia vs defaultValue,
+                _schemaType = Just OpenApiObject
               }
           ]
       PureCodec _ -> pure []
@@ -116,7 +121,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
-      _ -> pure []
+      MapCodec _ _ oc -> goObject oc
 
 declareSpecificNamedSchemaRef :: OpenAPI.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

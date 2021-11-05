@@ -5,6 +5,7 @@
                 "required": [
                     "recurse"
                 ],
+                "type": "object",
                 "description": "recursive case",
                 "properties": {
                     "recurse": {

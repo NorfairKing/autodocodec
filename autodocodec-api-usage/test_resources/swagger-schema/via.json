@@ -5,6 +5,21 @@
         "title": ""
     },
     "definitions": {
-        "Via": {}
+        "Via": {
+            "required": [
+                "one",
+                "two"
+            ],
+            "type": "object",
+            "description": "second field",
+            "properties": {
+                "two": {
+                    "type": "string"
+                },
+                "one": {
+                    "type": "string"
+                }
+            }
+        }
     }
 }
