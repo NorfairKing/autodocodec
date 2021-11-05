@@ -11,13 +11,14 @@
                 "two"
             ],
             "type": "object",
-            "description": "second field",
             "properties": {
                 "two": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "second field"
                 },
                 "one": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "first field"
                 }
             }
         }

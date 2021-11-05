@@ -91,10 +91,7 @@ declareNamedSchemaVia c' Proxy = go c'
               }
       CommentCodec t c -> do
         NamedSchema mName s <- go c
-        let desc = case _schemaDescription s of
-              Nothing -> Just t
-              Just d -> Just $ t <> "\n" <> d
-        pure $ NamedSchema mName $ s {_schemaDescription = desc}
+        pure $ NamedSchema mName $ addDoc t s
       ReferenceCodec n c -> do
         mSchema <- looks (InsOrdHashMap.lookup n)
         case mSchema of
@@ -112,9 +109,8 @@ declareNamedSchemaVia c' Proxy = go c'
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaDescription = mDoc,
-                _schemaRequired = [key],
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+              { _schemaRequired = [key],
+                _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
@@ -123,8 +119,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaDescription = mDoc, -- TODO the docs should probably go in the ns?
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
@@ -133,8 +128,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaDescription = mDoc,
-                _schemaProperties = [(key, _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
                 _schemaParamSchema =
                   mempty
                     { _paramSchemaDefault = Just $ toJSONVia vs defaultValue,
@@ -148,6 +142,15 @@ declareNamedSchemaVia c' Proxy = go c'
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
       MapCodec _ _ oc -> goObject oc
+    addMDoc :: Maybe Text -> Schema -> Schema
+    addMDoc = maybe id addDoc
+    addDoc :: Text -> Schema -> Schema
+    addDoc doc s =
+      s
+        { _schemaDescription = case _schemaDescription s of
+            Nothing -> Just doc
+            Just doc' -> Just $ doc <> "\n" <> doc'
+        }
 
 declareSpecificNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

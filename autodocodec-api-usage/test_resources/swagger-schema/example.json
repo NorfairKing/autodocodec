@@ -14,11 +14,13 @@
                 "fruit"
             ],
             "type": "object",
-            "description": "fruit!!",
             "properties": {
-                "maybe": {},
+                "maybe": {
+                    "description": "a maybe text"
+                },
                 "text": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "a text"
                 },
                 "fruit": {
                     "enum": [
@@ -26,17 +28,23 @@
                         "Orange",
                         "Banana",
                         "Melon"
-                    ]
+                    ],
+                    "description": "fruit!!"
                 },
                 "optional-with-default": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "an optional text with a default"
                 },
-                "optional-or-null": {},
+                "optional-or-null": {
+                    "description": "an optional-or-null text"
+                },
                 "bool": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "a bool"
                 },
                 "optional": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "an optional text"
                 }
             }
         }

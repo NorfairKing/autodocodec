@@ -10,7 +10,6 @@
                     "fruit"
                 ],
                 "type": "object",
-                "description": "fruit!!",
                 "properties": {
                     "maybe": {
                         "anyOf": [
@@ -20,10 +19,12 @@
                             {
                                 "type": "string"
                             }
-                        ]
+                        ],
+                        "description": "a maybe text"
                     },
                     "text": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "a text"
                     },
                     "fruit": {
                         "anyOf": [
@@ -55,10 +56,12 @@
                                     }
                                 ]
                             }
-                        ]
+                        ],
+                        "description": "fruit!!"
                     },
                     "optional-with-default": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "an optional text with a default"
                     },
                     "optional-or-null": {
                         "anyOf": [
@@ -68,13 +71,16 @@
                             {
                                 "type": "string"
                             }
-                        ]
+                        ],
+                        "description": "an optional-or-null text"
                     },
                     "bool": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "a bool"
                     },
                     "optional": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "an optional text"
                     }
                 }
             }

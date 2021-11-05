@@ -6,7 +6,6 @@
                     "recurse"
                 ],
                 "type": "object",
-                "description": "recursive case",
                 "properties": {
                     "recurse": {
                         "$ref": "#/components/schemas/recursive"

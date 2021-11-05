@@ -6,7 +6,7 @@
     },
     "definitions": {
         "Recursive": {
-            "description": "recursive case",
+            "description": "base case\nInt",
             "properties": {
                 "recurse": {
                     "$ref": "#/definitions/recursive"
