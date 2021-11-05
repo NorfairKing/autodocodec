@@ -1,0 +1,16 @@
+{
+    "components": {
+        "schemas": {
+            "Word32": {
+                "type": "number",
+                "description": "Word32"
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

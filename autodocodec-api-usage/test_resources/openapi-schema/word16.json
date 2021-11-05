@@ -1,0 +1,16 @@
+{
+    "components": {
+        "schemas": {
+            "Word16": {
+                "type": "number",
+                "description": "Word16"
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

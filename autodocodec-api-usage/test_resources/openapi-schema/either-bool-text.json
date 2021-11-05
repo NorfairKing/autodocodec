@@ -1,0 +1,36 @@
+{
+    "components": {
+        "schemas": {
+            "(Either Bool Text)": {
+                "anyOf": [
+                    {
+                        "required": [
+                            "Left"
+                        ],
+                        "properties": {
+                            "Left": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "Right"
+                        ],
+                        "properties": {
+                            "Right": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

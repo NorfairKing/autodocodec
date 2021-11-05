@@ -1,0 +1,35 @@
+{
+    "components": {
+        "schemas": {
+            "Ordering": {
+                "anyOf": [
+                    {
+                        "enum": [
+                            "LT"
+                        ]
+                    },
+                    {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "EQ"
+                                ]
+                            },
+                            {
+                                "enum": [
+                                    "GT"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

@@ -4,9 +4,9 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           autodocodec-swagger2
+name:           autodocodec-openapi3
 version:        0.0.0.0
-synopsis:       Swagger2 support for autodocodecs
+synopsis:       OpenAPI3 support for autodocodecs
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
 author:         Tom Sydney Kerckhove
@@ -22,9 +22,9 @@ source-repository head
 
 library
   exposed-modules:
-      Autodocodec.Swagger
+      Autodocodec.OpenAPI
   other-modules:
-      Paths_autodocodec_swagger2
+      Paths_autodocodec_openapi3
   hs-source-dirs:
       src
   build-depends:
@@ -33,7 +33,7 @@ library
     , autodocodec-aeson
     , base >=4.7 && <5
     , insert-ordered-containers
+    , openapi3
     , scientific
-    , swagger2
     , text
   default-language: Haskell2010

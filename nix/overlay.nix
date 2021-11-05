@@ -12,6 +12,7 @@ with final.haskell.lib;
       "autodocodec-aeson"
       "autodocodec-aeson-schema"
       "autodocodec-api-usage"
+      "autodocodec-openapi3"
       "autodocodec-swagger2"
       "autodocodec-yaml"
     ]

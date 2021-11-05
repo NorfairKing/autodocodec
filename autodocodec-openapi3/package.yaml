@@ -1,4 +1,4 @@
-name: autodocodec-swagger2
+name: autodocodec-openapi3
 version: 0.0.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
@@ -6,7 +6,7 @@ license-file: LICENSE
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
-synopsis: Swagger2 support for autodocodecs
+synopsis: OpenAPI3 support for autodocodecs
 
 dependencies:
 - base >= 4.7 && < 5
@@ -19,5 +19,5 @@ library:
   - autodocodec-aeson
   - insert-ordered-containers
   - scientific
-  - swagger2
+  - openapi3
   - text

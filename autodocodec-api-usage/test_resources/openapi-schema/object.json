@@ -1,0 +1,17 @@
+{
+    "components": {
+        "schemas": {
+            "Object": {
+                "additionalProperties": true,
+                "type": "object",
+                "description": "Arbitrary JSON object."
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

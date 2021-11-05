@@ -1,0 +1,16 @@
+{
+    "components": {
+        "schemas": {
+            "Int16": {
+                "type": "number",
+                "description": "Int16"
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

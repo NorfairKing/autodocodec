@@ -3,8 +3,9 @@ packages:
 - autodocodec
 - autodocodec-aeson
 - autodocodec-aeson-schema
-- autodocodec-yaml
+- autodocodec-openapi3
 - autodocodec-swagger2
+- autodocodec-yaml
 # Test-only
 - autodocodec-api-usage
 extra-deps:

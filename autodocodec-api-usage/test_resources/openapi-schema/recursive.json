@@ -1,0 +1,35 @@
+{
+    "components": {
+        "schemas": {
+            "Recurse": {
+                "required": [
+                    "recurse"
+                ],
+                "description": "recursive case",
+                "properties": {
+                    "recurse": {
+                        "$ref": "#/components/schemas/recursive"
+                    }
+                }
+            },
+            "Recursive": {
+                "anyOf": [
+                    {
+                        "type": "number",
+                        "description": "base case\nInt"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Recurse"
+                    }
+                ]
+            },
+            "recursive": {}
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

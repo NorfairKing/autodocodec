@@ -33,6 +33,7 @@ library
     , autodocodec
     , autodocodec-aeson
     , autodocodec-aeson-schema
+    , autodocodec-openapi3
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5
@@ -41,6 +42,7 @@ library
     , genvalidity-aeson
     , genvalidity-scientific
     , genvalidity-text
+    , openapi3
     , scientific
     , swagger2
     , text
@@ -52,6 +54,7 @@ test-suite autodocodec-api-usage-test
   other-modules:
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
+      Autodocodec.OpenAPISpec
       Autodocodec.ShowSpec
       Autodocodec.SwaggerSpec
       Autodocodec.Yaml.DocumentSpec
@@ -68,6 +71,7 @@ test-suite autodocodec-api-usage-test
     , autodocodec-aeson
     , autodocodec-aeson-schema
     , autodocodec-api-usage
+    , autodocodec-openapi3
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5
@@ -80,6 +84,7 @@ test-suite autodocodec-api-usage-test
     , genvalidity-sydtest
     , genvalidity-sydtest-aeson
     , genvalidity-text
+    , openapi3
     , safe-coloured-text
     , scientific
     , swagger2

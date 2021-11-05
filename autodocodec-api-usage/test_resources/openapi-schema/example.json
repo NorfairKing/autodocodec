@@ -1,0 +1,13 @@
+{
+    "components": {
+        "schemas": {
+            "Example": {}
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

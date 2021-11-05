@@ -1,0 +1,57 @@
+{
+    "components": {
+        "schemas": {
+            "(Either (Either Bool Scientific) Text)": {
+                "anyOf": [
+                    {
+                        "required": [
+                            "Left"
+                        ],
+                        "properties": {
+                            "Left": {
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "Left"
+                                        ],
+                                        "properties": {
+                                            "Left": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "required": [
+                                            "Right"
+                                        ],
+                                        "properties": {
+                                            "Right": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "Right"
+                        ],
+                        "properties": {
+                            "Right": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

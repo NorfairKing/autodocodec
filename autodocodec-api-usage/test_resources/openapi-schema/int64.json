@@ -1,0 +1,16 @@
+{
+    "components": {
+        "schemas": {
+            "Int64": {
+                "type": "number",
+                "description": "Int64"
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

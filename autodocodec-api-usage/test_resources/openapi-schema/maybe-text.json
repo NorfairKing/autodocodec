@@ -1,0 +1,22 @@
+{
+    "components": {
+        "schemas": {
+            "(Maybe Text)": {
+                "anyOf": [
+                    {
+                        "nullable": true
+                    },
+                    {
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

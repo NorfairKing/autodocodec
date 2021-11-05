@@ -1,0 +1,44 @@
+{
+    "components": {
+        "schemas": {
+            "Fruit": {
+                "anyOf": [
+                    {
+                        "enum": [
+                            "Apple"
+                        ]
+                    },
+                    {
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "Orange"
+                                ]
+                            },
+                            {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "Banana"
+                                        ]
+                                    },
+                                    {
+                                        "enum": [
+                                            "Melon"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}
