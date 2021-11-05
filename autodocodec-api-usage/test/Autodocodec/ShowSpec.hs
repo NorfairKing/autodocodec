@@ -31,6 +31,7 @@ spec = do
   showCodecSpec @LT.Text "lazy-text"
   showCodecSpec @String "string"
   showCodecSpec @Scientific "scientific"
+  showCodecSpec @JSON.Object "object"
   showCodecSpec @JSON.Value "value"
   showCodecSpec @Int "int"
   showCodecSpec @Int8 "int8"

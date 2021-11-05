@@ -40,6 +40,7 @@ spec = do
   jsonSchemaSpec @LT.Text "lazy-text"
   jsonSchemaSpec @String "string"
   jsonSchemaSpec @Scientific "scientific"
+  jsonSchemaSpec @JSON.Object "object"
   jsonSchemaSpec @JSON.Value "value"
   jsonSchemaSpec @Int "int"
   jsonSchemaSpec @Int8 "int8"
@@ -131,4 +132,24 @@ jsonSchemaSpec filePath =
         (JSON.toJSON (jsonSchemaViaCodec @a))
     it "validates all encoded values" $
       forAllValid $ \(a :: a) ->
-        validateAccordingTo (toJSONViaCodec a) (jsonSchemaViaCodec @a) `shouldBe` True
+        let schema = jsonSchemaViaCodec @a
+            encoded = toJSONViaCodec a
+         in if validateAccordingTo encoded schema
+              then pure ()
+              else
+                expectationFailure $
+                  unlines
+                    [ "Generated value did not pass the JSON Schema validation, but it should have",
+                      unwords
+                        [ "value",
+                          ppShow a
+                        ],
+                      unwords
+                        [ "encoded",
+                          ppShow encoded
+                        ],
+                      unwords
+                        [ "schema",
+                          ppShow schema
+                        ]
+                    ]

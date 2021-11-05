@@ -83,7 +83,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         JSON.Object hm ->
           let goKey :: Text -> JSON.Value -> State (Map Text JSONSchema) Bool
               goKey key value' = case lookup key kss of
-                Nothing -> pure False
+                Nothing -> pure True -- Keys not mentioned in the schema are fine.
                 Just (_, ks, _) -> go value' ks
               goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> State (Map Text JSONSchema) Bool
               goKeySchema key (kr, ks, _) = case HM.lookup key hm of

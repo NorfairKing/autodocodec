@@ -30,12 +30,12 @@ spec = do
   aesonCodecSpec @NullUnit
   aesonCodecSpec @Bool
   aesonCodecSpec @Ordering
-  -- Does not hold
-  -- aesonCodecSpec @Char
-  -- aesonCodecSpec @String
+  xdescribe "does not hold" $ aesonCodecSpec @Char
   aesonCodecSpec @Text
   aesonCodecSpec @LT.Text
+  xdescribe "does not hold" $ aesonCodecSpec @String
   aesonCodecSpec @Scientific
+  aesonCodecSpec @JSON.Object
   aesonCodecSpec @JSON.Value
   aesonCodecSpec @Int
   aesonCodecSpec @Int8
@@ -48,8 +48,8 @@ spec = do
   aesonCodecSpec @Word32
   aesonCodecSpec @Word64
   aesonCodecSpec @(Maybe Text)
-  aesonCodecSpec @(Either Text Bool)
-  aesonCodecSpec @(Either (Either Text Scientific) Bool)
+  aesonCodecSpec @(Either Bool Text)
+  aesonCodecSpec @(Either (Either Bool Scientific) Text)
   aesonCodecSpec @[Text]
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
