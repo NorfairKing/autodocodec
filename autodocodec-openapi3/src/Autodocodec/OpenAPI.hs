@@ -3,6 +3,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Autodocodec.OpenAPI where
 
@@ -11,11 +13,12 @@ import Autodocodec.Aeson.Encode
 import Control.Monad
 import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
-import Data.OpenApi as Swagger
-import Data.OpenApi.Declare as Swagger
+import Data.OpenApi as OpenAPI
+import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
+import Data.Typeable
 
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
 declareNamedSchemaViaCodec proxy = declareNamedSchemaVia codec proxy
@@ -115,12 +118,12 @@ declareNamedSchemaVia c' Proxy = go c'
         pure $ ss1 ++ ss2
       _ -> pure []
 
-declareSpecificNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
+declareSpecificNamedSchemaRef :: OpenAPI.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =
   fmap (NamedSchema (_namedSchemaName namedSchema))
     <$> declareSpecificSchemaRef (_namedSchemaName namedSchema) (_namedSchemaSchema namedSchema)
 
-declareSpecificSchemaRef :: Maybe Text -> Swagger.Schema -> Declare (Definitions Schema) (Referenced Schema)
+declareSpecificSchemaRef :: Maybe Text -> OpenAPI.Schema -> Declare (Definitions Schema) (Referenced Schema)
 declareSpecificSchemaRef mName s =
   case mName of
     Nothing -> pure $ Inline s
@@ -128,3 +131,6 @@ declareSpecificSchemaRef mName s =
       known <- looks (InsOrdHashMap.member n)
       when (not known) $ declare $ InsOrdHashMap.singleton n s
       pure $ Ref (Reference n)
+
+instance (Typeable a, HasCodec a) => OpenAPI.ToSchema (Autodocodec a) where
+  declareNamedSchema (Proxy :: Proxy (Autodocodec a)) = declareNamedSchemaViaCodec (Proxy :: Proxy a)

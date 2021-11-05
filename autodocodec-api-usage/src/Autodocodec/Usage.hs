@@ -12,6 +12,8 @@ module Autodocodec.Usage where
 
 import Autodocodec
 import Autodocodec.Aeson ()
+import Autodocodec.OpenAPI ()
+import Autodocodec.Swagger ()
 import Control.Applicative
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
@@ -20,6 +22,8 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Maybe
+import qualified Data.OpenApi as OpenAPI
+import qualified Data.Swagger as Swagger
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Test.QuickCheck
@@ -172,15 +176,18 @@ instance HasCodec Recursive where
               (codec @Int <?> "base case")
               (object "Recurse" $ requiredField "recurse" "recursive case")
 
-data Via = Via {viaOne :: !Text, viaTwo :: !Text}
+data Via = Via
+  { viaOne :: !Text,
+    viaTwo :: !Text
+  }
   deriving stock (Show, Eq, Generic)
-  deriving (FromJSON, ToJSON) via (Autodocodec Via)
-
-instance Validity Via
-
-instance GenValid Via where
-  genValid = genValidStructurallyWithoutExtraChecking
-  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec Via)
 
 instance HasCodec Via where
   codec =
@@ -188,3 +195,9 @@ instance HasCodec Via where
       Via
         <$> requiredField "one" "first field" .= viaOne
         <*> requiredField "two" "second field" .= viaTwo
+
+instance Validity Via
+
+instance GenValid Via where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering

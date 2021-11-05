@@ -3,6 +3,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Autodocodec.Swagger where
 
@@ -154,3 +156,6 @@ declareSpecificSchemaRef mName s =
       known <- looks (InsOrdHashMap.member n)
       when (not known) $ declare $ InsOrdHashMap.singleton n s
       pure $ Ref (Reference n)
+
+instance (HasCodec a) => Swagger.ToSchema (Autodocodec a) where
+  declareNamedSchema (Proxy :: Proxy (Autodocodec a)) = declareNamedSchemaViaCodec (Proxy :: Proxy a)
