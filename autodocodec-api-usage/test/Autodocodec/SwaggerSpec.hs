@@ -8,6 +8,7 @@
 module Autodocodec.SwaggerSpec (spec) where
 
 import Autodocodec
+import Autodocodec.Aeson
 import Autodocodec.Swagger
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
@@ -30,6 +31,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
+import Test.Syd.Validity
 import Test.Syd.Validity.Utils
 
 spec :: Spec
@@ -68,12 +70,37 @@ spec = do
 swaggerSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =
   describe ("swaggerSchemaSpec @" <> nameOf @a) $ do
+    let (definitions, s) = flip Swagger.runDeclare mempty $ do
+          Swagger.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
+          Swagger.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
+          pure schema
+
     it "outputs the same schema as before" $
-      let definitions = flip Swagger.execDeclare mempty $ do
-            Swagger.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
-            Swagger.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
-            pure ()
-          swagger = mempty {_swaggerDefinitions = definitions}
+      let swagger = mempty {_swaggerDefinitions = definitions}
        in pureGoldenJSONFile
             ("test_resources/swagger-schema/" <> filePath <> ".json")
             (JSON.toJSON swagger)
+
+    it "validates all encoded values" $
+      forAllValid $ \(a :: a) ->
+        let encoded = toJSONViaCodec a
+         in case Swagger.validateJSON definitions s encoded of
+              [] -> pure ()
+              errors ->
+                expectationFailure $
+                  unlines
+                    [ "Generated value did not pass the JSON Schema validation, but it should have",
+                      unwords
+                        [ "value",
+                          ppShow a
+                        ],
+                      unwords
+                        [ "encoded",
+                          ppShow encoded
+                        ],
+                      unwords
+                        [ "schema",
+                          ppShow s
+                        ],
+                      show errors
+                    ]

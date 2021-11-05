@@ -5,6 +5,8 @@
         "title": ""
     },
     "definitions": {
-        "Value": {}
+        "Value": {
+            "additionalProperties": true
+        }
     }
 }

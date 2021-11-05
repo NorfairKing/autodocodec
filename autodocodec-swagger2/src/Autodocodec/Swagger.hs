@@ -57,7 +57,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss <- goObject oc
         pure $ NamedSchema mname $ mconcat ss
       ObjectCodec -> declareNamedSchema (Proxy :: Proxy JSON.Object)
-      ValueCodec -> pure $ NamedSchema Nothing mempty -- TODO
+      ValueCodec -> pure $ NamedSchema Nothing mempty {_schemaAdditionalProperties = Just (AdditionalPropertiesAllowed True)} -- TODO
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $
