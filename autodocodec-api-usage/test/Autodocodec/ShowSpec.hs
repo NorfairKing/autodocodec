@@ -53,6 +53,7 @@ spec = do
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"
   showCodecSpec @Via "via"
+  showCodecSpec @VeryComment "very-comment"
 
 showCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 showCodecSpec filePath =

@@ -60,6 +60,7 @@ spec = do
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @Via "via"
+  jsonSchemaSpec @VeryComment "very-comment"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     it "roundtrips through json and back" $

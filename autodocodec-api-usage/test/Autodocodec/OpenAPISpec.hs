@@ -63,6 +63,7 @@ spec = do
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"
   openAPISchemaSpec @Via "via"
+  openAPISchemaSpec @VeryComment "very-comment"
 
 openAPISchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =

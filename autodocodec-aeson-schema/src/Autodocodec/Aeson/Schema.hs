@@ -175,6 +175,8 @@ instance ToJSON JSONSchema where
               val :: JSON.Value
               val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
            in [("anyOf", val)]
+        (CommentSchema outerComment (CommentSchema innerComment s)) ->
+          go (CommentSchema (outerComment <> "\n" <> innerComment) s)
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
         RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
         WithDefSchema defs s -> ("$defs" JSON..= defs) : go s

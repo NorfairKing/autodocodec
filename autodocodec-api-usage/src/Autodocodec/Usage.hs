@@ -201,3 +201,29 @@ instance Validity Via
 instance GenValid Via where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+data VeryComment = VeryComment
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec VeryComment)
+
+instance Validity VeryComment
+
+instance GenValid VeryComment where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec VeryComment where
+  codec =
+    dimapCodec
+      (\() -> VeryComment)
+      (\VeryComment -> ())
+      (nullCodec <?> "This is the inner comment")
+      <?> "This is the innermost outer comment"
+      <?> "This is the middle outer comment"
+      <??> ["This is the outermost outer comment", "on multiple lines", "because we can."]

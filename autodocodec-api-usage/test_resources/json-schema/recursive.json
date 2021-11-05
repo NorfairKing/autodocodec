@@ -4,7 +4,7 @@
         "recursive": {
             "anyOf": [
                 {
-                    "$comment": "Int",
+                    "$comment": "base case\nInt",
                     "type": "number"
                 },
                 {

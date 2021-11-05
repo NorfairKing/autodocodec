@@ -57,6 +57,7 @@ spec = do
   aesonCodecSpec @Example
   aesonCodecSpec @Recursive
   aesonCodecSpec @Via
+  aesonCodecSpec @VeryComment
 
 aesonCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 aesonCodecSpec =

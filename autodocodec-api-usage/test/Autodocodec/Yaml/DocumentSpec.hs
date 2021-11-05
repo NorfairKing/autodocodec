@@ -54,6 +54,7 @@ spec = do
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"
   yamlSchemaSpec @Via "via"
+  yamlSchemaSpec @VeryComment "very-comment"
 
 yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

@@ -49,6 +49,10 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
 
     jsonValueChunk :: Yaml.Value -> Chunk
     jsonValueChunk v = chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)
+
+    docToLines :: Text -> [[Chunk]]
+    docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
+
     go :: JSONSchema -> [[Chunk]]
     go = \case
       AnySchema -> [[fore yellow "<any>"]]
@@ -68,8 +72,6 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
               Optional mdv -> mdv
             keySchemaFor k (kr, ks, mdoc) =
               let keySchemaChunks = go ks
-                  docToLines :: Text -> [[Chunk]]
-                  docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
                   defaultValueLine = case mDefaultValue kr of
                     Nothing -> []
                     Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
@@ -90,6 +92,6 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                       map (addInFrontOfFirstInList [", "]) restChunks
                         ++ [[["]"]]]
          in addListAround s
-      CommentSchema comment s -> [chunk $ "# " <> comment] : go s
+      CommentSchema comment s -> docToLines comment ++ go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
       WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s
