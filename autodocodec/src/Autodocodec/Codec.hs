@@ -136,8 +136,12 @@ data Codec context input output where
   ReferenceCodec ::
     -- |
     Text ->
-    -- |
-    ValueCodec input output ->
+    -- | The codec we claim is recursive.
+    --
+    -- It doesn't _need_ to be recursive, and you may just have wanted to name the codec, but it _may_ be recursive from here downward.
+    --
+    -- This value MUST be lazy, otherwise we can never define recursive codecs.
+    ~(ValueCodec input output) ->
     -- |
     ValueCodec input output
   RequiredKeyCodec ::
