@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
@@ -7,13 +8,16 @@ module Autodocodec.Swagger where
 
 import Autodocodec
 import Autodocodec.Aeson.Encode
+import Control.Applicative
 import Control.Monad
 import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import Data.List
 import Data.Proxy
 import Data.Scientific
 import Data.Swagger as Swagger
 import Data.Swagger.Declare as Swagger
+import Data.Swagger.Internal as Swagger
 import Data.Text (Text)
 
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -60,7 +64,30 @@ declareNamedSchemaVia c' Proxy = go c'
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
       MapCodec _ _ c -> go c
-      EitherCodec _ _ -> pure $ NamedSchema Nothing mempty -- TODO
+      -- Swagger 2 doesn't support sum types so we have to work around that here.
+      EitherCodec c1 c2 -> do
+        ns1 <- go c1
+        let s1 = _namedSchemaSchema ns1
+        let ps1 = _schemaParamSchema s1
+        ns2 <- go c2
+        let s2 = _namedSchemaSchema ns2
+        let ps2 = _schemaParamSchema s2
+        pure $
+          NamedSchema Nothing $
+            (s1 <> s2)
+              { _schemaRequired =
+                  _schemaRequired s1
+                    `intersect` _schemaRequired s2,
+                _schemaParamSchema =
+                  mempty
+                    { _paramSchemaEnum =
+                        liftA2
+                          (++)
+                          (_paramSchemaEnum ps1)
+                          (_paramSchemaEnum ps2)
+                    }
+                    -- TODO all the other bits and pieces.
+              }
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         let desc = case _schemaDescription s of
@@ -71,6 +98,8 @@ declareNamedSchemaVia c' Proxy = go c'
         mSchema <- looks (InsOrdHashMap.lookup n)
         case mSchema of
           Nothing -> do
+            -- TODO this dummy idea actually doesn't work.
+            declare [(n, mempty)] -- dummy
             ns <- go c
             declare [(n, _namedSchemaSchema ns)]
             pure ns

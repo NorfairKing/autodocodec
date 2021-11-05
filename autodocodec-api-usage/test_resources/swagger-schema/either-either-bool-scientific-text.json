@@ -5,6 +5,22 @@
         "title": ""
     },
     "definitions": {
-        "(Either (Either Bool Scientific) Text)": {}
+        "(Either (Either Bool Scientific) Text)": {
+            "properties": {
+                "Left": {
+                    "properties": {
+                        "Left": {
+                            "type": "boolean"
+                        },
+                        "Right": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "Right": {
+                    "type": "string"
+                }
+            }
+        }
     }
 }

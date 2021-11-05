@@ -5,7 +5,14 @@
         "title": ""
     },
     "definitions": {
-        "Recursive": {},
+        "Recursive": {
+            "description": "recursive case",
+            "properties": {
+                "recurse": {
+                    "$ref": "#/definitions/recursive"
+                }
+            }
+        },
         "recursive": {}
     }
 }

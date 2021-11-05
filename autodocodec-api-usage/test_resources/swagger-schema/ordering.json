@@ -5,6 +5,12 @@
         "title": ""
     },
     "definitions": {
-        "Ordering": {}
+        "Ordering": {
+            "enum": [
+                "LT",
+                "EQ",
+                "GT"
+            ]
+        }
     }
 }

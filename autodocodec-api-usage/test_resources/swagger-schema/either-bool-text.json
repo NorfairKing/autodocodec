@@ -5,6 +5,15 @@
         "title": ""
     },
     "definitions": {
-        "(Either Bool Text)": {}
+        "(Either Bool Text)": {
+            "properties": {
+                "Left": {
+                    "type": "boolean"
+                },
+                "Right": {
+                    "type": "string"
+                }
+            }
+        }
     }
 }

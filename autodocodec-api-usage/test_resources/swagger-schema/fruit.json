@@ -5,6 +5,13 @@
         "title": ""
     },
     "definitions": {
-        "Fruit": {}
+        "Fruit": {
+            "enum": [
+                "Apple",
+                "Orange",
+                "Banana",
+                "Melon"
+            ]
+        }
     }
 }
