@@ -68,9 +68,9 @@ declareNamedSchemaVia c' Proxy = go c'
       -- Swagger 2 doesn't support sum types so we have to work around that here.
       EitherCodec c1 c2 -> do
         ns1 <- go c1
+        ns2 <- go c2
         let s1 = _namedSchemaSchema ns1
         let ps1 = _schemaParamSchema s1
-        ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
         let ps2 = _schemaParamSchema s2
         pure $
@@ -93,10 +93,9 @@ declareNamedSchemaVia c' Proxy = go c'
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
       ReferenceCodec n c -> do
-        mSchema <- looks (InsOrdHashMap.lookup n)
-        case mSchema of
+        d <- look
+        case InsOrdHashMap.lookup n d of
           Nothing -> do
-            d <- look
             let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n mempty d)
             declare $ InsOrdHashMap.insert n (_namedSchemaSchema ns) d'
             pure ns

@@ -727,7 +727,7 @@ enumCodec =
           )
       )
 
--- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
+-- | A codec for an enum that can be written as constant string values>
 --
 -- === Example usage
 --
