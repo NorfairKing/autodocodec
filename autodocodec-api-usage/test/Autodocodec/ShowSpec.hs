@@ -6,11 +6,8 @@
 module Autodocodec.ShowSpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
 import Autodocodec.Usage
-import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Types as JSON
 import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
@@ -22,7 +19,6 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
 import Test.Syd
-import Test.Syd.Validity
 import Test.Syd.Validity.Utils
 
 spec :: Spec

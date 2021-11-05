@@ -17,7 +17,6 @@ import Data.Proxy
 import Data.Scientific
 import Data.Swagger as Swagger
 import Data.Swagger.Declare as Swagger
-import Data.Swagger.Internal as Swagger
 import Data.Text (Text)
 
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
