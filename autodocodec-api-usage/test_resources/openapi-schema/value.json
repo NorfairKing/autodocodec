@@ -1,7 +1,9 @@
 {
     "components": {
         "schemas": {
-            "Value": {}
+            "Value": {
+                "additionalProperties": true
+            }
         }
     },
     "openapi": "3.0.0",

@@ -89,7 +89,7 @@ swaggerSchemaSpec filePath =
               errors ->
                 expectationFailure $
                   unlines
-                    [ "Generated value did not pass the JSON Schema validation, but it should have",
+                    [ "Generated value did not pass the Swagger Schema validation, but it should have",
                       unwords
                         [ "value",
                           ppShow a

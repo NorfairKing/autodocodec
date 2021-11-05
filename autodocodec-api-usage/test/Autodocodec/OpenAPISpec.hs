@@ -8,6 +8,7 @@
 module Autodocodec.OpenAPISpec (spec) where
 
 import Autodocodec
+import Autodocodec.Aeson
 import Autodocodec.OpenAPI
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
@@ -30,6 +31,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
+import Test.Syd.Validity
 import Test.Syd.Validity.Utils
 
 spec :: Spec
@@ -68,12 +70,37 @@ spec = do
 openAPISchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =
   describe ("openAPISchemaSpec @" <> nameOf @a) $ do
+    let (definitions, s) = flip OpenAPI.runDeclare mempty $ do
+          OpenAPI.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
+          OpenAPI.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
+          pure schema
     it "outputs the same schema as before" $
-      let definitions = flip OpenAPI.execDeclare mempty $ do
-            OpenAPI.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
-            OpenAPI.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
-            pure ()
-          openAPI = mempty {_openApiComponents = mempty {_componentsSchemas = definitions}}
+      let openAPI = mempty {_openApiComponents = mempty {_componentsSchemas = definitions}}
        in pureGoldenJSONFile
             ("test_resources/openapi-schema/" <> filePath <> ".json")
             (JSON.toJSON openAPI)
+
+    -- Does not handle 'anyOf' correctly, I think.
+    xit "validates all encoded values" $
+      forAllValid $ \(a :: a) ->
+        let encoded = toJSONViaCodec a
+         in case OpenAPI.validateJSON definitions s encoded of
+              [] -> pure ()
+              errors ->
+                expectationFailure $
+                  unlines
+                    [ "Generated value did not pass the OpenAPI Schema validation, but it should have",
+                      unwords
+                        [ "value",
+                          ppShow a
+                        ],
+                      unwords
+                        [ "encoded",
+                          ppShow encoded
+                        ],
+                      unwords
+                        [ "schema",
+                          ppShow s
+                        ],
+                      show errors
+                    ]
