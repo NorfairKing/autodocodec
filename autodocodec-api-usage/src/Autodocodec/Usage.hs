@@ -30,6 +30,7 @@ import Data.Text (Text)
 import GHC.Generics (Generic)
 import Test.QuickCheck
 
+-- | A type that's encoded as @null@.
 data NullUnit = NullUnit
   deriving (Show, Eq, Generic)
 
@@ -50,6 +51,7 @@ instance FromJSON NullUnit where
 instance ToJSON NullUnit where
   toJSON NullUnit = JSON.Null
 
+-- | A simple enum type
 data Fruit
   = Apple
   | Orange
@@ -70,6 +72,7 @@ instance FromJSON Fruit
 
 instance ToJSON Fruit
 
+-- | A complex example type
 data Example = Example
   { exampleText :: !Text,
     exampleBool :: !Bool,
@@ -128,7 +131,7 @@ instance FromJSON Example where
       <*> o JSON..:? "optional-with-default" JSON..!= "foobar"
       <*> o JSON..: "fruit"
 
--- Recursive type
+-- | A simple Recursive type
 --
 -- We use this example to make sure that:
 --
@@ -178,6 +181,7 @@ instance HasCodec Recursive where
               (codec @Int <?> "base case")
               (object "Recurse" $ requiredField "recurse" "recursive case")
 
+-- | An example of using DerivingVia
 data Via = Via
   { viaOne :: !Text,
     viaTwo :: !Text
@@ -204,6 +208,7 @@ instance GenValid Via where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
+-- | A type with a heavily-commented codec
 data VeryComment = VeryComment
   deriving stock (Show, Eq, Generic)
   deriving
