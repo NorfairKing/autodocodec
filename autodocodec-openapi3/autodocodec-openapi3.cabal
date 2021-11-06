@@ -23,6 +23,8 @@ source-repository head
 library
   exposed-modules:
       Autodocodec.OpenAPI
+      Autodocodec.OpenAPI.DerivingVia
+      Autodocodec.OpenAPI.Schema
   other-modules:
       Paths_autodocodec_openapi3
   hs-source-dirs:
