@@ -6,6 +6,7 @@
     },
     "definitions": {
         "(Either Bool Text)": {
+            "type": "object",
             "properties": {
                 "Left": {
                     "type": "boolean"

@@ -245,7 +245,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
           then pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name
           else do
             modify (S.insert name)
-            s <- go d c
+            s <- go 11 c
             pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name . showString " " . s
       RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c

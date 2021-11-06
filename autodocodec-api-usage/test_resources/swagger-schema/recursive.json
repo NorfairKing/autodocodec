@@ -6,7 +6,6 @@
     },
     "definitions": {
         "Recursive": {
-            "description": "base case\nInt",
             "properties": {
                 "recurse": {
                     "$ref": "#/definitions/recursive"
@@ -14,7 +13,6 @@
             }
         },
         "recursive": {
-            "description": "base case\nInt",
             "properties": {
                 "recurse": {
                     "$ref": "#/definitions/recursive"

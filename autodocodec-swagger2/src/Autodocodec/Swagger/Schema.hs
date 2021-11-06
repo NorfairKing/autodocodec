@@ -9,7 +9,6 @@
 module Autodocodec.Swagger.Schema where
 
 import Autodocodec
-import Control.Applicative
 import Control.Monad
 import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
@@ -72,30 +71,45 @@ declareNamedSchemaVia c' Proxy = go c'
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
       MapCodec _ _ c -> go c
-      -- Swagger 2 doesn't support sum types so we have to work around that here.
       EitherCodec c1 c2 -> do
         ns1 <- go c1
-        ns2 <- go c2
         let s1 = _namedSchemaSchema ns1
         let ps1 = _schemaParamSchema s1
+        ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
         let ps2 = _schemaParamSchema s2
+        -- Swagger 2 doesn't support sum types so we have to work around that here.
+        --
+        -- We support a few cases:
+        --
+        --   * Enum: If both of them have the enum field set
+        --   * Two obects: If both of them have the object type set.
+        --
+        -- If none of these cases match, we just take an overapproximation of
+        -- the schema: one which lets any value through.
+        let overApproximation =
+              mempty
+                { _schemaProperties = InsOrdHashMap.union (_schemaProperties s1) (_schemaProperties s2)
+                }
         pure $
           NamedSchema Nothing $
-            (s1 <> s2)
-              { _schemaRequired =
-                  _schemaRequired s1
-                    `intersect` _schemaRequired s2,
-                _schemaParamSchema =
-                  mempty
-                    { _paramSchemaEnum =
-                        liftA2
-                          (++)
-                          (_paramSchemaEnum ps1)
-                          (_paramSchemaEnum ps2)
-                    }
-                    -- TODO all the other bits and pieces.
-              }
+            case (,) <$> _paramSchemaEnum ps1 <*> _paramSchemaEnum ps2 of
+              (Just (es1, es2)) ->
+                mempty
+                  { _schemaParamSchema = mempty {_paramSchemaEnum = Just $ es1 ++ es2}
+                  }
+              Nothing ->
+                case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
+                  Just (SwaggerObject, SwaggerObject) ->
+                    mempty
+                      { _schemaRequired = _schemaRequired s1 `intersect` _schemaRequired s2,
+                        _schemaProperties = InsOrdHashMap.union (_schemaProperties s1) (_schemaProperties s2),
+                        _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
+                      }
+                  Just (a, b)
+                    | a == b -> mempty {_schemaParamSchema = mempty {_paramSchemaType = Just a}}
+                    | otherwise -> overApproximation
+                  _ -> overApproximation
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
@@ -103,7 +117,10 @@ declareNamedSchemaVia c' Proxy = go c'
         d <- look
         case InsOrdHashMap.lookup n d of
           Nothing -> do
-            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n mempty d)
+            -- Insert a dummy to prevent an infinite loop.
+            let dummy = mempty
+            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n dummy d)
+            -- Override the dummy once we actually know what the result will be.
             declare $ InsOrdHashMap.insert n (_namedSchemaSchema ns) d'
             pure ns
           Just s -> pure $ NamedSchema (Just n) s

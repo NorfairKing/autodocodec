@@ -82,11 +82,13 @@ declareNamedSchemaVia c' Proxy = go c'
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
       ReferenceCodec n c -> do
-        mSchema <- looks (InsOrdHashMap.lookup n)
-        case mSchema of
+        d <- look
+        case InsOrdHashMap.lookup n d of
           Nothing -> do
-            d <- look
-            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n mempty d)
+            -- Insert a dummy to prevent an infinite loop.
+            let dummy = mempty
+            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n dummy d)
+            -- Override the dummy once we actually know what the result will be.
             declare $ InsOrdHashMap.insert n (_namedSchemaSchema ns) d'
             pure ns
           Just s -> pure $ NamedSchema (Just n) s

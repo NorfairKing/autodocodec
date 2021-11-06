@@ -101,5 +101,9 @@ swaggerSchemaSpec filePath =
                         [ "schema",
                           ppShow s
                         ],
+                      unwords
+                        [ "codec",
+                          showCodecABit (codec @a)
+                        ],
                       show errors
                     ]

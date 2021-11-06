@@ -6,8 +6,10 @@
     },
     "definitions": {
         "(Either (Either Bool Scientific) Text)": {
+            "type": "object",
             "properties": {
                 "Left": {
+                    "type": "object",
                     "properties": {
                         "Left": {
                             "type": "boolean"
