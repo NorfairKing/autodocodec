@@ -3,34 +3,51 @@
 Autodocodec is short for "self(auto)- documenting encoder and decoder".
 
 In short:
-You write one (1) instance, of the 'Codec' type-class, for your type, and you get:
+You write a single instance, of the 'Codec' type-class, for your type, and you get:
 
 * [A 'ToJSON' instance from 'aeson'](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:ToJSON)
 * [A 'FromJSON' instance from 'aeson'](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:FromJSON)
 * [A json schema](http://json-schema.org/)
-* A human-readable yaml schema
-* Hopefully soon also: A swagger schema
-* Hopefully soon also: An openapi schema
-* Potentially also: bson instances for mongodb
+* [A nicely-coloured human-readable yaml schema](./autodocodec-yaml)
+* [A Swagger schema](https://swagger.io/specification/v2/)
+* [An Openapi schema](https://swagger.io/specification/)
 
-## DISCLAIMER: This is a work in progress.
+See [the golden test directory](./autodocodec-api-usage/test_resources) directory for example outputs.
 
-This is not ready for production, it is not in use in any of my own projects yet, I do not recommend using it yet.
+## Features
 
-* Documentation is not complete.
-* Some pieces of the implementation
+* ✓ Correct-by-construction encoding and decoding, without generating code.
+* ✓ Generate automatically-correct documentation from code.
+* ✓ Support for recursive types.
 
-## Goals:
+## State of this project
 
-* Correct-by-construction encoding and decoding, without generating code.
-* Generate automatically-correct documentation from code.
-* Fun but not important: Be able to provide instances without depending on aeson and/or yaml.
-* Would be nice: support for recursive types.
+This project is ready to try out!
 
 
 ## Fully featured example
 
-TODO
+``` haskell
+data Example = Example
+  { exampleTextField :: !Text,
+    exampleIntField :: !Int
+  }
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON, -- <- FromJSON instance for free.
+      ToJSON, -- <- ToJSON instance for free.
+      Swagger.ToSchema, -- <- Swagger schema for free.
+      OpenAPI.ToSchema -- <- OpenAPI schema for free.
+    )
+    via (Autodocodec Example)
+
+instance HasCodec Example where
+  codec =
+    object "Example" $
+      Example
+        <$> requiredField "text" "documentation for the text field" .= exampleTextField
+        <*> requiredField "int" "documentation for the int field" .= exampleIntField
+```
 
 ## Tests
 
