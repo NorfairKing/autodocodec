@@ -32,11 +32,20 @@ This is not ready for production, it is not in use in any of my own projects yet
 
 TODO
 
-## Tests and guarantees
+## Tests
 
-* [Error messages are still good](TODO)
-* [Encoding and decoding roundtrips](TODO)
-* [Encoding and decoding is still fast](TODO)
-* [Generated Human-readible documentation looks good](TODO)
-* [Genertaed values are accepted by the corresponding generated Machine-readible schemas](TODO)
-* [We try to make sure that backward compatibility is maintained](./autodocodec-api-usage/src/Autodocodec/Usage.hs)
+While we don't provide any actual guarantees, we do have tests for the following properties that we would like to maintain:
+
+* [Encoding and decoding roundtrips.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
+* [For standard types, encoding behaves in the same way that `aeson` does.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
+* [Error messages for decoding are still good.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
+* [Generated Human-readible documentation looks good.](./autodocodec-api-usage/test/Autodocodec/Yaml/DocumentSpec.hs)
+* [Generated JSON schemas look good.](./autodocodec-api-usage/test/Autodocodec/Aeson/SchemaSpec.hs)
+* [Generated Swagger schemas look good.](./autodocodec-api-usage/test/Autodocodec/SwaggerSpec.hs)
+* [Generated OpenAPI schemas look good.](./autodocodec-api-usage/test/Autodocodec/OpenAPISpec.hs)
+* [Generated values are accepted by the corresponding generated JSON schemas.](./autodocodec-api-usage/test/Autodocodec/Aeson/SchemaSpec.hs)
+* [Generated values are accepted by the corresponding generated Swagger schemas.](./autodocodec-api-usage/test/Autodocodec/SwaggerSpec.hs)
+* [Generated values are accepted by the corresponding generated OpenAPI schemas.](./autodocodec-api-usage/test/Autodocodec/OpenAPISpec.hs)
+* [We try to make sure that backward compatibility is maintained.](./autodocodec-api-usage/src/Autodocodec/Usage.hs)
+* [Codecs are more or less inspectable.](./autodocodec-api-usage/test/Autodocodec/ShowSpec.hs)
+* [TODO: Encoding and decoding is still fast](TODO)
