@@ -75,7 +75,7 @@ parseContextVia = flip go
       MapCodec f _ c -> do
         old <- go value c
         case f old of
-          Left err -> fail err -- TODO better error message location?
+          Left err -> fail err
           Right new -> pure new
       EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
       CommentCodec _ c -> go value c

@@ -47,7 +47,13 @@ declareNamedSchemaVia c' Proxy = go c'
                 _schemaType = Just OpenApiArray
               }
       ObjectCodec -> declareNamedSchema (Proxy :: Proxy JSON.Object)
-      ValueCodec -> pure $ NamedSchema Nothing mempty {_schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True}
+      ValueCodec ->
+        pure $
+          NamedSchema
+            Nothing
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
+              }
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $
