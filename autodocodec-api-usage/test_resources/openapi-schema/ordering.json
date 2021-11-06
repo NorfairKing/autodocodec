@@ -18,7 +18,8 @@
                             "GT"
                         ]
                     }
-                ]
+                ],
+                "additionalProperties": true
             }
         }
     },

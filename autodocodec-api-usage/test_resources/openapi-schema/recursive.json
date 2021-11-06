@@ -21,7 +21,8 @@
                     {
                         "$ref": "#/components/schemas/Recurse"
                     }
-                ]
+                ],
+                "additionalProperties": true
             },
             "recursive": {
                 "anyOf": [
@@ -32,7 +33,8 @@
                     {
                         "$ref": "#/components/schemas/Recurse"
                     }
-                ]
+                ],
+                "additionalProperties": true
             }
         }
     },

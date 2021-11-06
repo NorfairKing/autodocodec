@@ -65,12 +65,13 @@ declareNamedSchemaVia c' Proxy = go c'
         ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
         s2Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns2
+        let prototype = mempty {_schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True}
         pure $
           NamedSchema Nothing $ case (_schemaAnyOf s1, _schemaAnyOf s2) of
-            (Just s1s, Just s2s) -> mempty {_schemaAnyOf = Just $ s1s ++ s2s}
-            (Just s1s, Nothing) -> mempty {_schemaAnyOf = Just $ s1s ++ [s2Ref]}
-            (Nothing, Just s2s) -> mempty {_schemaAnyOf = Just $ s1Ref : s2s}
-            (Nothing, Nothing) -> mempty {_schemaAnyOf = Just [s1Ref, s2Ref]}
+            (Just s1s, Just s2s) -> prototype {_schemaAnyOf = Just $ s1s ++ s2s}
+            (Just s1s, Nothing) -> prototype {_schemaAnyOf = Just $ s1s ++ [s2Ref]}
+            (Nothing, Just s2s) -> prototype {_schemaAnyOf = Just $ s1Ref : s2s}
+            (Nothing, Nothing) -> prototype {_schemaAnyOf = Just [s1Ref, s2Ref]}
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s

@@ -20,6 +20,7 @@
                                 "type": "string"
                             }
                         ],
+                        "additionalProperties": true,
                         "description": "a maybe text"
                     },
                     "text": {
@@ -49,6 +50,7 @@
                                 ]
                             }
                         ],
+                        "additionalProperties": true,
                         "description": "fruit!!"
                     },
                     "optional-with-default": {
@@ -64,6 +66,7 @@
                                 "type": "string"
                             }
                         ],
+                        "additionalProperties": true,
                         "description": "an optional-or-null text"
                     },
                     "bool": {

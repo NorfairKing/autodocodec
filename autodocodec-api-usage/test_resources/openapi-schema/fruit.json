@@ -23,7 +23,8 @@
                             "Melon"
                         ]
                     }
-                ]
+                ],
+                "additionalProperties": true
             }
         }
     },

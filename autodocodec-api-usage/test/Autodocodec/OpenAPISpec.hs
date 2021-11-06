@@ -80,7 +80,7 @@ openAPISchemaSpec filePath =
             (JSON.toJSON openAPI)
 
     -- Does not handle 'anyOf' correctly, I think.
-    xit "validates all encoded values" $
+    it "validates all encoded values" $
       forAllValid $ \(a :: a) ->
         let encoded = toJSONViaCodec a
          in case OpenAPI.validateJSON definitions s encoded of
