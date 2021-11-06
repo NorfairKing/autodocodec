@@ -8,7 +8,6 @@
 module Autodocodec.OpenAPISpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
 import Autodocodec.OpenAPI
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON

@@ -8,8 +8,7 @@
 module Autodocodec.Aeson.SchemaSpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
-import Autodocodec.Aeson.Schema
+import Autodocodec.Schema
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data

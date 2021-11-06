@@ -29,7 +29,7 @@ library
       src
   build-depends:
       autodocodec
-    , autodocodec-aeson-schema
+    , autodocodec-schema
     , base >=4.7 && <5
     , bytestring
     , containers

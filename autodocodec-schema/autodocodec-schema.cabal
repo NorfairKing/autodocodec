@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           autodocodec-aeson-schema
+name:           autodocodec-schema
 version:        0.0.0.0
 synopsis:       Autodocodec JSON Schemas
 homepage:       https://github.com/NorfairKing/autodocodec#readme
@@ -21,9 +21,9 @@ source-repository head
 
 library
   exposed-modules:
-      Autodocodec.Aeson.Schema
+      Autodocodec.Schema
   other-modules:
-      Paths_autodocodec_aeson_schema
+      Paths_autodocodec_schema
   hs-source-dirs:
       src
   build-depends:

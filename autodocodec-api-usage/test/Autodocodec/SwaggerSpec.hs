@@ -8,7 +8,6 @@
 module Autodocodec.SwaggerSpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
 import Autodocodec.Swagger
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON

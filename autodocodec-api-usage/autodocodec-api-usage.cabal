@@ -30,8 +30,8 @@ library
       QuickCheck
     , aeson
     , autodocodec
-    , autodocodec-aeson-schema
     , autodocodec-openapi3
+    , autodocodec-schema
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5
@@ -66,9 +66,9 @@ test-suite autodocodec-api-usage-test
       QuickCheck
     , aeson
     , autodocodec
-    , autodocodec-aeson-schema
     , autodocodec-api-usage
     , autodocodec-openapi3
+    , autodocodec-schema
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5

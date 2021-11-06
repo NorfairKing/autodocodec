@@ -14,7 +14,7 @@ library:
   source-dirs: src
   dependencies:
   - autodocodec
-  - autodocodec-aeson-schema
+  - autodocodec-schema
   - bytestring
   - containers
   - safe-coloured-text

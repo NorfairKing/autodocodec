@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.Aeson.Schema where
+module Autodocodec.Schema where
 
 import Autodocodec
 import Control.Applicative

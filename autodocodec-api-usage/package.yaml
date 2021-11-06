@@ -16,8 +16,8 @@ library:
   - QuickCheck
   - aeson
   - autodocodec
-  - autodocodec-aeson-schema
   - autodocodec-openapi3
+  - autodocodec-schema
   - autodocodec-swagger2
   - autodocodec-yaml
   - bytestring
@@ -45,9 +45,9 @@ tests:
     - QuickCheck
     - aeson
     - autodocodec
-    - autodocodec-aeson-schema
     - autodocodec-api-usage
     - autodocodec-openapi3
+    - autodocodec-schema
     - autodocodec-swagger2
     - autodocodec-yaml
     - bytestring

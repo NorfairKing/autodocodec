@@ -6,7 +6,6 @@
 module Autodocodec.AesonSpec (spec) where
 
 import Autodocodec
-import Autodocodec.Aeson
 import Autodocodec.Usage
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON

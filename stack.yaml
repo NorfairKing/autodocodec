@@ -1,12 +1,11 @@
 resolver: nightly-2021-05-10
 packages:
 - autodocodec
-- autodocodec-aeson-schema
+- autodocodec-api-usage
 - autodocodec-openapi3
+- autodocodec-schema
 - autodocodec-swagger2
 - autodocodec-yaml
-# Test-only
-- autodocodec-api-usage
 extra-deps:
 
 - github: NorfairKing/validity
