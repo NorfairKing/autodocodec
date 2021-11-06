@@ -23,6 +23,8 @@ source-repository head
 library
   exposed-modules:
       Autodocodec.Swagger
+      Autodocodec.Swagger.DerivingVia
+      Autodocodec.Swagger.Schema
   other-modules:
       Paths_autodocodec_swagger2
   hs-source-dirs:
