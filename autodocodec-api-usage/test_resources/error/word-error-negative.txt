@@ -1,1 +1,1 @@
-Error in $: Number too big: -3.0
+Error in $: Number did not fit into bounded integer: -3.0

@@ -650,7 +650,7 @@ boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
 boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
   where
     go s = case Scientific.toBoundedInteger s of
-      Nothing -> Left $ "Number too big: " <> show s
+      Nothing -> Left $ "Number did not fit into bounded integer: " <> show s
       Just i -> Right i
 
 -- | A codec for a literal piece of 'Text'.
