@@ -207,9 +207,9 @@ instance FromJSON JSONSchema where
                   ( k,
                     ( if k `elem` requiredProps
                         then Required
-                        else Optional Nothing, -- TODO
+                        else Optional Nothing,
                       s,
-                      Nothing -- TODO
+                      Nothing
                     )
                   )
             pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
