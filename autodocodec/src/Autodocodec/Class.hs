@@ -16,6 +16,10 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
 
+-- | A class for values which have a canonical codec.
+--
+-- There are no formal laws for this class.
+-- If you really want a law, it should be "Whomever uses the 'codec' from your instance should not be surprised."
 class HasCodec value where
   -- | A codec for a single value
   --
@@ -41,7 +45,7 @@ instance HasCodec Char where
     let parseChar = \case
           [] -> Left "Expected exactly 1 character, but got none."
           [c] -> Right c
-          _ -> Left "Expected exactly 1 character, but got more."
+          s -> Left $ "Expected exactly 1 character, but got more:" <> s
      in MapCodec parseChar (: []) stringCodec
   listCodecForStringCompatibility = stringCodec
 

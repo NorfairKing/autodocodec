@@ -9,6 +9,7 @@ import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import Data.Vector (Vector)
@@ -24,7 +25,7 @@ parseJSONVia = parseContextVia
 
 -- | Parse via a general codec.
 --
--- You probably won't need this. See 'parseJSONVia' and 'parseJSONViaCodec' instead.
+-- You probably won't need this. See 'eitherDecodeViaCodec', 'parseJSONViaCodec' and 'parseJSONVia' instead.
 parseContextVia :: Codec context void a -> context -> JSON.Parser a
 parseContextVia = flip go
   where

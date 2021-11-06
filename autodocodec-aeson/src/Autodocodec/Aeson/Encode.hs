@@ -22,7 +22,7 @@ toJSONVia = toContextVia
 
 -- | Encode a value using a general codec
 --
--- You probably won't need this. See 'toJSONVia' and 'toJSONViaCodec' instead.
+-- You probably won't need this. See 'encodeViaCodec', 'toJSONViaCodec' and 'toJSONVia' instead.
 toContextVia :: Codec context a void -> a -> context
 toContextVia = flip go
   where
