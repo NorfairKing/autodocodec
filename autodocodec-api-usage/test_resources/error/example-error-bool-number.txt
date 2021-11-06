@@ -1,1 +1,1 @@
-Error in $: expected Bool, but encountered Number
+Error in $.bool: expected Bool, but encountered Number

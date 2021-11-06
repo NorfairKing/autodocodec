@@ -12,6 +12,7 @@ import Data.Aeson.Types as JSON
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- | Parse a JSON Value via the codec for the type that is being parsed.
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
@@ -33,7 +34,7 @@ parseContextVia = flip go
     go value = \case
       NullCodec -> case (value :: JSON.Value) of
         Null -> pure ()
-        _ -> fail $ "Expected Null, but got: " <> show value
+        _ -> typeMismatch "Null" value
       BoolCodec mname -> case mname of
         Nothing -> parseJSON value
         Just name -> withBool (T.unpack name) pure value
@@ -43,16 +44,24 @@ parseContextVia = flip go
       NumberCodec mname -> case mname of
         Nothing -> parseJSON value
         Just name -> withScientific (T.unpack name) pure value
-      ArrayOfCodec mname c -> do
-        vector <- case mname of
-          Nothing -> parseJSON value
-          Just name -> withArray (T.unpack name) pure value
-        mapM (`go` c) (vector :: Vector JSON.Value)
-      ObjectOfCodec mname c -> do
-        object_ <- case mname of
-          Nothing -> parseJSON value
-          Just name -> withObject (T.unpack name) pure value
-        (`go` c) (object_ :: JSON.Object)
+      ArrayOfCodec mname c ->
+        ( \f -> case mname of
+            Nothing -> parseJSON value >>= f
+            Just name -> withArray (T.unpack name) f value
+        )
+          ( \vector ->
+              forM
+                (V.indexed (vector :: Vector JSON.Value))
+                ( \(ix, v) ->
+                    go v c JSON.<?> Index ix
+                )
+          )
+      ObjectOfCodec mname c ->
+        ( \f -> case mname of
+            Nothing -> parseJSON value >>= f
+            Just name -> withObject (T.unpack name) f value
+        )
+          (\object_ -> (`go` c) (object_ :: JSON.Object))
       ObjectCodec -> parseJSON value :: JSON.Parser JSON.Object
       ValueCodec -> pure (value :: JSON.Value)
       EqCodec expected c -> do
@@ -70,14 +79,14 @@ parseContextVia = flip go
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: k
-        go valueAtKey c
+        go valueAtKey c JSON.<?> Key k
       OptionalKeyCodec k c _ -> do
         let mValueAtKey = HM.lookup k (value :: JSON.Object)
-        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c
+        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
       OptionalKeyWithDefaultCodec k c defaultValue _ -> do
         let mValueAtKey = HM.lookup k (value :: JSON.Object)
         case mValueAtKey of
           Nothing -> pure defaultValue
-          Just valueAtKey -> go (valueAtKey :: JSON.Value) c
+          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
