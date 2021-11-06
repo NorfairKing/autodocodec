@@ -1,7 +1,6 @@
 resolver: nightly-2021-05-10
 packages:
 - autodocodec
-- autodocodec-aeson
 - autodocodec-aeson-schema
 - autodocodec-openapi3
 - autodocodec-swagger2

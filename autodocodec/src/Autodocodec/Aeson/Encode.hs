@@ -1,11 +1,13 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 
 module Autodocodec.Aeson.Encode where
 
-import Autodocodec
+import Autodocodec.Class
+import Autodocodec.Codec
+import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
 import Data.Scientific
@@ -52,3 +54,6 @@ toContextVia = flip go
       OptionalKeyWithDefaultCodec k c _ mdoc -> go (Just a) (OptionalKeyCodec k c mdoc)
       PureCodec _ -> error "Cannot toJSON a pure object codec."
       ApCodec oc1 oc2 -> go a oc1 <> go a oc2
+
+instance HasCodec a => JSON.ToJSON (Autodocodec a) where
+  toJSON = toJSONViaCodec . unAutodocodec

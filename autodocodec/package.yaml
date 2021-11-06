@@ -2,7 +2,6 @@ name: autodocodec
 version: 0.0.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
-license-file: LICENSE
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
@@ -21,4 +20,5 @@ library:
   - scientific
   - swagger
   - text
+  - unordered-containers
   - vector

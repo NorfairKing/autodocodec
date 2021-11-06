@@ -1,7 +1,19 @@
 {-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
 
 module Autodocodec
-  ( -- * Codec
+  ( -- * Encoding
+    encodeViaCodec,
+    toJSONViaCodec,
+    toJSONVia,
+    toContextVia,
+
+    -- * Decoding
+    eitherDecodeViaCodec,
+    parseJSONViaCodec,
+    parseJSONVia,
+    parseContextVia,
+
+    -- * Codec
     JSONCodec,
     HasCodec (..),
 
@@ -75,12 +87,14 @@ module Autodocodec
     showCodecABit,
 
     -- * To make sure we definitely export everything
+    module Autodocodec.Aeson,
     module Autodocodec.Class,
     module Autodocodec.DerivingVia,
     module Autodocodec.Codec,
   )
 where
 
+import Autodocodec.Aeson
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia

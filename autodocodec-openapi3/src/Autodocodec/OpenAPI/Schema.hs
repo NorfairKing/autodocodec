@@ -9,7 +9,6 @@
 module Autodocodec.OpenAPI.Schema where
 
 import Autodocodec
-import Autodocodec.Aeson.Encode
 import Control.Monad
 import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap

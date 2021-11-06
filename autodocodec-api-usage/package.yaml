@@ -2,7 +2,6 @@ name: autodocodec-api-usage
 version: 0.0.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
-license-file: LICENSE
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
@@ -17,7 +16,6 @@ library:
   - QuickCheck
   - aeson
   - autodocodec
-  - autodocodec-aeson
   - autodocodec-aeson-schema
   - autodocodec-openapi3
   - autodocodec-swagger2
@@ -47,7 +45,6 @@ tests:
     - QuickCheck
     - aeson
     - autodocodec
-    - autodocodec-aeson
     - autodocodec-aeson-schema
     - autodocodec-api-usage
     - autodocodec-openapi3

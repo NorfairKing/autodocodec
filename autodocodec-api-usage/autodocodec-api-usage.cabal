@@ -13,7 +13,6 @@ author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
 copyright:      2021 Tom Sydney Kerckhove
 license:        MIT
-license-file:   LICENSE
 build-type:     Simple
 
 source-repository head
@@ -31,7 +30,6 @@ library
       QuickCheck
     , aeson
     , autodocodec
-    , autodocodec-aeson
     , autodocodec-aeson-schema
     , autodocodec-openapi3
     , autodocodec-swagger2
@@ -68,7 +66,6 @@ test-suite autodocodec-api-usage-test
       QuickCheck
     , aeson
     , autodocodec
-    , autodocodec-aeson
     , autodocodec-aeson-schema
     , autodocodec-api-usage
     , autodocodec-openapi3

@@ -13,7 +13,6 @@ author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
 copyright:      2021 Tom Sydney Kerckhove
 license:        MIT
-license-file:   LICENSE
 build-type:     Simple
 
 source-repository head
@@ -32,7 +31,6 @@ library
   build-depends:
       aeson
     , autodocodec
-    , autodocodec-aeson
     , base >=4.7 && <5
     , insert-ordered-containers
     , openapi3

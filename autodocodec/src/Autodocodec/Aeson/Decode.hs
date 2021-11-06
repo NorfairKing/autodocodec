@@ -1,10 +1,13 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Autodocodec.Aeson.Decode where
 
-import Autodocodec
+import Autodocodec.Class
+import Autodocodec.Codec
+import Autodocodec.DerivingVia
 import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
@@ -90,3 +93,6 @@ parseContextVia = flip go
           Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
+
+instance HasCodec a => JSON.FromJSON (Autodocodec a) where
+  parseJSON = fmap Autodocodec <$> parseJSONViaCodec

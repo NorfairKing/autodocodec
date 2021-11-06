@@ -15,15 +15,14 @@ module Autodocodec.Aeson
 
     -- * To makes sure we definitely export everything.
     module Autodocodec.Aeson.Decode,
-    module Autodocodec.Aeson.DerivingVia,
     module Autodocodec.Aeson.Encode,
   )
 where
 
-import Autodocodec
 import Autodocodec.Aeson.Decode
-import Autodocodec.Aeson.DerivingVia ()
 import Autodocodec.Aeson.Encode
+import Autodocodec.Class
+import Autodocodec.DerivingVia
 import qualified Data.Aeson as Aeson (eitherDecode, encode)
 import qualified Data.ByteString.Lazy as LB
 

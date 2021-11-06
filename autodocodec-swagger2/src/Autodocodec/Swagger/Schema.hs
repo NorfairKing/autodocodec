@@ -9,7 +9,6 @@
 module Autodocodec.Swagger.Schema where
 
 import Autodocodec
-import Autodocodec.Aeson.Encode
 import Control.Applicative
 import Control.Monad
 import qualified Data.Aeson as JSON

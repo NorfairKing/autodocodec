@@ -9,7 +9,6 @@
 module Autodocodec.Aeson.Schema where
 
 import Autodocodec
-import Autodocodec.Aeson.Encode
 import Control.Applicative
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))

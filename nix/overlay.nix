@@ -9,7 +9,6 @@ with final.haskell.lib;
     in
     final.lib.genAttrs [
       "autodocodec"
-      "autodocodec-aeson"
       "autodocodec-aeson-schema"
       "autodocodec-api-usage"
       "autodocodec-openapi3"

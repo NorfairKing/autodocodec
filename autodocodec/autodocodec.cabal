@@ -13,7 +13,6 @@ author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
 copyright:      2021 Tom Sydney Kerckhove
 license:        MIT
-license-file:   LICENSE
 build-type:     Simple
 
 source-repository head
@@ -23,6 +22,9 @@ source-repository head
 library
   exposed-modules:
       Autodocodec
+      Autodocodec.Aeson
+      Autodocodec.Aeson.Decode
+      Autodocodec.Aeson.Encode
       Autodocodec.Class
       Autodocodec.Codec
       Autodocodec.DerivingVia
@@ -39,5 +41,6 @@ library
     , scientific
     , swagger
     , text
+    , unordered-containers
     , vector
   default-language: Haskell2010
