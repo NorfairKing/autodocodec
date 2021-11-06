@@ -5,6 +5,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 
+-- | Autodocodec API usage tests
+--
 -- This module contains so-called "API Usage" Tests.
 -- This means that this module tests that its usage of the API is still supported.
 -- Consequentially, we must be careful about refactoring any code in this module.

@@ -18,24 +18,31 @@ import qualified Data.Text.Encoding.Error as TE
 import Data.Yaml as Yaml
 import Text.Colour
 
+-- | Render a human-readable schema for a type's 'codec', in colour.
 renderColouredSchemaViaCodec :: forall a. HasCodec a => ByteString
 renderColouredSchemaViaCodec = renderColouredSchemaVia (codec @a)
 
+-- | Render a human-readable schema for a given codec, in colour.
 renderColouredSchemaVia :: ValueCodec input output -> ByteString
 renderColouredSchemaVia = renderChunksBS With24BitColours . schemaChunksVia
 
+-- | Render a human-readable schema for a type's 'codec', without colour.
 renderPlainSchemaViaCodec :: forall a. HasCodec a => ByteString
 renderPlainSchemaViaCodec = renderPlainSchemaVia (codec @a)
 
+-- | Render a human-readable schema for a given codec, without colour.
 renderPlainSchemaVia :: ValueCodec input output -> ByteString
 renderPlainSchemaVia = renderChunksBS WithoutColours . schemaChunksVia
 
+-- | Produce potentially-coloured 'Chunk's for a human-readable schema for a type's 'codec'.
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]
 schemaChunksViaCodec = schemaChunksVia (codec @a)
 
+-- | Produce potentially-coloured 'Chunk's for a human-readable schema for a given codec.
 schemaChunksVia :: ValueCodec input output -> [Chunk]
 schemaChunksVia = jsonSchemaChunks . jsonSchemaVia
 
+-- | Render a 'JSONSchema' as 'Chunk's
 jsonSchemaChunks :: JSONSchema -> [Chunk]
 jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
   where

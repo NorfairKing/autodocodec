@@ -9,7 +9,6 @@ import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import Data.Vector (Vector)

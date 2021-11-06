@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-dodgy-exports #-}
+{-# OPTIONS_GHC -fno-warn-dodgy-exports -fno-warn-duplicate-exports #-}
 
 module Autodocodec.Aeson
   ( -- * Encoding
