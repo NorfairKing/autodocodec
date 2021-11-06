@@ -6,12 +6,12 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v12
+    - uses: actions/checkout@v2.4.0
+    - uses: cachix/install-nix-action@v14.1
     - name: free disk space
       run: |
         sudo rm -rf /opt
-    - uses: cachix/cachix-action@v8
+    - uses: cachix/cachix-action@v10
       with:
         name: autodocodec
         extraPullNames: validity,safe-coloured-text,sydtest
