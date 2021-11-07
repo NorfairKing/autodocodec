@@ -39,7 +39,6 @@ library
     , containers
     , mtl
     , scientific
-    , swagger
     , text
     , unordered-containers
     , vector
