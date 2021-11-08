@@ -19,6 +19,7 @@ module Autodocodec
 
     -- * Writing a codec
     object,
+    named,
 
     -- ** Field codecs
 

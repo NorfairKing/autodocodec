@@ -96,7 +96,16 @@ declareNamedSchemaVia c' Proxy = go c'
             case (,) <$> _paramSchemaEnum ps1 <*> _paramSchemaEnum ps2 of
               (Just (es1, es2)) ->
                 mempty
-                  { _schemaParamSchema = mempty {_paramSchemaEnum = Just $ es1 ++ es2}
+                  { _schemaParamSchema =
+                      mempty
+                        { _paramSchemaEnum = Just $ es1 ++ es2,
+                          _paramSchemaType =
+                            case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
+                              Just (t1, t2)
+                                | t1 == t2 -> Just t1
+                                | otherwise -> Nothing
+                              Nothing -> Nothing
+                        }
                   }
               Nothing ->
                 case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of

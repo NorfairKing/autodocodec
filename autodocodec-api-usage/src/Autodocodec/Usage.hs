@@ -169,7 +169,7 @@ instance FromJSON Recursive where
 
 instance HasCodec Recursive where
   codec =
-    ReferenceCodec "recursive" $
+    named "recursive" $
       let f = \case
             Left i -> Base i
             Right r -> Recurse r

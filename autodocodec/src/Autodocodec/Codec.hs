@@ -801,3 +801,9 @@ orNullHelper = dimapCodec f g
     g = \case
       Nothing -> Nothing
       Just a -> Just (Just a)
+
+-- | Forward-compatible version of 'ReferenceCodec'
+--
+-- > named = ReferenceCodec
+named :: Text -> ValueCodec input output -> ValueCodec input output
+named = ReferenceCodec
