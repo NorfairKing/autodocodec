@@ -133,16 +133,14 @@ data Codec context input output where
   -- | A reference codec
   --
   -- This is used for naming a codec, so that recursive codecs can have a finite schema.
+  --
+  -- It doesn't _need_ to be recursive, and you may just have wanted to name the codec, but it _may_ be recursive from here downward.
+  --
+  -- This value MUST be lazy, otherwise we can never define recursive codecs.
   ReferenceCodec ::
-    -- |
+    -- | Name
     Text ->
-    -- | The codec we claim is recursive.
-    --
-    -- It doesn't _need_ to be recursive, and you may just have wanted to name the codec, but it _may_ be recursive from here downward.
-    --
-    -- This value MUST be lazy, otherwise we can never define recursive codecs.
     ~(ValueCodec input output) ->
-    -- |
     ValueCodec input output
   RequiredKeyCodec ::
     -- | Key
