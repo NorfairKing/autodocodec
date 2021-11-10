@@ -23,6 +23,7 @@ library
   exposed-modules:
       Autodocodec.Yaml
       Autodocodec.Yaml.Document
+      Autodocodec.Yaml.Encode
   other-modules:
       Paths_autodocodec_yaml
   hs-source-dirs:
@@ -34,6 +35,9 @@ library
     , bytestring
     , containers
     , safe-coloured-text
+    , scientific
     , text
+    , unordered-containers
+    , vector
     , yaml
   default-language: Haskell2010

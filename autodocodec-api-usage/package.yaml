@@ -29,6 +29,7 @@ library:
   - scientific
   - swagger2
   - text
+  - yaml
 
 
 tests:
@@ -66,3 +67,4 @@ tests:
     - sydtest
     - sydtest-aeson
     - text
+    - yaml

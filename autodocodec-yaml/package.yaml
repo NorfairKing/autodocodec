@@ -18,5 +18,8 @@ library:
   - bytestring
   - containers
   - safe-coloured-text
+  - scientific
   - text
+  - unordered-containers
+  - vector
   - yaml
