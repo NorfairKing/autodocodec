@@ -22,24 +22,18 @@ toJSONViaCodec = toJSONVia codec
 
 -- | Encode a value using a codec for it.
 toJSONVia :: ValueCodec a void -> a -> JSON.Value
-toJSONVia = toJSONContextVia
-
--- | Encode a value using a general codec
---
--- You probably won't need this. See 'encodeViaCodec', 'toJSONViaCodec' and 'toJSONVia' instead.
-toJSONContextVia :: Codec context a void -> a -> context
-toJSONContextVia = flip go
+toJSONVia = flip go
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
-    go :: a -> Codec context a void -> context
+    go :: a -> ValueCodec a void -> JSON.Value
     go a = \case
       NullCodec -> JSON.Null
       BoolCodec _ -> toJSON (a :: Bool)
       StringCodec _ -> toJSON (a :: Text)
       NumberCodec _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
-      ObjectOfCodec _ oc -> JSON.Object (go a oc)
+      ObjectOfCodec _ oc -> JSON.Object (goObject a oc)
       ObjectCodec -> JSON.Object (a :: JSON.Object)
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
@@ -49,13 +43,17 @@ toJSONContextVia = flip go
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
+
+    goObject :: a -> ObjectCodec a void -> JSON.Object
+    goObject a = \case
       RequiredKeyCodec k c _ -> k JSON..= go a c
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty
         Just b -> k JSON..= go b c
-      OptionalKeyWithDefaultCodec k c _ mdoc -> go (Just a) (OptionalKeyCodec k c mdoc)
-      PureCodec _ -> error "Cannot toJSON a pure object codec."
-      ApCodec oc1 oc2 -> go a oc1 <> go a oc2
+      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      MapCodec _ g c -> goObject (g a) c
+      PureCodec _ -> mempty
+      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding
 toEncodingViaCodec = toEncodingVia codec
