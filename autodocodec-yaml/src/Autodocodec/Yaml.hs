@@ -1,7 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-dodgy-exports -fno-warn-duplicate-exports #-}
 
 module Autodocodec.Yaml
-  ( renderColouredSchemaViaCodec,
+  ( -- ** Yaml schemas
+    renderColouredSchemaViaCodec,
     renderColouredSchemaVia,
     renderPlainSchemaViaCodec,
     renderPlainSchemaVia,
@@ -9,9 +10,14 @@ module Autodocodec.Yaml
     schemaChunksVia,
     jsonSchemaChunks,
 
+    -- ** ToYaml implementation
+    toYamlViaCodec,
+    toYamlVia,
+
     -- * To makes sure we definitely export everything.
-    module Autodocodec.Yaml.Document,
+    module Autodocodec.Yaml.Encode,
   )
 where
 
 import Autodocodec.Yaml.Document
+import Autodocodec.Yaml.Encode
