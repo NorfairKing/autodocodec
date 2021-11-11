@@ -128,6 +128,20 @@ codecSpec = do
        in context ctx $ case errOrDecoded of
             Left err -> expectationFailure err
             Right actual -> actual `shouldBe` a
+  it "roundtrips through json bytes" $
+    forAllValid $ \(a :: a) ->
+      let encoded = encodeViaCodec a
+          errOrDecoded = eitherDecodeViaCodec encoded
+          ctx =
+            unlines
+              [ "Encoded to this value:",
+                ppShow encoded,
+                "with this codec",
+                showCodecABit (codec @a)
+              ]
+       in context ctx $ case errOrDecoded of
+            Left err -> expectationFailure err
+            Right actual -> actual `shouldBe` a
   it "roundtrips through json and back" $
     forAllValid $ \(a :: a) ->
       let encoded = toJSONViaCodec a
@@ -142,3 +156,17 @@ codecSpec = do
        in context ctx $ case errOrDecoded of
             Left err -> expectationFailure err
             Right actual -> JSON.toJSON (actual :: a) `shouldBe` toJSONViaCodec a
+  it "roundtrips through json bytes and back" $
+    forAllValid $ \(a :: a) ->
+      let encoded = encodeViaCodec a
+          errOrDecoded = eitherDecodeViaCodec encoded
+          ctx =
+            unlines
+              [ "Encoded to this value:",
+                ppShow encoded,
+                "with this codec",
+                showCodecABit (codec @a)
+              ]
+       in context ctx $ case errOrDecoded of
+            Left err -> expectationFailure err
+            Right actual -> encodeViaCodec (actual :: a) `shouldBe` encodeViaCodec a
