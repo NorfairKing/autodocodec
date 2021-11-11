@@ -10,9 +10,11 @@ import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Encoding as JSON
 import Data.Scientific
 import Data.Text (Text)
-import Data.Vector
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- | Encode a value using its JSON codec.
 toJSONViaCodec :: HasCodec a => a -> JSON.Value
@@ -55,5 +57,40 @@ toJSONContextVia = flip go
       PureCodec _ -> error "Cannot toJSON a pure object codec."
       ApCodec oc1 oc2 -> go a oc1 <> go a oc2
 
+toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding
+toEncodingViaCodec = toEncodingVia codec
+
+toEncodingVia :: ValueCodec a void -> a -> JSON.Encoding
+toEncodingVia = flip go
+  where
+    go :: a -> ValueCodec a void -> JSON.Encoding
+    go a = \case
+      NullCodec -> JSON.null_
+      BoolCodec _ -> JSON.bool (a :: Bool)
+      StringCodec _ -> JSON.text (a :: Text)
+      NumberCodec _ -> JSON.scientific (a :: Scientific)
+      ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (a :: Vector _))
+      ObjectOfCodec _ oc -> JSON.pairs (goObject a oc)
+      ObjectCodec -> JSON.toEncoding (a :: JSON.Object)
+      ValueCodec -> JSON.value (a :: JSON.Value)
+      EqCodec value c -> go value c
+      MapCodec _ g c -> go (g a) c
+      EitherCodec c1 c2 -> case (a :: Either _ _) of
+        Left a1 -> go a1 c1
+        Right a2 -> go a2 c2
+      CommentCodec _ c -> go a c
+      ReferenceCodec _ c -> go a c
+    goObject :: a -> ObjectCodec a void -> JSON.Series
+    goObject a = \case
+      RequiredKeyCodec k c _ -> JSON.pair k (go a c)
+      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
+        Nothing -> mempty :: JSON.Series
+        Just b -> JSON.pair k (go b c)
+      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      PureCodec _ -> mempty :: JSON.Series
+      MapCodec _ g c -> goObject (g a) c
+      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
+
 instance HasCodec a => JSON.ToJSON (Autodocodec a) where
   toJSON = toJSONViaCodec . unAutodocodec
+  toEncoding = toEncodingViaCodec . unAutodocodec

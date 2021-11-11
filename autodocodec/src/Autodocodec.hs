@@ -5,6 +5,8 @@ module Autodocodec
     encodeViaCodec,
     toJSONViaCodec,
     toJSONVia,
+    toEncodingViaCodec,
+    toEncodingVia,
 
     -- * Decoding
     eitherDecodeViaCodec,

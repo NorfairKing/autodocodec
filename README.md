@@ -5,7 +5,7 @@ Autodocodec is short for "self(auto)- documenting encoder and decoder".
 In short:
 You write a single instance, of the 'Codec' type-class, for your type, and you get:
 
-* [A 'ToJSON' instance from 'aeson'](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:ToJSON)
+* [A 'ToJSON' instance from 'aeson' with both a `toJSON` and `toEncoding` implementation](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:ToJSON)
 * [A 'FromJSON' instance from 'aeson'](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:FromJSON)
 * [A 'ToYaml] instance from 'yaml'](https://hackage.haskell.org/package/yaml-0.11.7.0/docs/Data-Yaml-Builder.html#t:ToYaml)
 * [A json schema](http://json-schema.org/)
