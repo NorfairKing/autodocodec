@@ -307,12 +307,19 @@ lmapCodec g = dimapCodec id g
 
 -- | Map both directions of a codec
 --
--- You can use this function to change the type of a codec.
+-- You can use this function to change the type of a codec as long as the two
+-- functions are inverses.
+-- A good use-case is implementing 'HasCodec' for newtypes:
 --
--- > stringCodec = dimapCodec T.unpack T.pack textCodec
+-- > newtype MyInt = MyInt { unMyInt :: Int }
+-- > instance HasCodec MyInt where
+-- >   codec = dimapCodec MyInt unMyInt codec
 dimapCodec ::
+  -- | Function to make __to__ the new type
   (oldOutput -> newOutput) ->
+  -- | Function to make __from__ the new type
   (newInput -> oldInput) ->
+  -- | Codec for the old type
   Codec context oldInput oldOutput ->
   Codec context newInput newOutput
 dimapCodec f g = bimapCodec (Right . f) g
