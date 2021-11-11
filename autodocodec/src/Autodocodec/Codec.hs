@@ -404,7 +404,7 @@ bimapCodec = MapCodec
 -- === Example usage
 --
 -- >>> toJSONVia (listCodec codec) (Array.fromList ['a','b'])
--- Array [String "a",String "b"]
+-- Array [String "a", String "b"]
 arrayCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
 arrayCodec = ArrayOfCodec Nothing
 

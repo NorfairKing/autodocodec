@@ -5,13 +5,11 @@ module Autodocodec
     encodeViaCodec,
     toJSONViaCodec,
     toJSONVia,
-    toContextVia,
 
     -- * Decoding
     eitherDecodeViaCodec,
     parseJSONViaCodec,
     parseJSONVia,
-    parseContextVia,
 
     -- * Codec
     JSONCodec,

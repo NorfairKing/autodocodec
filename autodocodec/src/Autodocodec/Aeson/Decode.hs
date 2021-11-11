@@ -23,13 +23,13 @@ parseJSONViaCodec = parseJSONVia codec
 
 -- | Parse a JSON Value via a codec for the type that is being parsed.
 parseJSONVia :: ValueCodec void a -> JSON.Value -> JSON.Parser a
-parseJSONVia = parseContextVia
+parseJSONVia = parseJSONContextVia
 
 -- | Parse via a general codec.
 --
 -- You probably won't need this. See 'eitherDecodeViaCodec', 'parseJSONViaCodec' and 'parseJSONVia' instead.
-parseContextVia :: Codec context void a -> context -> JSON.Parser a
-parseContextVia = flip go
+parseJSONContextVia :: Codec context void a -> context -> JSON.Parser a
+parseJSONContextVia = flip go
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.

@@ -28,7 +28,8 @@ class HasCodec value where
 
   -- | A codec for a list of values
   --
-  -- This is really only useful for cases like 'Char' and 'String'
+  -- This is really only useful for cases like 'Char' and 'String'.
+  -- We didn't call it 'listCodec' so we could use that name for making a codec for a list of values from a single codec instead.
   listCodecForStringCompatibility :: JSONCodec [value]
   listCodecForStringCompatibility = listCodec codec
 

@@ -20,13 +20,13 @@ toJSONViaCodec = toJSONVia codec
 
 -- | Encode a value using a codec for it.
 toJSONVia :: ValueCodec a void -> a -> JSON.Value
-toJSONVia = toContextVia
+toJSONVia = toJSONContextVia
 
 -- | Encode a value using a general codec
 --
 -- You probably won't need this. See 'encodeViaCodec', 'toJSONViaCodec' and 'toJSONVia' instead.
-toContextVia :: Codec context a void -> a -> context
-toContextVia = flip go
+toJSONContextVia :: Codec context a void -> a -> context
+toJSONContextVia = flip go
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
