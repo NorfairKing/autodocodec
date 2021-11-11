@@ -8,9 +8,13 @@ module Autodocodec.Class where
 
 import Autodocodec.Codec
 import qualified Data.Aeson as JSON
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HM
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
+import Data.Map (Map)
+import qualified Data.Map as M
 import Data.Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -49,7 +53,7 @@ instance HasCodec Char where
           [] -> Left "Expected exactly 1 character, but got none."
           [c] -> Right c
           s -> Left $ "Expected exactly 1 character, but got more:" <> s
-     in MapCodec parseChar (: []) stringCodec
+     in bimapCodec parseChar (: []) stringCodec
   listCodecForStringCompatibility = stringCodec
 
 instance HasCodec Text where

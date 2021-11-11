@@ -19,6 +19,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
@@ -70,6 +71,7 @@ spec = do
   aesonCodecErrorSpec @[Text] "list-text-error-string" "\"string\""
   aesonCodecSpec @(NonEmpty Text)
   aesonCodecSpec @(Set Text)
+  aesonCodecSpec @(Map Text Int)
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"

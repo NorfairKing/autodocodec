@@ -72,7 +72,7 @@ parseJSONContextVia = flip go
         if expected == actual
           then pure actual
           else fail $ unwords ["Expected", show expected, "but got", show actual]
-      MapCodec f _ c -> do
+      BimapCodec f _ c -> do
         old <- go value c
         case f old of
           Left err -> fail err

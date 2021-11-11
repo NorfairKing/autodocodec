@@ -98,7 +98,7 @@ data Codec context input output where
   -- This is not strictly dimap, because the decoding function is allowed to fail,
   -- but we can implement dimap using this function by using a decoding function that does not fail.
   -- Otherwise we would have to have another constructor here.
-  MapCodec ::
+  BimapCodec ::
     -- |
     (oldOutput -> Either String newOutput) ->
     -- |
@@ -234,7 +234,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ValueCodec -> pure $ showString "ValueCodec"
       ObjectCodec -> pure $ showString "ObjectCodec"
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
-      MapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "MapCodec _ _ " . s) <$> go 11 c
+      BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
@@ -395,7 +395,7 @@ bimapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput oldOutput ->
   Codec context newInput newOutput
-bimapCodec = MapCodec
+bimapCodec = BimapCodec
 
 -- | Forward-compatible version of 'ArrayCodec' without a name
 --

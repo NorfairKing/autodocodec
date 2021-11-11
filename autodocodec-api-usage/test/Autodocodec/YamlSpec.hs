@@ -17,6 +17,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
@@ -56,6 +57,7 @@ spec = do
   yamlCodecSpec @[Text]
   yamlCodecSpec @(NonEmpty Text)
   yamlCodecSpec @(Set Text)
+  yamlCodecSpec @(Map Text Int)
   yamlCodecSpec @Fruit
   yamlCodecSpec @Example
   yamlCodecSpec @Recursive

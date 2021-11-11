@@ -37,7 +37,7 @@ toJSONVia = flip go
       ObjectCodec -> JSON.Object (a :: JSON.Object)
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
-      MapCodec _ g c -> go (g a) c
+      BimapCodec _ g c -> go (g a) c
       EitherCodec c1 c2 -> case (a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
@@ -51,7 +51,7 @@ toJSONVia = flip go
         Nothing -> mempty
         Just b -> k JSON..= go b c
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
-      MapCodec _ g c -> goObject (g a) c
+      BimapCodec _ g c -> goObject (g a) c
       PureCodec _ -> mempty
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
@@ -72,7 +72,7 @@ toEncodingVia = flip go
       ObjectCodec -> JSON.toEncoding (a :: JSON.Object)
       ValueCodec -> JSON.value (a :: JSON.Value)
       EqCodec value c -> go value c
-      MapCodec _ g c -> go (g a) c
+      BimapCodec _ g c -> go (g a) c
       EitherCodec c1 c2 -> case (a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
@@ -86,7 +86,7 @@ toEncodingVia = flip go
         Just b -> JSON.pair k (go b c)
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       PureCodec _ -> mempty :: JSON.Series
-      MapCodec _ g c -> goObject (g a) c
+      BimapCodec _ g c -> goObject (g a) c
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 instance HasCodec a => JSON.ToJSON (Autodocodec a) where

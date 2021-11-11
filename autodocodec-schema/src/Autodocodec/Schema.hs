@@ -258,7 +258,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
         s1 <- go c1
         s2 <- go c2
         pure $ ChoiceSchema (goChoice (s1 :| [s2]))
-      MapCodec _ _ c -> go c
+      BimapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t <$> go c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
@@ -290,7 +290,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
         pure [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))]
-      MapCodec _ _ c -> goObject c
+      BimapCodec _ _ c -> goObject c
       PureCodec _ -> pure []
       ApCodec oc1 oc2 -> liftA2 (++) (goObject oc1) (goObject oc2)
 

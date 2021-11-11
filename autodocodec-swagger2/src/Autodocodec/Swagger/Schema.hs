@@ -70,7 +70,7 @@ declareNamedSchemaVia c' Proxy = go c'
             mempty
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
-      MapCodec _ _ c -> go c
+      BimapCodec _ _ c -> go c
       EitherCodec c1 c2 -> do
         ns1 <- go c1
         let s1 = _namedSchemaSchema ns1
@@ -172,7 +172,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
-      MapCodec _ _ oc -> goObject oc
+      BimapCodec _ _ oc -> goObject oc
     addMDoc :: Maybe Text -> Schema -> Schema
     addMDoc = maybe id addDoc
     addDoc :: Text -> Schema -> Schema

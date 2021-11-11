@@ -19,6 +19,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Maybe
 import Data.Scientific
 import Data.Set (Set)
@@ -62,6 +63,7 @@ spec = do
   swaggerSchemaSpec @[Text] "list-text"
   swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
   swaggerSchemaSpec @(Set Text) "set-text"
+  swaggerSchemaSpec @(Map Text Int) "map-text-int"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"

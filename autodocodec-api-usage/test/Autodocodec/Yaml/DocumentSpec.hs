@@ -17,6 +17,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
@@ -36,6 +37,7 @@ spec = do
   yamlSchemaSpec @LT.Text "lazy-text"
   yamlSchemaSpec @String "string"
   yamlSchemaSpec @Scientific "scientific"
+  yamlSchemaSpec @JSON.Object "object"
   yamlSchemaSpec @JSON.Value "value"
   yamlSchemaSpec @Int "int"
   yamlSchemaSpec @Int8 "int8"
@@ -53,6 +55,7 @@ spec = do
   yamlSchemaSpec @[Text] "list-text"
   yamlSchemaSpec @(NonEmpty Text) "nonempty-text"
   yamlSchemaSpec @(Set Text) "set-text"
+  yamlSchemaSpec @(Map Text Int) "map-text-int"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"

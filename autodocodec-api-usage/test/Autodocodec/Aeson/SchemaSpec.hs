@@ -19,6 +19,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
+import Data.Map (Map)
 import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
@@ -58,6 +59,7 @@ spec = do
   jsonSchemaSpec @[Text] "list-text"
   jsonSchemaSpec @(NonEmpty Text) "nonempty-text"
   jsonSchemaSpec @(Set Text) "set-text"
+  jsonSchemaSpec @(Map Text Int) "map-text-ind"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @Via "via"

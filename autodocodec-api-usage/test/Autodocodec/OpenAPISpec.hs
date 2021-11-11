@@ -19,6 +19,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Maybe
 import Data.OpenApi (Components (..), OpenApi (..))
 import qualified Data.OpenApi as OpenAPI
@@ -62,6 +63,7 @@ spec = do
   openAPISchemaSpec @[Text] "list-text"
   openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
   openAPISchemaSpec @(Set Text) "set-text"
+  openAPISchemaSpec @(Map Text Int) "map-text-int"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"

@@ -16,6 +16,7 @@ import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
+import Data.Map (Map)
 import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
@@ -52,6 +53,7 @@ spec = do
   showCodecSpec @[Text] "list-text"
   showCodecSpec @(NonEmpty Text) "nonempty-text"
   showCodecSpec @(Set Text) "set-text"
+  showCodecSpec @(Map Text Int) "map-text-int"
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"
