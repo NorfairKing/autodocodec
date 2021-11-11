@@ -20,6 +20,7 @@ import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Scientific
+import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
@@ -56,6 +57,7 @@ spec = do
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   jsonSchemaSpec @[Text] "list-text"
   jsonSchemaSpec @(NonEmpty Text) "nonempty-text"
+  jsonSchemaSpec @(Set Text) "set-text"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @Via "via"

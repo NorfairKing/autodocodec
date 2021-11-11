@@ -12,6 +12,8 @@ import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Scientific
+import Data.Set (Set)
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
@@ -114,6 +116,9 @@ instance HasCodec a => HasCodec (NonEmpty a) where
         Nothing -> Left "Expected a nonempty list, but got an empty list."
         Just ne -> Right ne
 
+instance (Ord a, HasCodec a) => HasCodec (Set a) where
+  codec = dimapCodec S.fromList S.toList codec
+
 -- | A required field
 --
 -- During decoding, the field must be in the object.
@@ -174,7 +179,7 @@ optionalField' key = optionalFieldWith' key codec
 --
 -- The shown version of the default value will appear in the documentation.
 optionalFieldWithDefault ::
-  (Show output, HasCodec output) =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   -- | Default value
@@ -187,7 +192,7 @@ optionalFieldWithDefault key defaultValue doc = optionalFieldWithDefaultWith key
 
 -- | Like 'optionalFieldWithDefault', but without documentation
 optionalFieldWithDefault' ::
-  (Show output, HasCodec output) =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   -- | Default value

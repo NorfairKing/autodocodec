@@ -24,6 +24,7 @@ import Data.OpenApi (Components (..), OpenApi (..))
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.OpenApi.Declare as OpenAPI
 import Data.Scientific
+import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
@@ -60,6 +61,7 @@ spec = do
   openAPISchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   openAPISchemaSpec @[Text] "list-text"
   openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
+  openAPISchemaSpec @(Set Text) "set-text"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"

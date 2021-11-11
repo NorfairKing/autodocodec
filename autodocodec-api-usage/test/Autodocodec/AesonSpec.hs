@@ -14,11 +14,13 @@ import qualified Data.ByteString.Lazy as LB
 import Data.Data
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
+import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific
+import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Word
@@ -67,6 +69,7 @@ spec = do
   aesonCodecSpec @[Text]
   aesonCodecErrorSpec @[Text] "list-text-error-string" "\"string\""
   aesonCodecSpec @(NonEmpty Text)
+  aesonCodecSpec @(Set Text)
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"

@@ -21,6 +21,7 @@ import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe
 import Data.Scientific
+import Data.Set (Set)
 import Data.Swagger (Swagger (..))
 import qualified Data.Swagger as Swagger
 import qualified Data.Swagger.Declare as Swagger
@@ -60,6 +61,7 @@ spec = do
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   swaggerSchemaSpec @[Text] "list-text"
   swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
+  swaggerSchemaSpec @(Set Text) "set-text"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"

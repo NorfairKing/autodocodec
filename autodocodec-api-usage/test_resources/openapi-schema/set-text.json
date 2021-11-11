@@ -1,0 +1,18 @@
+{
+    "components": {
+        "schemas": {
+            "(Set Text)": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}
