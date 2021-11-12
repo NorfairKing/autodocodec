@@ -103,4 +103,5 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
          in addListAround s
       CommentSchema comment s -> docToLines comment ++ go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
+      WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs)
       WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s

@@ -7,4 +7,3 @@
     # recursive case
     [36mref: recursive[m
 ]
-[36mref: recursive[m
