@@ -227,3 +227,23 @@ optionalFieldOrNull' ::
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
 optionalFieldOrNull' key = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) Nothing
+
+optionalFieldWithOmittedDefault ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldWithOmittedDefault key defaultValue doc = optionalFieldWithOmittedDefaultWith key codec defaultValue doc
+
+optionalFieldWithOmittedDefault' ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldWithOmittedDefault' key defaultValue = optionalFieldWithOmittedDefaultWith' key codec defaultValue

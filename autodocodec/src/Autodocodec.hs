@@ -33,6 +33,8 @@ module Autodocodec
     optionalFieldWith,
     optionalFieldOrNullWith,
     optionalFieldWithDefaultWith,
+    optionalFieldWithOmittedDefault,
+    optionalFieldWithOmittedDefaultWith,
 
     -- *** Documentation-less versions of field codecs
     requiredField',
@@ -43,6 +45,8 @@ module Autodocodec
     optionalFieldWith',
     optionalFieldOrNullWith',
     optionalFieldWithDefaultWith',
+    optionalFieldWithOmittedDefault',
+    optionalFieldWithOmittedDefaultWith',
 
     -- ** Writing your own value codecs.
     maybeCodec,

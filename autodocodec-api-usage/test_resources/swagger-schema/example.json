@@ -6,7 +6,7 @@
     },
     "definitions": {
         "Example": {
-            "default": "foobar",
+            "default": [],
             "required": [
                 "text",
                 "bool",
@@ -21,6 +21,13 @@
                 "text": {
                     "type": "string",
                     "description": "a text"
+                },
+                "optional-with-null-default": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "an optional list of texts with a default empty list where the empty list would be omitted"
                 },
                 "fruit": {
                     "enum": [

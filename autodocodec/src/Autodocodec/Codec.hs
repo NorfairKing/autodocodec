@@ -184,6 +184,18 @@ data Codec context input output where
     Maybe Text ->
     -- |
     ObjectCodec value value
+  OptionalKeyWithOmittedDefaultCodec ::
+    Eq value =>
+    -- | Key
+    Text ->
+    -- | Codec for the value
+    ValueCodec value value ->
+    -- | Default value
+    value ->
+    -- | Documentation
+    Maybe Text ->
+    -- |
+    ObjectCodec value value
   -- | To implement 'pure' from 'Applicative'.
   --
   -- Pure is not available for non-object codecs because there is no 'mempty' for 'JSON.Value', which we would need during encoding.
@@ -262,6 +274,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
       OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
       OptionalKeyWithDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
+      OptionalKeyWithOmittedDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithOmittedDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
       PureCodec _ -> pure $ showString "PureCodec _"
       ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
 
@@ -503,7 +516,7 @@ optionalFieldWithDefaultWith ::
   -- | Key
   Text ->
   -- | Codec for the value
-  ValueCodec output output ->
+  JSONCodec output ->
   -- | Default value
   output ->
   -- | Documentation
@@ -516,11 +529,35 @@ optionalFieldWithDefaultWith' ::
   -- | Key
   Text ->
   -- | Codec for the value
-  ValueCodec output output ->
+  JSONCodec output ->
   -- | Default value
   output ->
   ObjectCodec output output
 optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c defaultValue Nothing
+
+optionalFieldWithOmittedDefaultWith ::
+  Eq output =>
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  JSONCodec output ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldWithOmittedDefaultWith key c defaultValue doc = OptionalKeyWithOmittedDefaultCodec key c defaultValue (Just doc)
+
+optionalFieldWithOmittedDefaultWith' ::
+  Eq output =>
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  JSONCodec output ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmittedDefaultCodec key c defaultValue Nothing
 
 -- | An optional, or null, field
 --

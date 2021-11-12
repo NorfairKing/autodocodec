@@ -54,7 +54,11 @@ toYamlVia = flip go
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> []
         Just b -> [k Yaml..= go b c]
-      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithDefaultCodec k c _ mDoc -> goObject (Just a) (OptionalKeyCodec k c mDoc)
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc ->
+        if a == defaultValue
+          then []
+          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ g c -> goObject (g a) c
       PureCodec _ -> []
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2

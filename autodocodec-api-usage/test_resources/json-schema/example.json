@@ -23,6 +23,13 @@
             "$comment": "a text",
             "type": "string"
         },
+        "optional-with-null-default": {
+            "$comment": "an optional list of texts with a default empty list where the empty list would be omitted",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
         "fruit": {
             "$comment": "fruit!!",
             "anyOf": [

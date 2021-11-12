@@ -22,6 +22,10 @@
   # default: [35mfoobar[m
   # an optional text with a default
   [33m<string>[m
+[37moptional-with-null-default[m: # [34moptional[m
+  # default: [35m[][m
+  # an optional list of texts with a default empty list where the empty list would be omitted
+  - [33m<string>[m
 [37mfruit[m: # [31mrequired[m
   # fruit!!
   [ Apple

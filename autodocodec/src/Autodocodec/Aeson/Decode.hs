@@ -95,6 +95,7 @@ parseJSONContextVia = flip go
         case mValueAtKey of
           Nothing -> pure defaultValue
           Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec k c defaultValue mDoc
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
 

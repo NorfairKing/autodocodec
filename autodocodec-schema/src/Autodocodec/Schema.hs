@@ -301,6 +301,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
         pure [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))]
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ _ c -> goObject c
       PureCodec _ -> pure []
       ApCodec oc1 oc2 -> liftA2 (++) (goObject oc1) (goObject oc2)

@@ -54,6 +54,10 @@ toJSONVia = flip go
         Nothing -> mempty
         Just b -> k JSON..= go b c
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
+        if a == defaultValue
+          then mempty
+          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       BimapCodec _ g c -> goObject (g a) c
       PureCodec _ -> mempty
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
@@ -89,6 +93,10 @@ toEncodingVia = flip go
         Nothing -> mempty :: JSON.Series
         Just b -> JSON.pair k (go b c)
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
+        if a == defaultValue
+          then mempty
+          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       PureCodec _ -> mempty :: JSON.Series
       BimapCodec _ g c -> goObject (g a) c
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
