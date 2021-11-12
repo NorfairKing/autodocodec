@@ -431,6 +431,19 @@ arrayCodec = ArrayOfCodec Nothing
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
 listCodec = dimapCodec V.toList V.fromList . arrayCodec
 
+-- | Build a codec for nonempty lists of values from a codec for a single value.
+--
+-- === Example usage
+--
+-- >>> toJSONVia (nonEmptyCodec codec) ('a' :| ['b'])
+-- Array [String "a",String "b"]
+nonEmptyCodec :: ValueCodec input output -> ValueCodec (NonEmpty input) (NonEmpty output)
+nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
+  where
+    parseNonEmptyList l = case NE.nonEmpty l of
+      Nothing -> Left "Expected a nonempty list, but got an empty list."
+      Just ne -> Right ne
+
 -- | A required field
 --
 -- During decoding, the field must be in the object.
