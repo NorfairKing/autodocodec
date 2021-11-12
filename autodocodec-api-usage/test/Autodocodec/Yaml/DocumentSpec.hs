@@ -15,6 +15,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -22,6 +23,7 @@ import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
@@ -56,6 +58,7 @@ spec = do
   yamlSchemaSpec @(NonEmpty Text) "nonempty-text"
   yamlSchemaSpec @(Set Text) "set-text"
   yamlSchemaSpec @(Map Text Int) "map-text-int"
+  yamlSchemaSpec @Day "day"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"

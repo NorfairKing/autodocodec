@@ -83,6 +83,7 @@ test-suite autodocodec-api-usage-test
     , genvalidity-sydtest
     , genvalidity-sydtest-aeson
     , genvalidity-text
+    , genvalidity-time
     , openapi3
     , safe-coloured-text
     , scientific
@@ -90,5 +91,6 @@ test-suite autodocodec-api-usage-test
     , sydtest
     , sydtest-aeson
     , text
+    , time
     , yaml
   default-language: Haskell2010

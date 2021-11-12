@@ -15,6 +15,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -22,6 +23,7 @@ import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Data.Yaml as Yaml
 import Data.Yaml.Builder as YamlBuilder
@@ -58,6 +60,7 @@ spec = do
   yamlCodecSpec @(NonEmpty Text)
   yamlCodecSpec @(Set Text)
   yamlCodecSpec @(Map Text Int)
+  yamlCodecSpec @Day
   yamlCodecSpec @Fruit
   yamlCodecSpec @Example
   yamlCodecSpec @Recursive

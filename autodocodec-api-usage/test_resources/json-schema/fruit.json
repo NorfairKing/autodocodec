@@ -1,0 +1,16 @@
+{
+    "anyOf": [
+        {
+            "const": "Apple"
+        },
+        {
+            "const": "Orange"
+        },
+        {
+            "const": "Banana"
+        },
+        {
+            "const": "Melon"
+        }
+    ]
+}

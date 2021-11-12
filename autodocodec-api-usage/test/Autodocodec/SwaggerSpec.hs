@@ -17,6 +17,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -29,6 +30,7 @@ import qualified Data.Swagger.Declare as Swagger
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
@@ -64,6 +66,7 @@ spec = do
   swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
   swaggerSchemaSpec @(Set Text) "set-text"
   swaggerSchemaSpec @(Map Text Int) "map-text-int"
+  swaggerSchemaSpec @Day "day"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"

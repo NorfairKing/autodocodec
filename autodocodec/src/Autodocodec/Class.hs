@@ -19,6 +19,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 
 -- | A class for values which have a canonical codec.
@@ -120,6 +121,10 @@ instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) w
 
 instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
   codec = HashMapCodec codec
+
+-- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Tite@ or @Data.Attoparsec.Time@ modules.
+instance HasCodec Day where
+  codec = codecViaAeson
 
 -- | A required field
 --

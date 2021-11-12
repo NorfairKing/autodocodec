@@ -14,6 +14,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -21,6 +22,7 @@ import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
@@ -54,6 +56,7 @@ spec = do
   showCodecSpec @(NonEmpty Text) "nonempty-text"
   showCodecSpec @(Set Text) "set-text"
   showCodecSpec @(Map Text Int) "map-text-int"
+  showCodecSpec @Day "day"
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"

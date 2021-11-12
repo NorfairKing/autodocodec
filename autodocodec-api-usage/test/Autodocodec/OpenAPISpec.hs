@@ -17,6 +17,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -29,6 +30,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
@@ -64,6 +66,7 @@ spec = do
   openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
   openAPISchemaSpec @(Set Text) "set-text"
   openAPISchemaSpec @(Map Text Int) "map-text-int"
+  openAPISchemaSpec @Day "day"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"

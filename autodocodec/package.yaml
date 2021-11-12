@@ -20,5 +20,6 @@ library:
   - mtl
   - scientific
   - text
+  - time
   - unordered-containers
   - vector

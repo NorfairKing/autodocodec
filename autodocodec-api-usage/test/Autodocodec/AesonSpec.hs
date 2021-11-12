@@ -17,6 +17,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -24,6 +25,7 @@ import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
+import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity
@@ -72,6 +74,7 @@ spec = do
   aesonCodecSpec @(NonEmpty Text)
   aesonCodecSpec @(Set Text)
   aesonCodecSpec @(Map Text Int)
+  aesonCodecSpec @Day
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"

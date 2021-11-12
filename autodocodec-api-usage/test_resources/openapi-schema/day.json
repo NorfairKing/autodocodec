@@ -1,0 +1,15 @@
+{
+    "components": {
+        "schemas": {
+            "Day": {
+                "additionalProperties": true
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

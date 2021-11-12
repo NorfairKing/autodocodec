@@ -60,6 +60,7 @@ tests:
     - genvalidity-sydtest
     - genvalidity-sydtest-aeson
     - genvalidity-text
+    - genvalidity-time
     - openapi3
     - safe-coloured-text
     - scientific
@@ -67,4 +68,5 @@ tests:
     - sydtest
     - sydtest-aeson
     - text
+    - time
     - yaml

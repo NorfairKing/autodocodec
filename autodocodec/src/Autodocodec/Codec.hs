@@ -10,6 +10,7 @@ module Autodocodec.Codec where
 
 import Control.Monad.State
 import Data.Aeson as JSON
+import Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
@@ -876,3 +877,10 @@ orNullHelper = dimapCodec f g
 -- > named = ReferenceCodec
 named :: Text -> ValueCodec input output -> ValueCodec input output
 named = ReferenceCodec
+
+-- | Produce a codec using a type's 'FromJSON' and 'ToJSON' instances.
+--
+-- Note that this will not have good documentation because, at a codec level,
+-- it's just parsing and rendering a 'JSON.Value'.
+codecViaAeson :: (FromJSON a, ToJSON a) => JSONCodec a
+codecViaAeson = bimapCodec (JSON.parseEither JSON.parseJSON) JSON.toJSON valueCodec
