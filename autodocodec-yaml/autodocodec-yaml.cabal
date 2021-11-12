@@ -24,6 +24,7 @@ library
       Autodocodec.Yaml
       Autodocodec.Yaml.Document
       Autodocodec.Yaml.Encode
+      Autodocodec.Yaml.IO
   other-modules:
       Paths_autodocodec_yaml
   hs-source-dirs:
@@ -34,6 +35,8 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , path
+    , path-io
     , safe-coloured-text
     , scientific
     , text

@@ -17,6 +17,8 @@ library:
   - autodocodec-schema
   - bytestring
   - containers
+  - path
+  - path-io
   - safe-coloured-text
   - scientific
   - text
