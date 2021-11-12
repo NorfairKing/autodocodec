@@ -1,1 +1,1 @@
-CommentCodec "Word" (MapCodec _ _ (NumberCodec Nothing))
+CommentCodec "Word" (BimapCodec _ _ (NumberCodec Nothing))

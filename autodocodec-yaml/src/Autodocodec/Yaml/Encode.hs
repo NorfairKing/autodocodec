@@ -6,6 +6,7 @@
 
 module Autodocodec.Yaml.Encode where
 
+import Autodocodec.Aeson.Encode
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
@@ -36,7 +37,8 @@ toYamlVia = flip go
       NumberCodec _ -> yamlNumber (a :: Scientific)
       ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (a :: Vector _)))
       ObjectOfCodec _ oc -> Yaml.mapping (goObject a oc)
-      ObjectCodec -> yamlObject (a :: JSON.Object)
+      HashMapCodec c -> go (toJSONVia (HashMapCodec c) a) ValueCodec -- This may be optimisable?
+      MapCodec c -> go (toJSONVia (MapCodec c) a) ValueCodec -- This may be optimisable?
       ValueCodec -> yamlValue (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c

@@ -7,14 +7,14 @@
 module Autodocodec.Class where
 
 import Autodocodec.Codec
+import Data.Aeson (FromJSONKey, ToJSONKey)
 import qualified Data.Aeson as JSON
 import Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HM
+import Data.Hashable (Hashable)
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
-import qualified Data.Map as M
 import Data.Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -95,9 +95,6 @@ instance HasCodec Word32 where
 instance HasCodec Word64 where
   codec = boundedIntegerCodec <?> "Word64"
 
-instance HasCodec JSON.Object where
-  codec = ObjectCodec
-
 instance HasCodec JSON.Value where
   codec = ValueCodec
 
@@ -122,6 +119,12 @@ instance HasCodec a => HasCodec (NonEmpty a) where
 
 instance (Ord a, HasCodec a) => HasCodec (Set a) where
   codec = dimapCodec S.fromList S.toList codec
+
+instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) where
+  codec = MapCodec codec
+
+instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
+  codec = HashMapCodec codec
 
 -- | A required field
 --

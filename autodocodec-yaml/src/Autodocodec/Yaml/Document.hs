@@ -70,6 +70,8 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s
+      MapSchema s ->
+        addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
       ObjectSchema s ->
         let requirementComment = \case
               Required -> fore red "required"
@@ -83,7 +85,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                     Nothing -> []
                     Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
                   prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
-               in addInFrontOfFirstInList [fore white $ chunk k, ":", " "] (prefixLines ++ keySchemaChunks)
+               in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
          in if null s
               then [["<object>"]]
               else concatMap (uncurry keySchemaFor) s

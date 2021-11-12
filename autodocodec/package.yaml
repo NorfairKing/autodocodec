@@ -16,6 +16,7 @@ library:
   - aeson
   - bytestring
   - containers
+  - hashable
   - mtl
   - scientific
   - text

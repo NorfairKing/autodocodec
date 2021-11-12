@@ -1,1 +1,1 @@
-MapCodec _ _ NullCodec
+BimapCodec _ _ NullCodec

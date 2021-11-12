@@ -10,7 +10,6 @@ module Autodocodec.OpenAPI.Schema where
 
 import Autodocodec
 import Control.Monad
-import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
@@ -46,7 +45,22 @@ declareNamedSchemaVia c' Proxy = go c'
               { _schemaItems = Just $ OpenApiItemsObject $ _namedSchemaSchema <$> itemsSchemaRef,
                 _schemaType = Just OpenApiArray
               }
-      ObjectCodec -> declareNamedSchema (Proxy :: Proxy JSON.Object)
+      HashMapCodec c -> do
+        itemsSchema <- go c
+        itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
+              }
+      MapCodec c -> do
+        itemsSchema <- go c
+        itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
+              }
       ValueCodec ->
         pure $
           NamedSchema

@@ -1,1 +1,1 @@
-MapCodec _ _ (EitherCodec NullCodec (StringCodec Nothing))
+BimapCodec _ _ (EitherCodec NullCodec (StringCodec Nothing))

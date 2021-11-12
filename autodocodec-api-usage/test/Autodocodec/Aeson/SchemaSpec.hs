@@ -86,6 +86,7 @@ instance GenValid JSONSchema where
     BoolSchema -> [AnySchema]
     StringSchema -> [AnySchema]
     NumberSchema -> [AnySchema]
+    MapSchema s -> s : (MapSchema <$> shrinkValid s)
     ArraySchema s -> s : (ArraySchema <$> shrinkValid s)
     ObjectSchema os -> filter isValid $ ObjectSchema <$> shrinkValid os
     ValueSchema v -> ValueSchema <$> shrinkValid v
@@ -105,6 +106,7 @@ instance GenValid JSONSchema where
       else
         oneof
           [ ArraySchema <$> resize (n -1) genValid,
+            MapSchema <$> resize (n -1) genValid,
             (ObjectSchema <$> resize (n -1) genValid) `suchThat` isValid,
             ValueSchema <$> genValid,
             do

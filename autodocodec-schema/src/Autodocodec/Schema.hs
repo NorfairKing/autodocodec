@@ -47,6 +47,7 @@ data JSONSchema
   | StringSchema
   | NumberSchema
   | ArraySchema !JSONSchema
+  | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
     ObjectSchema ![(Text, (KeyRequirement, JSONSchema, Maybe Text))]
   | ValueSchema !JSON.Value
@@ -77,6 +78,9 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         _ -> False
       ArraySchema as -> case value of
         JSON.Array v -> and <$> mapM (`go` as) v
+        _ -> pure False
+      MapSchema vs -> case value of
+        JSON.Object hm -> and <$> mapM (`go` vs) hm
         _ -> pure False
       ObjectSchema kss -> case value of
         JSON.Object hm ->
@@ -142,6 +146,9 @@ instance ToJSON JSONSchema where
           let itemSchemaVal = go s
            in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
         ValueSchema v -> ["const" JSON..= v]
+        MapSchema s ->
+          let itemSchemaVal = go s
+           in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
         ObjectSchema os ->
           let combine (ps, rps) (k, (r, s, mDoc)) =
                 ( (k, maybe id CommentSchema mDoc s) : ps,
@@ -199,8 +206,11 @@ instance FromJSON JSONSchema where
           Just is -> pure $ ArraySchema is
       Just "object" -> do
         mP <- o JSON..:? "properties"
+        mAP <- o JSON..:? "additionalProperties"
         case mP of
-          Nothing -> pure $ ObjectSchema []
+          Nothing -> case mAP of
+            Nothing -> pure $ ObjectSchema []
+            Just ps -> pure $ MapSchema ps
           Just (props :: Map Text JSONSchema) -> do
             requiredProps <- fromMaybe [] <$> o JSON..:? "required"
             let keySchemaFor k s =
@@ -251,7 +261,8 @@ jsonSchemaVia = (`evalState` S.empty) . go
       ObjectOfCodec mname oc -> do
         s <- goObject oc
         pure $ maybe id CommentSchema mname $ ObjectSchema s
-      ObjectCodec -> pure $ ObjectSchema []
+      HashMapCodec c -> MapSchema <$> go c
+      MapCodec c -> MapSchema <$> go c
       ValueCodec -> pure AnySchema
       EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
       EitherCodec c1 c2 -> do

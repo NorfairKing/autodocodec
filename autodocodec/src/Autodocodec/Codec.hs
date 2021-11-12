@@ -10,8 +10,11 @@ module Autodocodec.Codec where
 
 import Control.Monad.State
 import Data.Aeson as JSON
+import Data.HashMap.Strict (HashMap)
+import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
+import Data.Map (Map)
 import Data.Scientific as Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -43,7 +46,7 @@ data Codec context input output where
     -- | Name of the @bool@, for error messages and documentation.
     (Maybe Text) ->
     -- |
-    ValueCodec Bool Bool
+    JSONCodec Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
@@ -51,7 +54,7 @@ data Codec context input output where
     -- | Name of the @string@, for error messages and documentation.
     (Maybe Text) ->
     -- |
-    ValueCodec Text Text
+    JSONCodec Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
@@ -59,7 +62,25 @@ data Codec context input output where
     -- | Name of the @number@, for error messages and documentation.
     (Maybe Text) ->
     -- |
-    ValueCodec Scientific Scientific
+    JSONCodec Scientific
+  -- | Encode a 'HashMap', and decode any 'HashMap'.
+  HashMapCodec ::
+    (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
+    -- |
+    JSONCodec v ->
+    -- |
+    JSONCodec (HashMap k v)
+  -- | Encode a 'Map', and decode any 'Map'.
+  MapCodec ::
+    (Ord k, FromJSONKey k, ToJSONKey k) =>
+    -- |
+    JSONCodec v ->
+    -- |
+    JSONCodec (Map k v)
+  -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
+  ValueCodec ::
+    -- |
+    JSONCodec JSON.Value
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
@@ -76,23 +97,15 @@ data Codec context input output where
     (ObjectCodec input output) ->
     -- |
     ValueCodec input output
-  -- | Encode a 'JSON.Object', and decode any 'JSON.Object'.
-  ObjectCodec ::
-    -- |
-    ValueCodec JSON.Object JSON.Object
-  -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
-  ValueCodec ::
-    -- |
-    ValueCodec JSON.Value JSON.Value
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
     (Show value, Eq value) =>
     -- | Value to match
     value ->
     -- | Codec for the value
-    (ValueCodec value value) ->
+    JSONCodec value ->
     -- |
-    ValueCodec value value
+    JSONCodec value
   -- | Map a codec in both directions.
   --
   -- This is not strictly dimap, because the decoding function is allowed to fail,
@@ -232,7 +245,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
-      ObjectCodec -> pure $ showString "ObjectCodec"
+      MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
+      HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2

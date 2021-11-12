@@ -10,7 +10,6 @@ module Autodocodec.Swagger.Schema where
 
 import Autodocodec
 import Control.Monad
-import qualified Data.Aeson as JSON
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.List
 import Data.Proxy
@@ -41,6 +40,37 @@ declareNamedSchemaVia c' Proxy = go c'
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
       NumberCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Scientific)
+      HashMapCodec c -> do
+        itemsSchema <- go c
+        itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef,
+                _schemaParamSchema =
+                  mempty
+                    { _paramSchemaType = Just SwaggerObject
+                    }
+              }
+      MapCodec c -> do
+        itemsSchema <- go c
+        itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
+        pure $
+          NamedSchema Nothing $
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef,
+                _schemaParamSchema =
+                  mempty
+                    { _paramSchemaType = Just SwaggerObject
+                    }
+              }
+      ValueCodec ->
+        pure $
+          NamedSchema
+            Nothing
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
+              }
       ArrayOfCodec mname c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
@@ -56,14 +86,6 @@ declareNamedSchemaVia c' Proxy = go c'
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
         pure $ NamedSchema mname $ mconcat ss
-      ObjectCodec -> declareNamedSchema (Proxy :: Proxy JSON.Object)
-      ValueCodec ->
-        pure $
-          NamedSchema
-            Nothing
-            mempty
-              { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
-              }
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $

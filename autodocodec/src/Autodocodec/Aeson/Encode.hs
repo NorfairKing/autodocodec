@@ -11,6 +11,8 @@ import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encoding as JSON
+import Data.HashMap.Strict (HashMap)
+import Data.Map (Map)
 import Data.Scientific
 import Data.Text (Text)
 import Data.Vector (Vector)
@@ -34,7 +36,8 @@ toJSONVia = flip go
       NumberCodec _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.Object (goObject a oc)
-      ObjectCodec -> JSON.Object (a :: JSON.Object)
+      HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
+      MapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
@@ -69,7 +72,8 @@ toEncodingVia = flip go
       NumberCodec _ -> JSON.scientific (a :: Scientific)
       ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.pairs (goObject a oc)
-      ObjectCodec -> JSON.toEncoding (a :: JSON.Object)
+      HashMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
+      MapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> JSON.value (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c

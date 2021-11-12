@@ -1,7 +1,8 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 
 module Autodocodec.Aeson.Decode where
 
@@ -12,7 +13,9 @@ import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
+import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
+import Data.Map (Map)
 import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -65,7 +68,8 @@ parseJSONContextVia = flip go
             Just name -> withObject (T.unpack name) f value
         )
           (\object_ -> (`go` c) (object_ :: JSON.Object))
-      ObjectCodec -> parseJSON value :: JSON.Parser JSON.Object
+      HashMapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _)
+      MapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _)
       ValueCodec -> pure (value :: JSON.Value)
       EqCodec expected c -> do
         actual <- go value c

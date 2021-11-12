@@ -1,1 +1,1 @@
-CommentCodec "Int64" (MapCodec _ _ (NumberCodec Nothing))
+CommentCodec "Int64" (BimapCodec _ _ (NumberCodec Nothing))

@@ -1,1 +1,1 @@
-MapCodec _ _ (MapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing)))
+BimapCodec _ _ (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing)))

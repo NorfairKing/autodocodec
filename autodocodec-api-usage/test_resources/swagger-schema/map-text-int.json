@@ -1,0 +1,16 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "definitions": {
+        "(Map Text Int)": {
+            "additionalProperties": {
+                "type": "number",
+                "description": "Int"
+            },
+            "type": "object"
+        }
+    }
+}

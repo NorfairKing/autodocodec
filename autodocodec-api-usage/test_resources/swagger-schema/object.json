@@ -5,10 +5,11 @@
         "title": ""
     },
     "definitions": {
-        "Object": {
-            "additionalProperties": true,
-            "type": "object",
-            "description": "Arbitrary JSON object."
+        "(HashMap Text Value)": {
+            "additionalProperties": {
+                "additionalProperties": true
+            },
+            "type": "object"
         }
     }
 }
