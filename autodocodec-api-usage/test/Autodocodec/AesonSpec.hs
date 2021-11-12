@@ -78,6 +78,8 @@ spec = do
   aesonCodecSpec @LocalTime
   aesonCodecSpec @UTCTime
   aesonCodecSpec @TimeOfDay
+  aesonCodecSpec @DiffTime
+  aesonCodecSpec @NominalDiffTime
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"

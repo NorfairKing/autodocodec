@@ -64,6 +64,8 @@ spec = do
   yamlCodecSpec @LocalTime
   yamlCodecSpec @UTCTime
   yamlCodecSpec @TimeOfDay
+  yamlCodecSpec @DiffTime
+  yamlCodecSpec @NominalDiffTime
   yamlCodecSpec @Fruit
   yamlCodecSpec @Example
   yamlCodecSpec @Recursive

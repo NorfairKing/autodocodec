@@ -63,6 +63,8 @@ spec = do
   yamlSchemaSpec @UTCTime "utc-time"
   yamlSchemaSpec @TimeOfDay "time-of-day"
   yamlSchemaSpec @ZonedTime "zoned-time"
+  yamlSchemaSpec @DiffTime "difftime"
+  yamlSchemaSpec @NominalDiffTime "nominal-difftime"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"

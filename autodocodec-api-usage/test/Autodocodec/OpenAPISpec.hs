@@ -71,6 +71,8 @@ spec = do
   openAPISchemaSpec @UTCTime "utc-time"
   openAPISchemaSpec @TimeOfDay "time-of-day"
   xdescribe "doesn't hold" $ openAPISchemaSpec @ZonedTime "zoned-time"
+  openAPISchemaSpec @DiffTime "difftime"
+  openAPISchemaSpec @NominalDiffTime "nominal-difftime"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"

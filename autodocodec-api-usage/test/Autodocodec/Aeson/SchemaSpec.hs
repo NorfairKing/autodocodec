@@ -66,6 +66,8 @@ spec = do
   jsonSchemaSpec @LocalTime "local-time"
   jsonSchemaSpec @UTCTime "utc-time"
   jsonSchemaSpec @TimeOfDay "time-of-day"
+  jsonSchemaSpec @NominalDiffTime "nominal-difftime"
+  jsonSchemaSpec @DiffTime "difftime"
   jsonSchemaSpec @Fruit "fruit"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"

@@ -138,6 +138,12 @@ instance HasCodec TimeOfDay where
 instance HasCodec ZonedTime where
   codec = codecViaAeson "ZonedTime"
 
+instance HasCodec NominalDiffTime where
+  codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
+
+instance HasCodec DiffTime where
+  codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
+
 -- | A required field
 --
 -- During decoding, the field must be in the object.

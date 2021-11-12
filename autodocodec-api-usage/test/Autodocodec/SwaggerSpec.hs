@@ -71,6 +71,8 @@ spec = do
   swaggerSchemaSpec @UTCTime "utc-time"
   swaggerSchemaSpec @TimeOfDay "time-of-day"
   xdescribe "doesn't hold" $ swaggerSchemaSpec @ZonedTime "zoned-time"
+  swaggerSchemaSpec @DiffTime "difftime"
+  swaggerSchemaSpec @NominalDiffTime "nominal-difftime"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"
