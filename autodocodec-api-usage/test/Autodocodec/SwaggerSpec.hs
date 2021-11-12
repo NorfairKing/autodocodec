@@ -67,13 +67,17 @@ spec = do
   swaggerSchemaSpec @(Set Text) "set-text"
   swaggerSchemaSpec @(Map Text Int) "map-text-int"
   swaggerSchemaSpec @Day "day"
+  swaggerSchemaSpec @LocalTime "local-time"
+  swaggerSchemaSpec @UTCTime "utc-time"
+  swaggerSchemaSpec @TimeOfDay "time-of-day"
+  xdescribe "doesn't hold" $ swaggerSchemaSpec @ZonedTime "zoned-time"
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @Via "via"
   swaggerSchemaSpec @VeryComment "very-comment"
 
-swaggerSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =
   describe ("swaggerSchemaSpec @" <> nameOf @a) $ do
     let (definitions, s) = flip Swagger.runDeclare mempty $ do

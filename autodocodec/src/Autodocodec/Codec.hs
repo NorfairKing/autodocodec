@@ -9,8 +9,9 @@
 module Autodocodec.Codec where
 
 import Control.Monad.State
-import Data.Aeson as JSON
-import Data.Aeson.Types as JSON
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
@@ -882,5 +883,9 @@ named = ReferenceCodec
 --
 -- Note that this will not have good documentation because, at a codec level,
 -- it's just parsing and rendering a 'JSON.Value'.
-codecViaAeson :: (FromJSON a, ToJSON a) => JSONCodec a
-codecViaAeson = bimapCodec (JSON.parseEither JSON.parseJSON) JSON.toJSON valueCodec
+codecViaAeson ::
+  (FromJSON a, ToJSON a) =>
+  -- | Name
+  Text ->
+  JSONCodec a
+codecViaAeson doc = bimapCodec (JSON.parseEither JSON.parseJSON) JSON.toJSON valueCodec <?> doc

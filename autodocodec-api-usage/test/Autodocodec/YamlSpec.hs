@@ -61,6 +61,9 @@ spec = do
   yamlCodecSpec @(Set Text)
   yamlCodecSpec @(Map Text Int)
   yamlCodecSpec @Day
+  yamlCodecSpec @LocalTime
+  yamlCodecSpec @UTCTime
+  yamlCodecSpec @TimeOfDay
   yamlCodecSpec @Fruit
   yamlCodecSpec @Example
   yamlCodecSpec @Recursive

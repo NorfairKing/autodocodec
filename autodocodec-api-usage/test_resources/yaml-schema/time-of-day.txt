@@ -1,2 +1,2 @@
-# Day
+# TimeOfDay
 [33m<any>[m

@@ -124,7 +124,19 @@ instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec 
 
 -- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Tite@ or @Data.Attoparsec.Time@ modules.
 instance HasCodec Day where
-  codec = codecViaAeson
+  codec = codecViaAeson "Day"
+
+instance HasCodec LocalTime where
+  codec = codecViaAeson "LocalTime"
+
+instance HasCodec UTCTime where
+  codec = codecViaAeson "LocalTime"
+
+instance HasCodec TimeOfDay where
+  codec = codecViaAeson "TimeOfDay"
+
+instance HasCodec ZonedTime where
+  codec = codecViaAeson "ZonedTime"
 
 -- | A required field
 --

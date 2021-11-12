@@ -5,9 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Day": {
+        "LocalTime": {
             "additionalProperties": true,
-            "description": "Day"
+            "description": "LocalTime"
         }
     }
 }

@@ -1,9 +1,9 @@
 {
     "components": {
         "schemas": {
-            "Day": {
+            "ZonedTime": {
                 "additionalProperties": true,
-                "description": "Day"
+                "description": "ZonedTime"
             }
         }
     },

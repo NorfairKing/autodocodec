@@ -67,13 +67,17 @@ spec = do
   openAPISchemaSpec @(Set Text) "set-text"
   openAPISchemaSpec @(Map Text Int) "map-text-int"
   openAPISchemaSpec @Day "day"
+  openAPISchemaSpec @LocalTime "local-time"
+  openAPISchemaSpec @UTCTime "utc-time"
+  openAPISchemaSpec @TimeOfDay "time-of-day"
+  xdescribe "doesn't hold" $ openAPISchemaSpec @ZonedTime "zoned-time"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpec @Recursive "recursive"
   openAPISchemaSpec @Via "via"
   openAPISchemaSpec @VeryComment "very-comment"
 
-openAPISchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+openAPISchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =
   describe ("openAPISchemaSpec @" <> nameOf @a) $ do
     let (definitions, s) = flip OpenAPI.runDeclare mempty $ do

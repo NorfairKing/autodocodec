@@ -57,13 +57,17 @@ spec = do
   showCodecSpec @(Set Text) "set-text"
   showCodecSpec @(Map Text Int) "map-text-int"
   showCodecSpec @Day "day"
+  showCodecSpec @LocalTime "local-time"
+  showCodecSpec @UTCTime "utc-time"
+  showCodecSpec @TimeOfDay "time-of-day"
+  showCodecSpec @ZonedTime "zoned-time"
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"
   showCodecSpec @Via "via"
   showCodecSpec @VeryComment "very-comment"
 
-showCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+showCodecSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 showCodecSpec filePath =
   describe ("showCodecSpec " <> nameOf @a) $
     it "outputs the same shown codec information as before" $

@@ -20,6 +20,7 @@ module Autodocodec
     -- * Writing a codec
     object,
     named,
+    codecViaAeson,
 
     -- ** Field codecs
 

@@ -75,6 +75,9 @@ spec = do
   aesonCodecSpec @(Set Text)
   aesonCodecSpec @(Map Text Int)
   aesonCodecSpec @Day
+  aesonCodecSpec @LocalTime
+  aesonCodecSpec @UTCTime
+  aesonCodecSpec @TimeOfDay
   aesonCodecSpec @Fruit
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"

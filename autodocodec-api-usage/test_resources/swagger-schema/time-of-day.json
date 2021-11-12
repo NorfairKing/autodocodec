@@ -5,9 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Day": {
+        "TimeOfDay": {
             "additionalProperties": true,
-            "description": "Day"
+            "description": "TimeOfDay"
         }
     }
 }

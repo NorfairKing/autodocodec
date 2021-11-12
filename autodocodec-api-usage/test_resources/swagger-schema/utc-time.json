@@ -5,9 +5,9 @@
         "title": ""
     },
     "definitions": {
-        "Day": {
+        "UTCTime": {
             "additionalProperties": true,
-            "description": "Day"
+            "description": "LocalTime"
         }
     }
 }

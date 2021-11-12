@@ -59,13 +59,17 @@ spec = do
   yamlSchemaSpec @(Set Text) "set-text"
   yamlSchemaSpec @(Map Text Int) "map-text-int"
   yamlSchemaSpec @Day "day"
+  yamlSchemaSpec @LocalTime "local-time"
+  yamlSchemaSpec @UTCTime "utc-time"
+  yamlSchemaSpec @TimeOfDay "time-of-day"
+  yamlSchemaSpec @ZonedTime "zoned-time"
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"
   yamlSchemaSpec @Via "via"
   yamlSchemaSpec @VeryComment "very-comment"
 
-yamlSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+yamlSchemaSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
     pureGoldenByteStringFile ("test_resources/yaml-schema/" <> filePath <> ".txt") (renderChunksBS With24BitColours $ schemaChunksViaCodec @a)
