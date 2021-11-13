@@ -259,8 +259,10 @@ jsonSchemaVia = (`evalState` S.empty) . go
         s <- go c
         pure $ maybe id CommentSchema mname $ ArraySchema s
       ObjectOfCodec mname oc -> do
-        s <- goObject oc
-        pure $ maybe id CommentSchema mname $ ObjectSchema s
+        alts <- goObject oc
+        case alts of
+          s :| [] -> pure $ maybe id CommentSchema mname $ ObjectSchema s
+          _ -> pure $ maybe id CommentSchema mname $ ChoiceSchema $ goChoice $ NE.map ObjectSchema alts
       HashMapCodec c -> MapSchema <$> go c
       MapCodec c -> MapSchema <$> go c
       ValueCodec -> pure AnySchema
@@ -290,21 +292,26 @@ jsonSchemaVia = (`evalState` S.empty) . go
           ChoiceSchema ss -> goChoice ss
           s' -> s' :| []
 
-    goObject :: ObjectCodec input output -> State (Set Text) [(Text, (KeyRequirement, JSONSchema, Maybe Text))]
+    -- The outer list is for alternatives, the inner list is for multiple keys
+    goObject :: ObjectCodec input output -> State (Set Text) (NonEmpty [(Text, (KeyRequirement, JSONSchema, Maybe Text))])
     goObject = \case
       RequiredKeyCodec k c mdoc -> do
         s <- go c
-        pure [(k, (Required, s, mdoc))]
+        pure $ [(k, (Required, s, mdoc))] :| []
       OptionalKeyCodec k c mdoc -> do
         s <- go c
-        pure [(k, (Optional Nothing, s, mdoc))]
+        pure $ [(k, (Optional Nothing, s, mdoc))] :| []
       OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
-        pure [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))]
+        pure $ [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))] :| []
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ _ c -> goObject c
-      PureCodec _ -> pure []
-      ApCodec oc1 oc2 -> liftA2 (++) (goObject oc1) (goObject oc2)
+      EitherCodec oc1 oc2 -> liftA2 (<>) (goObject oc1) (goObject oc2)
+      PureCodec _ -> pure $ [] :| []
+      ApCodec oc1 oc2 -> do
+        s1s <- goObject oc1
+        s2s <- goObject oc2
+        pure $ (++) <$> s1s <*> s2s
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f (a, b, c) = f a b c

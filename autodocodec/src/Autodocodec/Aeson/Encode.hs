@@ -59,6 +59,9 @@ toJSONVia = flip go
           then mempty
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       BimapCodec _ g c -> goObject (g a) c
+      EitherCodec c1 c2 -> case (a :: Either _ _) of
+        Left a1 -> goObject a1 c1
+        Right a2 -> goObject a2 c2
       PureCodec _ -> mempty
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
@@ -99,6 +102,9 @@ toEncodingVia = flip go
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       PureCodec _ -> mempty :: JSON.Series
       BimapCodec _ g c -> goObject (g a) c
+      EitherCodec c1 c2 -> case (a :: Either _ _) of
+        Left a1 -> goObject a1 c1
+        Right a2 -> goObject a2 c2
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 instance HasCodec a => JSON.ToJSON (Autodocodec a) where

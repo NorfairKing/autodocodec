@@ -1,6 +1,7 @@
 - ignore: { name: "Eta reduce" }
 - ignore: { name: "Use unless" }
 - ignore: { name: "Use fmap" }
+- ignore: { name: "Use tuple-section" }
 - ignore: { name: "Use ++" }
 - ignore: { name: "Avoid lambda using `infix`" }
 - ignore: { name: "Replace case with maybe" }

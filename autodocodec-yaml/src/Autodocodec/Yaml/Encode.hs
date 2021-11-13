@@ -60,6 +60,9 @@ toYamlVia = flip go
           then []
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ g c -> goObject (g a) c
+      EitherCodec oc1 oc2 -> case (a :: Either _ _) of
+        Left a1 -> goObject a1 oc1
+        Right a2 -> goObject a2 oc2
       PureCodec _ -> []
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
@@ -67,7 +70,7 @@ toYamlVia = flip go
     yamlNumber :: Scientific -> YamlBuilder
     yamlNumber s =
       if s > 1E1024 || s < -1E1024
-        then Yaml.string $ "Cannot encode super duper large numbers with toYaml:" <> T.pack (show s)
+        then Yaml.string $ "Cannot encode super duper large numbers with toYaml: " <> T.pack (show s)
         else Yaml.scientific s
 
     -- Encode a 'JSON.Object'
