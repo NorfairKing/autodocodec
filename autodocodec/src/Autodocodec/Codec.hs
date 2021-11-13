@@ -487,7 +487,7 @@ requiredFieldWith' key c = RequiredKeyCodec key c Nothing
 --
 -- During decoding, the field may be in the object. 'Nothing' will be parsed otherwise.
 --
--- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+-- During encoding, the field will be omitted from the object if it is 'Nothing'.
 optionalFieldWith ::
   -- | Key
   Text ->
@@ -511,7 +511,7 @@ optionalFieldWith' key c = OptionalKeyCodec key c Nothing
 --
 -- During decoding, the field may be in the object. The default value will be parsed otherwise.
 --
--- During encoding, the field will be in the object. The default value is ignored.
+-- During encoding, the field will always be in the object. The default value is ignored.
 --
 -- The shown version of the default value will appear in the documentation.
 optionalFieldWithDefaultWith ::
@@ -537,6 +537,13 @@ optionalFieldWithDefaultWith' ::
   ObjectCodec output output
 optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c defaultValue Nothing
 
+-- | An optional field with default value that can be omitted when encoding
+--
+-- During decoding, the field may be in the object. The default value will be parsed otherwise.
+--
+-- During encoding, the field will be omitted from the object if it is equal to the default value.
+--
+-- The shown version of the default value will appear in the documentation.
 optionalFieldWithOmittedDefaultWith ::
   Eq output =>
   -- | Key
@@ -550,6 +557,7 @@ optionalFieldWithOmittedDefaultWith ::
   ObjectCodec output output
 optionalFieldWithOmittedDefaultWith key c defaultValue doc = OptionalKeyWithOmittedDefaultCodec key c defaultValue (Just doc)
 
+-- | Like 'optionalFieldWithOmittedDefaultWith', but without documentation.
 optionalFieldWithOmittedDefaultWith' ::
   Eq output =>
   -- | Key
@@ -566,7 +574,7 @@ optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmitted
 -- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.
 -- If the field is @null@, then it will be parsed as 'Nothing' as well.
 --
--- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
+-- During encoding, the field will be omitted from the object if it is 'Nothing'.
 optionalFieldOrNullWith ::
   -- | Key
   Text ->
