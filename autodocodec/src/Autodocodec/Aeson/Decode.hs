@@ -9,7 +9,6 @@ module Autodocodec.Aeson.Decode where
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
-import Control.Applicative
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON

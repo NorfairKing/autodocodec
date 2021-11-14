@@ -270,3 +270,23 @@ optionalFieldWithOmittedDefault' ::
   output ->
   ObjectCodec output output
 optionalFieldWithOmittedDefault' key defaultValue = optionalFieldWithOmittedDefaultWith' key codec defaultValue
+
+optionalFieldOrNullWithOmittedDefault ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldOrNullWithOmittedDefault key defaultValue doc = optionalFieldOrNullWithOmittedDefaultWith key codec defaultValue doc
+
+optionalFieldOrNullWithOmittedDefault' ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldOrNullWithOmittedDefault' key defaultValue = optionalFieldOrNullWithOmittedDefaultWith' key codec defaultValue
