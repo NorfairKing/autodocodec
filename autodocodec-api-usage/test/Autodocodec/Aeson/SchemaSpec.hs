@@ -94,11 +94,11 @@ instance GenValid JSONSchema where
     NullSchema -> [AnySchema]
     BoolSchema -> [AnySchema]
     StringSchema -> [AnySchema]
-    NumberSchema -> [AnySchema]
-    MapSchema s -> s : (MapSchema <$> shrinkValid s)
-    ArraySchema s -> s : (ArraySchema <$> shrinkValid s)
-    ObjectSchema os -> filter isValid $ ObjectSchema <$> shrinkValid os
-    ValueSchema v -> ValueSchema <$> shrinkValid v
+    NumberSchema mBounds -> AnySchema : (NumberSchema <$> shrinkValid mBounds)
+    MapSchema s -> AnySchema : s : (MapSchema <$> shrinkValid s)
+    ArraySchema s -> AnySchema : s : (ArraySchema <$> shrinkValid s)
+    ObjectSchema os -> AnySchema : filter isValid (ObjectSchema <$> shrinkValid os)
+    ValueSchema v -> AnySchema : (ValueSchema <$> shrinkValid v)
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
       _ -> ChoiceSchema <$> shrinkValid ss
@@ -111,10 +111,11 @@ instance GenValid JSONSchema where
       pure $ WithDefSchema name' s'
   genValid = sized $ \n ->
     if n <= 1
-      then elements [AnySchema, NullSchema, BoolSchema, StringSchema, NumberSchema]
+      then elements [AnySchema, NullSchema, BoolSchema, StringSchema]
       else
         oneof
-          [ ArraySchema <$> resize (n -1) genValid,
+          [ NumberSchema <$> genValid,
+            ArraySchema <$> resize (n -1) genValid,
             MapSchema <$> resize (n -1) genValid,
             (ObjectSchema <$> resize (n -1) genValid) `suchThat` isValid,
             ValueSchema <$> genValid,
@@ -134,6 +135,10 @@ instance GenValid JSONSchema where
               (a, b) <- genSplit (n -1)
               WithDefSchema <$> resize a genValid <*> resize b genValid
           ]
+
+instance GenValid NumberBounds where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance GenValid KeyRequirement where
   genValid = genValidStructurallyWithoutExtraChecking

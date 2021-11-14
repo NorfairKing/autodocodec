@@ -48,9 +48,15 @@ parseJSONContextVia codec_ context_ =
       StringCodec mname -> case mname of
         Nothing -> parseJSON value
         Just name -> withText (T.unpack name) pure value
-      NumberCodec mname -> case mname of
-        Nothing -> parseJSON value
-        Just name -> withScientific (T.unpack name) pure value
+      NumberCodec mname mBounds ->
+        ( \f -> case mname of
+            Nothing -> parseJSON value >>= f
+            Just name -> withScientific (T.unpack name) f value
+        )
+          ( \s -> case maybe Right checkNumberBounds mBounds s of
+              Left err -> fail err
+              Right s' -> pure s'
+          )
       ArrayOfCodec mname c ->
         ( \f -> case mname of
             Nothing -> parseJSON value >>= f

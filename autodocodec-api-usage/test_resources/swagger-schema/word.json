@@ -6,6 +6,8 @@
     },
     "definitions": {
         "Word": {
+            "maximum": 1.8446744073709551615e19,
+            "minimum": 0,
             "type": "number"
         }
     }

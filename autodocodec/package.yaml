@@ -22,4 +22,6 @@ library:
   - text
   - time
   - unordered-containers
+  - validity
+  - validity-scientific
   - vector

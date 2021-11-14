@@ -1,1 +1,1 @@
-NumberCodec Nothing
+NumberCodec Nothing Nothing

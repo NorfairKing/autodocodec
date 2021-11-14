@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -66,7 +67,9 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       NullSchema -> [[fore yellow "null"]]
       BoolSchema -> [[fore yellow "<boolean>"]]
       StringSchema -> [[fore yellow "<string>"]]
-      NumberSchema -> [[fore yellow "<number>"]]
+      NumberSchema mBounds -> case mBounds of
+        Nothing -> [[fore yellow "<number>"]]
+        Just NumberBounds {..} -> [[fore yellow "<number>", " # between ", fore green $ chunk $ T.pack (show numberBoundsLower), " and ", fore green $ chunk $ T.pack (show numberBoundsUpper)]]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s

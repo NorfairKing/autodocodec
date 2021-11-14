@@ -1,1 +1,1 @@
-Error in $: Number did not fit into bounded integer: 1.0e10000
+Error in $: Number 1.0e10000 is bigger than the upper bound 9.223372036854775807e18

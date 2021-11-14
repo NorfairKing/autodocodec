@@ -3,6 +3,8 @@
         "schemas": {
             "(Map Text Int)": {
                 "additionalProperties": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
                     "type": "number"
                 }
             }

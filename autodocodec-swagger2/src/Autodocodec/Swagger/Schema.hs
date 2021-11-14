@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -39,7 +40,17 @@ declareNamedSchemaVia c' Proxy = go c'
               }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
-      NumberCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Scientific)
+      NumberCodec mname mBounds -> do
+        s <- declareSchema (Proxy :: Proxy Scientific)
+        let addNumberBounds NumberBounds {..} s_ =
+              s_
+                { _schemaParamSchema =
+                    (_schemaParamSchema s_)
+                      { _paramSchemaMinimum = Just numberBoundsLower,
+                        _paramSchemaMaximum = Just numberBoundsUpper
+                      }
+                }
+        pure $ NamedSchema mname $ maybe id addNumberBounds mBounds s
       HashMapCodec c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema

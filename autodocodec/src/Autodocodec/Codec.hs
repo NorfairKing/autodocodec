@@ -1,7 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
@@ -22,8 +24,11 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Validity
+import Data.Validity.Scientific ()
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import GHC.Generics (Generic)
 
 -- | A Self-documenting encoder and decoder,
 --
@@ -63,6 +68,8 @@ data Codec context input output where
   NumberCodec ::
     -- | Name of the @number@, for error messages and documentation.
     (Maybe Text) ->
+    -- | Bounds for the number, these are checked and documented
+    Maybe NumberBounds ->
     -- |
     JSONCodec Scientific
   -- | Encode a 'HashMap', and decode any 'HashMap'.
@@ -225,6 +232,23 @@ data Codec context input output where
     -- |
     ObjectCodec input newOutput
 
+data NumberBounds = NumberBounds
+  { numberBoundsLower :: !Scientific,
+    numberBoundsUpper :: !Scientific
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity NumberBounds
+
+checkNumberBounds :: NumberBounds -> Scientific -> Either String Scientific
+checkNumberBounds NumberBounds {..} s =
+  if numberBoundsLower <= s
+    then
+      if s <= numberBoundsUpper
+        then Right s
+        else Left $ unwords ["Number", show s, "is bigger than the upper bound", show numberBoundsUpper]
+    else Left $ unwords ["Number", show s, "is smaller than the lower bound", show numberBoundsUpper]
+
 -- | A codec within the 'JSON.Value' context.
 --
 -- An 'ValueCodec' can be used to turn a Haskell value into a 'JSON.Value' or to parse a 'JSON.Value' into a haskell value.
@@ -261,7 +285,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
       StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
-      NumberCodec mName -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName
+      NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
@@ -719,7 +743,7 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- === Example usage
 --
--- > scientificCodec = NumberCodec Nothing
+-- > scientificCodec = NumberCodec Nothing Nothing
 --
 -- >>> toJSONVia scientificCodec 5
 -- Number 5.0
@@ -735,7 +759,7 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 -- CallStack (from HasCallStack):
 --   error, called at src/Data/Scientific.hs:311:23 in scientific-0.3.6.2-19iaXRaHwRdEEucqiDAVk5:Data.Scientific
 scientificCodec :: JSONCodec Scientific
-scientificCodec = NumberCodec Nothing
+scientificCodec = NumberCodec Nothing Nothing
 
 -- | An object codec with a given name
 --
@@ -765,8 +789,17 @@ object name = ObjectOfCodec (Just name)
 --
 -- >>> JSON.parseEither( parseJSONVia boundedIntegerCodec) (Number 1e100) :: Either String Int
 -- Left "Error in $: Number too big: 1.0e100"
-boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
-boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
+boundedIntegerCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
+boundedIntegerCodec =
+  bimapCodec go fromIntegral $
+    NumberCodec
+      Nothing
+      ( Just
+          NumberBounds
+            { numberBoundsLower = fromIntegral (minBound :: i),
+              numberBoundsUpper = fromIntegral (maxBound :: i)
+            }
+      )
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number did not fit into bounded integer: " <> show s

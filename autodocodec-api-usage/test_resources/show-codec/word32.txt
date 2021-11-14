@@ -1,1 +1,1 @@
-BimapCodec _ _ (NumberCodec Nothing)
+BimapCodec _ _ (NumberCodec Nothing (Just (NumberBounds {numberBoundsLower = 0.0, numberBoundsUpper = 4.294967295e9})))

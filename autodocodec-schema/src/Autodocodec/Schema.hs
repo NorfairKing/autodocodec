@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -45,7 +46,7 @@ data JSONSchema
   | NullSchema
   | BoolSchema
   | StringSchema
-  | NumberSchema
+  | NumberSchema !(Maybe NumberBounds)
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
@@ -73,8 +74,10 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       StringSchema -> pure $ case value of
         JSON.String _ -> True
         _ -> False
-      NumberSchema -> pure $ case value of
-        JSON.Number _ -> True
+      NumberSchema mBounds -> pure $ case value of
+        JSON.Number s -> case maybe Right checkNumberBounds mBounds s of
+          Left _ -> False
+          Right _ -> True
         _ -> False
       ArraySchema as -> case value of
         JSON.Array v -> and <$> mapM (`go` as) v
@@ -141,7 +144,10 @@ instance ToJSON JSONSchema where
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
         StringSchema -> ["type" JSON..= ("string" :: Text)]
-        NumberSchema -> ["type" JSON..= ("number" :: Text)]
+        NumberSchema mBounds ->
+          ("type" JSON..= ("number" :: Text)) : case mBounds of
+            Nothing -> []
+            Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
         ArraySchema s ->
           let itemSchemaVal = go s
            in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
@@ -198,7 +204,13 @@ instance FromJSON JSONSchema where
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
-      Just "number" -> pure NumberSchema
+      Just "number" -> do
+        mLower <- o JSON..:? "minimum"
+        mUpper <- o JSON..:? "maximum"
+        pure $
+          NumberSchema $ case (,) <$> mLower <*> mUpper of
+            Nothing -> Nothing
+            Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
       Just "array" -> do
         mI <- o JSON..:? "items"
         case mI of
@@ -254,7 +266,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       NullCodec -> pure NullSchema
       BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
       StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
-      NumberCodec mname -> pure $ maybe id CommentSchema mname NumberSchema
+      NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
       ArrayOfCodec mname c -> do
         s <- go c
         pure $ maybe id CommentSchema mname $ ArraySchema s

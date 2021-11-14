@@ -55,12 +55,14 @@ spec = do
   aesonCodecSpec @Int
   aesonCodecErrorSpec @Int "int-error-big" "1E10000"
   aesonCodecSpec @Int8
+  aesonCodecErrorSpec @Int8 "int8-error-200" "200"
   aesonCodecSpec @Int16
   aesonCodecSpec @Int32
   aesonCodecSpec @Int64
   aesonCodecSpec @Word
   aesonCodecErrorSpec @Word "word-error-negative" "-3"
   aesonCodecSpec @Word8
+  aesonCodecErrorSpec @Word8 "word8-error-300" "300"
   aesonCodecSpec @Word16
   aesonCodecSpec @Word32
   aesonCodecSpec @Word64

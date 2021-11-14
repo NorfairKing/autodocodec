@@ -6,6 +6,8 @@
     },
     "definitions": {
         "Word16": {
+            "maximum": 65535,
+            "minimum": 0,
             "type": "number"
         }
     }

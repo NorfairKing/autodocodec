@@ -43,5 +43,7 @@ library
     , text
     , time
     , unordered-containers
+    , validity
+    , validity-scientific
     , vector
   default-language: Haskell2010

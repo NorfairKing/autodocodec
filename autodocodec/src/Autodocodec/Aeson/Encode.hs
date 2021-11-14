@@ -33,7 +33,7 @@ toJSONVia = flip go
       NullCodec -> JSON.Null
       BoolCodec _ -> toJSON (a :: Bool)
       StringCodec _ -> toJSON (a :: Text)
-      NumberCodec _ -> toJSON (a :: Scientific)
+      NumberCodec _ _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.Object (goObject a oc)
       HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
@@ -73,7 +73,7 @@ toEncodingVia = flip go
       NullCodec -> JSON.null_
       BoolCodec _ -> JSON.bool (a :: Bool)
       StringCodec _ -> JSON.text (a :: Text)
-      NumberCodec _ -> JSON.scientific (a :: Scientific)
+      NumberCodec _ _ -> JSON.scientific (a :: Scientific)
       ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.pairs (goObject a oc)
       HashMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
