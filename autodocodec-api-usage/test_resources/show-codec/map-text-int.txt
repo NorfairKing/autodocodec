@@ -1,1 +1,1 @@
-MapCodec(CommentCodec "Int" (BimapCodec _ _ (NumberCodec Nothing)))
+MapCodec(BimapCodec _ _ (NumberCodec Nothing))

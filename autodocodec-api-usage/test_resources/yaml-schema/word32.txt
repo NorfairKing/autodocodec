@@ -1,2 +1,1 @@
-# Word32
 [33m<number>[m

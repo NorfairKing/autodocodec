@@ -1,1 +1,1 @@
-CommentCodec "Int" (BimapCodec _ _ (NumberCodec Nothing))
+BimapCodec _ _ (NumberCodec Nothing)

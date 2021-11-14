@@ -6,8 +6,7 @@
     },
     "definitions": {
         "Int": {
-            "type": "number",
-            "description": "Int"
+            "type": "number"
         }
     }
 }

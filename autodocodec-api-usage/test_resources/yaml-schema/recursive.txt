@@ -1,6 +1,5 @@
 [36mdef: recursive[m
 [ # base case
-  # Int
   [33m<number>[m
 , # Recurse
   [37mrecurse[m: # [31mrequired[m

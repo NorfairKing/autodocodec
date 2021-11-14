@@ -1,2 +1,1 @@
-# Int
 [33m<number>[m

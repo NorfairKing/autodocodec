@@ -1,6 +1,5 @@
 {
     "additionalProperties": {
-        "$comment": "Int",
         "type": "number"
     },
     "type": "object"

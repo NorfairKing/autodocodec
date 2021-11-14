@@ -2,8 +2,7 @@
     "components": {
         "schemas": {
             "Word32": {
-                "type": "number",
-                "description": "Word32"
+                "type": "number"
             }
         }
     },

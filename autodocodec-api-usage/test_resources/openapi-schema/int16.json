@@ -2,8 +2,7 @@
     "components": {
         "schemas": {
             "Int16": {
-                "type": "number",
-                "description": "Int16"
+                "type": "number"
             }
         }
     },

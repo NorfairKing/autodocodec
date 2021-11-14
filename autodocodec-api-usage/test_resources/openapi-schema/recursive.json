@@ -16,7 +16,7 @@
                 "anyOf": [
                     {
                         "type": "number",
-                        "description": "base case\nInt"
+                        "description": "base case"
                     },
                     {
                         "$ref": "#/components/schemas/Recurse"
@@ -28,7 +28,7 @@
                 "anyOf": [
                     {
                         "type": "number",
-                        "description": "base case\nInt"
+                        "description": "base case"
                     },
                     {
                         "$ref": "#/components/schemas/Recurse"

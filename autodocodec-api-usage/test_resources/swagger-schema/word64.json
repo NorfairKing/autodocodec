@@ -6,8 +6,7 @@
     },
     "definitions": {
         "Word64": {
-            "type": "number",
-            "description": "Word64"
+            "type": "number"
         }
     }
 }

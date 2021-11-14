@@ -2,8 +2,7 @@
     "components": {
         "schemas": {
             "Int": {
-                "type": "number",
-                "description": "Int"
+                "type": "number"
             }
         }
     },

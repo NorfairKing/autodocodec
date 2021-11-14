@@ -3,8 +3,7 @@
         "schemas": {
             "(Map Text Int)": {
                 "additionalProperties": {
-                    "type": "number",
-                    "description": "Int"
+                    "type": "number"
                 }
             }
         }

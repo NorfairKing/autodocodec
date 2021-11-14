@@ -1,1 +1,1 @@
-CommentCodec "Word32" (BimapCodec _ _ (NumberCodec Nothing))
+BimapCodec _ _ (NumberCodec Nothing)

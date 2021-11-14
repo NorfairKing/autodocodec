@@ -6,8 +6,7 @@
     },
     "definitions": {
         "Word": {
-            "type": "number",
-            "description": "Word"
+            "type": "number"
         }
     }
 }

@@ -1,1 +1,1 @@
-ReferenceCodec "recursive" (BimapCodec _ _ (EitherCodec (CommentCodec "base case" (CommentCodec "Int" (BimapCodec _ _ (NumberCodec Nothing)))) (ObjectOfCodec (Just "Recurse") (RequiredKeyCodec "recurse" (Just "recursive case") (ReferenceCodec "recursive")))))
+ReferenceCodec "recursive" (BimapCodec _ _ (EitherCodec (CommentCodec "base case" (BimapCodec _ _ (NumberCodec Nothing))) (ObjectOfCodec (Just "Recurse") (RequiredKeyCodec "recurse" (Just "recursive case") (ReferenceCodec "recursive")))))

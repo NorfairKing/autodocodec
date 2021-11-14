@@ -1,3 +1,2 @@
 [37m<key>[m: 
-  # Int
   [33m<number>[m

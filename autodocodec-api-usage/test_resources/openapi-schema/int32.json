@@ -2,8 +2,7 @@
     "components": {
         "schemas": {
             "Int32": {
-                "type": "number",
-                "description": "Int32"
+                "type": "number"
             }
         }
     },
