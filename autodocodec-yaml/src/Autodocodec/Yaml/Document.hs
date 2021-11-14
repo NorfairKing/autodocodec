@@ -12,6 +12,7 @@ import Autodocodec.Schema
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Map as M
+import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -69,7 +70,18 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       StringSchema -> [[fore yellow "<string>"]]
       NumberSchema mBounds -> case mBounds of
         Nothing -> [[fore yellow "<number>"]]
-        Just NumberBounds {..} -> [[fore yellow "<number>", " # between ", fore green $ chunk $ T.pack (show numberBoundsLower), " and ", fore green $ chunk $ T.pack (show numberBoundsUpper)]]
+        Just NumberBounds {..} ->
+          let scientificChunk s = chunk $
+                T.pack $ case floatingOrInteger s of
+                  Left (_ :: Double) -> show (s :: Scientific)
+                  Right i -> show (i :: Integer)
+           in [ [ fore yellow "<number>",
+                  " # between ",
+                  fore green $ scientificChunk numberBoundsLower,
+                  " and ",
+                  fore green $ scientificChunk numberBoundsUpper
+                ]
+              ]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s

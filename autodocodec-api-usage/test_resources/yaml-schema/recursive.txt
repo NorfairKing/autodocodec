@@ -1,6 +1,6 @@
 [36mdef: recursive[m
 [ # base case
-  [33m<number>[m # between [32m-9.223372036854775808e18[m and [32m9.223372036854775807e18[m
+  [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
 , # Recurse
   [37mrecurse[m: # [31mrequired[m
     # recursive case
