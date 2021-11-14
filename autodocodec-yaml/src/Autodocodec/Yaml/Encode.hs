@@ -60,9 +60,6 @@ toYamlVia = flip go
           then []
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ g c -> goObject (g a) c
-      EitherCodec oc1 oc2 -> case (a :: Either _ _) of
-        Left a1 -> goObject a1 oc1
-        Right a2 -> goObject a2 oc2
       PureCodec _ -> []
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 

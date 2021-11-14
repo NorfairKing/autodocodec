@@ -128,13 +128,19 @@ data Codec context input output where
   --
   --
   -- This codec is used to implement choice.
+  --
+  -- Note that this codec only works for Values, not for objects.
+  -- This is because of the documentation side of things.
+  -- Things like JSON schemas, OpenAPI, and Swagger are not built for this type
+  -- of alternatives and, while it is certainly possible to make them, human
+  -- readable docs will not look very natural either.
   EitherCodec ::
     -- | Codec for the 'Left' side
-    (Codec context input1 output1) ->
+    (ValueCodec input1 output1) ->
     -- | Codec for the 'Right' side
-    (Codec context input2 output2) ->
+    (ValueCodec input2 output2) ->
     -- |
-    Codec context (Either input1 input2) (Either output1 output2)
+    ValueCodec (Either input1 input2) (Either output1 output2)
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
@@ -402,9 +408,9 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 -- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
 -- String "hello"
 eitherCodec ::
-  Codec context input1 output1 ->
-  Codec context input2 output2 ->
-  Codec context (Either input1 input2) (Either output1 output2)
+  ValueCodec input1 output1 ->
+  ValueCodec input2 output2 ->
+  ValueCodec (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
 
 -- | Map a codec's input and output types.
