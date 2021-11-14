@@ -1,1 +1,3 @@
-Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array
+Error in $: 
+  Previous branch failure: Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array
+parsing HashMap ~Text failed, expected Object, but encountered Array

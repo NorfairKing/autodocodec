@@ -32,7 +32,9 @@ parseJSONVia = parseJSONContextVia
 --
 -- You probably won't need this. See 'eitherDecodeViaCodec', 'parseJSONViaCodec' and 'parseJSONVia' instead.
 parseJSONContextVia :: Codec context void a -> context -> JSON.Parser a
-parseJSONContextVia = flip go
+parseJSONContextVia codec_ context_ =
+  modifyFailure (\s -> if '\n' `elem` s then "\n" ++ s else s) $
+    go context_ codec_
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
@@ -81,7 +83,12 @@ parseJSONContextVia = flip go
         case f old of
           Left err -> fail err
           Right new -> pure new
-      EitherCodec c1 c2 -> (Left <$> go value c1) <|> (Right <$> go value c2)
+      EitherCodec c1 c2 ->
+        let leftParser = (\v -> Left <$> go v c1)
+            rightParser = Right <$> go value c2
+         in case parseEither leftParser value of
+              Right l -> pure l
+              Left err -> prependFailure ("  Previous branch failure: " <> err <> "\n") rightParser
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do

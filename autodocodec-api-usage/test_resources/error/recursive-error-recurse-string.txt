@@ -1,1 +1,6 @@
-Error in $.recurse.recurse.recurse: parsing Recurse failed, expected Object, but encountered String
+Error in $.recurse.recurse.recurse: 
+  Previous branch failure: Error in $: parsing Scientific failed, expected Number, but encountered Object
+  Previous branch failure: Error in $: parsing Scientific failed, expected Number, but encountered Object
+  Previous branch failure: Error in $: parsing Scientific failed, expected Number, but encountered Object
+  Previous branch failure: Error in $: parsing Scientific failed, expected Number, but encountered String
+parsing Recurse failed, expected Object, but encountered String

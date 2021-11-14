@@ -1,1 +1,3 @@
-Error in $: parsing Text failed, expected String, but encountered Object
+Error in $: 
+  Previous branch failure: Error in $: expected Null, but encountered Object
+parsing Text failed, expected String, but encountered Object

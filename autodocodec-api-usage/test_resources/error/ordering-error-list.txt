@@ -1,1 +1,4 @@
-Error in $: parsing Text failed, expected String, but encountered Array
+Error in $: 
+  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Array
+  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Array
+parsing Text failed, expected String, but encountered Array

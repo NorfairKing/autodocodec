@@ -1,1 +1,5 @@
-Error in $.fruit: parsing Text failed, expected String, but encountered Number
+Error in $.fruit: 
+  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
+  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
+  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
+parsing Text failed, expected String, but encountered Number
