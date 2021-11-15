@@ -66,34 +66,34 @@ instance HasCodec Scientific where
   codec = scientificCodec
 
 instance HasCodec Int where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Int8 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Int16 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Int32 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Int64 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Word where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Word8 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Word16 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Word32 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec Word64 where
-  codec = boundedIntegerCodec
+  codec = boundedIntegralCodec
 
 instance HasCodec JSON.Value where
   codec = ValueCodec

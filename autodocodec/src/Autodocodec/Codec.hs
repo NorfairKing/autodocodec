@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
@@ -7,6 +8,7 @@
 {-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Autodocodec.Codec where
 
@@ -63,6 +65,9 @@ data Codec context input output where
     -- |
     JSONCodec Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
+  --
+  -- The number has optional 'NumberBounds'.
+  -- These are only enforced at decoding time, not at encoding-time.
   --
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
@@ -781,27 +786,32 @@ object name = ObjectOfCodec (Just name)
 
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --
+-- This codec will not have a name, and it will use the 'boundedNumberBounds' to add number bounds.
+--
 -- === WARNING
 --
 -- This codec will fail to parse numbers that are too big, for security reasons.
 --
 -- >>> JSON.parseEither( parseJSONVia boundedIntegerCodec) (Number 1e100) :: Either String Int
 -- Left "Error in $: Number too big: 1.0e100"
-boundedIntegerCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
-boundedIntegerCodec =
+boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
+boundedIntegralCodec =
   bimapCodec go fromIntegral $
     NumberCodec
       Nothing
-      ( Just
-          NumberBounds
-            { numberBoundsLower = fromIntegral (minBound :: i),
-              numberBoundsUpper = fromIntegral (maxBound :: i)
-            }
+      ( Just (boundedIntegralNumberBounds @i)
       )
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number did not fit into bounded integer: " <> show s
       Just i -> Right i
+
+boundedIntegralNumberBounds :: forall i. (Integral i, Bounded i) => NumberBounds
+boundedIntegralNumberBounds =
+  NumberBounds
+    { numberBoundsLower = fromIntegral (minBound :: i),
+      numberBoundsUpper = fromIntegral (maxBound :: i)
+    }
 
 -- | A codec for a literal piece of 'Text'.
 --
