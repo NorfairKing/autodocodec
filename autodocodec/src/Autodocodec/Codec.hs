@@ -441,14 +441,12 @@ eitherCodec = EitherCodec
 --
 -- This function allows you to have the parsing fail in a new way.
 --
+-- If you use this function, then you will most likely want to add documentation about how not every value that the schema specifies will be accepted.
+--
 -- === Example usage
 --
--- > boundedIntegerCodec :: (Integral i, Bounded i) => JSONCodec i
--- > boundedIntegerCodec = bimapCodec go fromIntegral $ NumberCodec Nothing
--- >   where
--- >     go s = case Scientific.toBoundedInteger s of
--- >       Nothing -> Left $ "Number too big: " <> show s
--- >       Just i -> Right i
+-- logLevelCodec :: JSONCodec LogLevel
+-- logLevelCodec = bimapCodec parseLogLevel renderLogLevel codec <?> "Valid values include DEBUG, INFO, WARNING, ERROR."
 bimapCodec ::
   (oldOutput -> Either String newOutput) ->
   (newInput -> oldInput) ->
