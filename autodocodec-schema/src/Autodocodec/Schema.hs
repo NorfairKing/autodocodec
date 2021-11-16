@@ -155,7 +155,7 @@ data ObjectSchema
   = ObjectKeySchema Text KeyRequirement JSONSchema (Maybe Text)
   | ObjectAnySchema -- For 'pure'
   | ObjectChoiceSchema (NonEmpty ObjectSchema)
-  | ObjectBothSchema (NonEmpty ObjectSchema)
+  | ObjectAllOfSchema (NonEmpty ObjectSchema)
   deriving (Show, Eq, Generic)
 
 instance Validity ObjectSchema
@@ -171,7 +171,7 @@ instance FromJSON ObjectSchema where
         case mAllOf of
           Just ao -> do
             ne <- parseJSON ao
-            ObjectBothSchema <$> mapM go ne
+            ObjectAllOfSchema <$> mapM go ne
           Nothing -> do
             mAnyOf <- o JSON..:? "anyOf"
             case mAnyOf of
@@ -194,7 +194,7 @@ instance FromJSON ObjectSchema where
                 pure $ case NE.nonEmpty keySchemas of
                   Nothing -> ObjectAnySchema
                   Just (el :| []) -> el
-                  Just ne -> ObjectBothSchema ne
+                  Just ne -> ObjectAllOfSchema ne
 
 instance ToJSON ObjectSchema where
   toJSON = JSON.object . (("type" JSON..= ("object" :: Text)) :) . go
@@ -207,7 +207,7 @@ instance ToJSON ObjectSchema where
            in -- TODO deal with the default value somehow.
               concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | kr == Required]]
         ObjectChoiceSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
-        ObjectBothSchema ne ->
+        ObjectAllOfSchema ne ->
           case mapM parseAndObjectKeySchema (NE.toList ne) of
             Nothing -> ["allOf" JSON..= NE.map toJSON ne]
             Just ne' ->
@@ -225,7 +225,7 @@ instance ToJSON ObjectSchema where
       parseAndObjectKeySchema :: ObjectSchema -> Maybe [(Text, KeyRequirement, JSONSchema, Maybe Text)]
       parseAndObjectKeySchema = \case
         ObjectKeySchema k kr ks mDoc -> Just [(k, kr, ks, mDoc)]
-        ObjectBothSchema os -> concat <$> mapM parseAndObjectKeySchema os
+        ObjectAllOfSchema os -> concat <$> mapM parseAndObjectKeySchema os
         _ -> Nothing
 
 defsPrefix :: Text
@@ -242,7 +242,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
           Required -> pure False
           Optional _ -> pure True
         Just value' -> go value' ks
-      ObjectBothSchema ne -> and <$> mapM (goObject obj) ne
+      ObjectAllOfSchema ne -> and <$> mapM (goObject obj) ne
       ObjectChoiceSchema ne -> or <$> mapM (goObject obj) ne
 
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
@@ -356,7 +356,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       ApCodec oc1 oc2 -> do
         os1 <- goObject oc1
         os2 <- goObject oc2
-        pure $ ObjectBothSchema (os1 :| [os2])
+        pure $ ObjectAllOfSchema (os1 :| [os2])
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f (a, b, c) = f a b c

@@ -120,5 +120,5 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                   Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
                 prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
              in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
-      ObjectBothSchema ne -> concatMap goObject $ NE.toList ne
+      ObjectAllOfSchema ne -> concatMap goObject $ NE.toList ne
       ObjectChoiceSchema ne -> choiceChunks $ NE.map goObject ne
