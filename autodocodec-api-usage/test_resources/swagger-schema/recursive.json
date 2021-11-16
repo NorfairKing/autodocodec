@@ -6,18 +6,10 @@
     },
     "definitions": {
         "Recursive": {
-            "properties": {
-                "recurse": {
-                    "$ref": "#/definitions/recursive"
-                }
-            }
+            "additionalProperties": true
         },
         "recursive": {
-            "properties": {
-                "recurse": {
-                    "$ref": "#/definitions/recursive"
-                }
-            }
+            "additionalProperties": true
         }
     }
 }

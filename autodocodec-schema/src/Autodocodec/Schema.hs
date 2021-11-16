@@ -50,7 +50,7 @@ data JSONSchema
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
-    ObjectSchema ![(Text, (KeyRequirement, JSONSchema, Maybe Text))]
+    ObjectSchema ObjectSchema
   | ValueSchema !JSON.Value
   | ChoiceSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
@@ -58,8 +58,31 @@ data JSONSchema
   | WithDefSchema !(Map Text JSONSchema) !JSONSchema
   deriving (Show, Eq, Generic)
 
--- NOTE, this is a recursive schema so we've had to manually write our generators for it.
--- If you add any constructors here, make sure to go add the constructor to the GenValid instance as well.
+instance Validity JSONSchema where
+  validate js =
+    mconcat
+      [ genericValidate js,
+        declare "never has two nested comments" $ case js of
+          CommentSchema _ (CommentSchema _ _) -> False
+          _ -> True,
+        case js of
+          ChoiceSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
+          _ -> valid
+      ]
+
+data ObjectSchema
+  = ObjectKeySchema Text KeyRequirement JSONSchema (Maybe Text)
+  | ObjectAnySchema -- For 'pure'
+  | ObjectChoiceSchema (NonEmpty ObjectSchema)
+  | ObjectBothSchema (NonEmpty ObjectSchema)
+  deriving (Show, Eq, Generic)
+
+instance Validity ObjectSchema
+
+--ObjectSchema ks ->
+--  declare "there are no two equal keys in a keys schema" $
+--    let l = map fst ks
+--     in nub l == l
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
@@ -86,19 +109,19 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         JSON.Object hm -> and <$> mapM (`go` vs) hm
         _ -> pure False
       ObjectSchema kss -> case value of
-        JSON.Object hm ->
-          let goKey :: Text -> JSON.Value -> State (Map Text JSONSchema) Bool
-              goKey key value' = case lookup key kss of
-                Nothing -> pure True -- Keys not mentioned in the schema are fine.
-                Just (_, ks, _) -> go value' ks
-              goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> State (Map Text JSONSchema) Bool
-              goKeySchema key (kr, ks, _) = case HM.lookup key hm of
-                Nothing -> case kr of
-                  Required -> pure False
-                  Optional _ -> pure True
-                Just value' -> go value' ks
-              actualKeys = HM.toList hm
-           in liftA2 (&&) (and <$> mapM (uncurry goKey) actualKeys) (and <$> mapM (uncurry goKeySchema) kss)
+        JSON.Object hm -> undefined
+        -- let goKey :: Text -> JSON.Value -> State (Map Text JSONSchema) Bool
+        --     goKey key value' = case lookup key kss of
+        --       Nothing -> pure True -- Keys not mentioned in the schema are fine.
+        --       Just (_, ks, _) -> go value' ks
+        --     goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> State (Map Text JSONSchema) Bool
+        --     goKeySchema key (kr, ks, _) = case HM.lookup key hm of
+        --       Nothing -> case kr of
+        --         Required -> pure False
+        --         Optional _ -> pure True
+        --       Just value' -> go value' ks
+        --     actualKeys = HM.toList hm
+        --  in liftA2 (&&) (and <$> mapM (uncurry goKey) actualKeys) (and <$> mapM (uncurry goKeySchema) kss)
         _ -> pure False
       ValueSchema v -> pure $ v == value
       ChoiceSchema ss -> or <$> mapM (go value) ss
@@ -111,22 +134,6 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       WithDefSchema defs s -> do
         modify (M.union defs)
         go value s
-
-instance Validity JSONSchema where
-  validate js =
-    mconcat
-      [ genericValidate js,
-        declare "never has two nested comments" $ case js of
-          CommentSchema _ (CommentSchema _ _) -> False
-          _ -> True,
-        case js of
-          ObjectSchema ks ->
-            declare "there are no two equal keys in a keys schema" $
-              let l = map fst ks
-               in nub l == l
-          ChoiceSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
-          _ -> valid
-      ]
 
 data KeyRequirement
   = Required
@@ -155,32 +162,32 @@ instance ToJSON JSONSchema where
         MapSchema s ->
           let itemSchemaVal = go s
            in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
-        ObjectSchema os ->
-          let combine (ps, rps) (k, (r, s, mDoc)) =
-                ( (k, maybe id CommentSchema mDoc s) : ps,
-                  case r of
-                    Required -> S.insert k rps
-                    Optional _ -> rps
-                )
+        ObjectSchema os -> undefined
+        -- let combine (ps, rps) (k, (r, s, mDoc)) =
+        --       ( (k, maybe id CommentSchema mDoc s) : ps,
+        --         case r of
+        --           Required -> S.insert k rps
+        --           Optional _ -> rps
+        --       )
 
-              (props :: [(Text, JSONSchema)], requiredProps) = foldl' combine ([], S.empty) os
-              propVals :: HashMap Text JSON.Value
-              propVals = HM.map (JSON.object . go) (HM.fromList props)
-              propVal :: JSON.Value
-              propVal = JSON.toJSON propVals
-           in case props of
-                [] -> ["type" JSON..= ("object" :: Text)]
-                _ ->
-                  if S.null requiredProps
-                    then
-                      [ "type" JSON..= ("object" :: Text),
-                        "properties" JSON..= propVal
-                      ]
-                    else
-                      [ "type" JSON..= ("object" :: Text),
-                        "properties" JSON..= propVal,
-                        "required" JSON..= requiredProps
-                      ]
+        --     (props :: [(Text, JSONSchema)], requiredProps) = foldl' combine ([], S.empty) os
+        --     propVals :: HashMap Text JSON.Value
+        --     propVals = HM.map (JSON.object . go) (HM.fromList props)
+        --     propVal :: JSON.Value
+        --     propVal = JSON.toJSON propVals
+        --  in case props of
+        --       [] -> ["type" JSON..= ("object" :: Text)]
+        --       _ ->
+        --         if S.null requiredProps
+        --           then
+        --             [ "type" JSON..= ("object" :: Text),
+        --               "properties" JSON..= propVal
+        --             ]
+        --           else
+        --             [ "type" JSON..= ("object" :: Text),
+        --               "properties" JSON..= propVal,
+        --               "required" JSON..= requiredProps
+        --             ]
         ChoiceSchema jcs ->
           let svals :: [JSON.Value]
               svals = map (JSON.object . go) (NE.toList jcs)
@@ -216,25 +223,26 @@ instance FromJSON JSONSchema where
         case mI of
           Nothing -> pure $ ArraySchema AnySchema
           Just is -> pure $ ArraySchema is
-      Just "object" -> do
-        mP <- o JSON..:? "properties"
-        mAP <- o JSON..:? "additionalProperties"
-        case mP of
-          Nothing -> case mAP of
-            Nothing -> pure $ ObjectSchema []
-            Just ps -> pure $ MapSchema ps
-          Just (props :: Map Text JSONSchema) -> do
-            requiredProps <- fromMaybe [] <$> o JSON..:? "required"
-            let keySchemaFor k s =
-                  ( k,
-                    ( if k `elem` requiredProps
-                        then Required
-                        else Optional Nothing,
-                      s,
-                      Nothing
-                    )
-                  )
-            pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
+      Just "object" -> undefined
+      -- do
+      --   mP <- o JSON..:? "properties"
+      --   mAP <- o JSON..:? "additionalProperties"
+      --   case mP of
+      --     Nothing -> case mAP of
+      --       Nothing -> pure $ ObjectSchema []
+      --       Just ps -> pure $ MapSchema ps
+      --     Just (props :: Map Text JSONSchema) -> do
+      --       requiredProps <- fromMaybe [] <$> o JSON..:? "required"
+      --       let keySchemaFor k s =
+      --             ( k,
+      --               ( if k `elem` requiredProps
+      --                   then Required
+      --                   else Optional Nothing,
+      --                 s,
+      --                 Nothing
+      --               )
+      --             )
+      --       pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
@@ -302,24 +310,28 @@ jsonSchemaVia = (`evalState` S.empty) . go
           ChoiceSchema ss -> goChoice ss
           s' -> s' :| []
 
-    goObject :: ObjectCodec input output -> State (Set Text) [(Text, (KeyRequirement, JSONSchema, Maybe Text))]
+    goObject :: ObjectCodec input output -> State (Set Text) ObjectSchema
     goObject = \case
       RequiredKeyCodec k c mdoc -> do
         s <- go c
-        pure [(k, (Required, s, mdoc))]
+        pure $ ObjectKeySchema k Required s mdoc
       OptionalKeyCodec k c mdoc -> do
         s <- go c
-        pure [(k, (Optional Nothing, s, mdoc))]
+        pure $ ObjectKeySchema k (Optional Nothing) s mdoc
       OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
-        pure [(k, (Optional (Just (toJSONVia c mr)), s, mdoc))]
+        pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ _ c -> goObject c
-      PureCodec _ -> pure []
+      EitherCodec oc1 oc2 -> do
+        os1 <- goObject oc1
+        os2 <- goObject oc2
+        pure $ ObjectChoiceSchema (os1 :| [os2])
+      PureCodec _ -> pure ObjectAnySchema
       ApCodec oc1 oc2 -> do
-        s1s <- goObject oc1
-        s2s <- goObject oc2
-        pure $ s1s ++ s2s
+        os1 <- goObject oc1
+        os2 <- goObject oc2
+        pure $ ObjectBothSchema (os1 :| [os2])
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f (a, b, c) = f a b c

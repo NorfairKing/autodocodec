@@ -929,7 +929,7 @@ parseAlternatives c cRest =
 -- | Like 'parseAlternatives', but with only one alternative codec
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
--- >>> let c = parseAlternatives shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
+-- >>> let c = parseAlternative shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
 -- >>> toJSONVia c Apple
 -- String "Apple"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "foo") :: Maybe Fruit

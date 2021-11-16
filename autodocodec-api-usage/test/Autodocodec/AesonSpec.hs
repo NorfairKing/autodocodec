@@ -90,6 +90,8 @@ spec = do
   aesonCodecErrorSpec @Recursive "recursive-error-recurse-string" "{\"recurse\": {\"recurse\": {\"recurse\": \"hello\"}}}"
   aesonCodecSpec @Via
   aesonCodecSpec @VeryComment
+  aesonCodecSpec @LegacyValue
+  aesonCodecSpec @LegacyObject
 
 aesonCodecErrorSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> LB.ByteString -> Spec
 aesonCodecErrorSpec filePath encoded =

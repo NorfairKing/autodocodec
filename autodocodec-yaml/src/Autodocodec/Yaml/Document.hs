@@ -11,6 +11,7 @@ import Autodocodec
 import Autodocodec.Schema
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Text (Text)
@@ -87,36 +88,37 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
          in addListMarker $ go s
       MapSchema s ->
         addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
-      ObjectSchema s ->
+      ObjectSchema os -> goObject os
+      ValueSchema v -> [[jsonValueChunk v]]
+      ChoiceSchema ne -> choiceChunks $ NE.map go ne
+      CommentSchema comment s -> docToLines comment ++ go s
+      RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
+      WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs)
+      WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s
+
+    choiceChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
+    choiceChunks = \case
+      chunks :| [] -> addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
+      (chunks :| restChunks) ->
+        concat $
+          addInFrontOfFirstInList ["[ "] chunks :
+          map (addInFrontOfFirstInList [", "]) restChunks ++ [[["]"]]]
+
+    goObject :: ObjectSchema -> [[Chunk]]
+    goObject = \case
+      ObjectAnySchema -> [["<object>"]]
+      ObjectKeySchema k kr ks mdoc ->
         let requirementComment = \case
               Required -> fore red "required"
               Optional _ -> fore blue "optional"
             mDefaultValue = \case
               Required -> Nothing
               Optional mdv -> mdv
-            keySchemaFor k (kr, ks, mdoc) =
-              let keySchemaChunks = go ks
-                  defaultValueLine = case mDefaultValue kr of
-                    Nothing -> []
-                    Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
-                  prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
-               in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
-         in if null s
-              then [["<object>"]]
-              else concatMap (uncurry keySchemaFor) s
-      ValueSchema v -> [[jsonValueChunk v]]
-      ChoiceSchema s ->
-        let addListAround = \case
-              s_ :| [] -> addInFrontOfFirstInList ["[ "] (go s_) ++ [["]"]]
-              (s_ :| rest) ->
-                let chunks = go s_
-                    restChunks = map go rest
-                 in concat $
-                      addInFrontOfFirstInList ["[ "] chunks :
-                      map (addInFrontOfFirstInList [", "]) restChunks
-                        ++ [[["]"]]]
-         in addListAround s
-      CommentSchema comment s -> docToLines comment ++ go s
-      RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
-      WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs)
-      WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s
+         in let keySchemaChunks = go ks
+                defaultValueLine = case mDefaultValue kr of
+                  Nothing -> []
+                  Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
+                prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
+             in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
+      ObjectBothSchema ne -> concatMap goObject $ NE.toList ne
+      ObjectChoiceSchema ne -> choiceChunks $ NE.map goObject ne

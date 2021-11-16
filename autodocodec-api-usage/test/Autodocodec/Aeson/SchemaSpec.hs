@@ -73,6 +73,8 @@ spec = do
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @Via "via"
   jsonSchemaSpec @VeryComment "very-comment"
+  jsonSchemaSpec @LegacyValue "legacy-value"
+  jsonSchemaSpec @LegacyObject "legacy-object"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     it "roundtrips through json and back" $
@@ -97,7 +99,7 @@ instance GenValid JSONSchema where
     NumberSchema mBounds -> AnySchema : (NumberSchema <$> shrinkValid mBounds)
     MapSchema s -> AnySchema : s : (MapSchema <$> shrinkValid s)
     ArraySchema s -> AnySchema : s : (ArraySchema <$> shrinkValid s)
-    ObjectSchema os -> AnySchema : filter isValid (ObjectSchema <$> shrinkValid os)
+    ObjectSchema os -> AnySchema : (ObjectSchema <$> shrinkValid os)
     ValueSchema v -> AnySchema : (ValueSchema <$> shrinkValid v)
     ChoiceSchema ss -> case ss of
       s :| [] -> [s]
@@ -135,6 +137,10 @@ instance GenValid JSONSchema where
               (a, b) <- genSplit (n -1)
               WithDefSchema <$> resize a genValid <*> resize b genValid
           ]
+
+instance GenValid ObjectSchema where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance GenValid NumberBounds where
   genValid = genValidStructurallyWithoutExtraChecking

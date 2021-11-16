@@ -70,6 +70,8 @@ spec = do
   yamlSchemaSpec @Recursive "recursive"
   yamlSchemaSpec @Via "via"
   yamlSchemaSpec @VeryComment "very-comment"
+  yamlSchemaSpec @LegacyValue "legacy-value"
+  yamlSchemaSpec @LegacyObject "legacy-object"
 
 yamlSchemaSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

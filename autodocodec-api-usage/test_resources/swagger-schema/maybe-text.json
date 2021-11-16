@@ -5,6 +5,8 @@
         "title": ""
     },
     "definitions": {
-        "(Maybe Text)": {}
+        "(Maybe Text)": {
+            "additionalProperties": true
+        }
     }
 }

@@ -71,6 +71,8 @@ spec = do
   yamlCodecSpec @Recursive
   yamlCodecSpec @Via
   yamlCodecSpec @VeryComment
+  yamlCodecSpec @LegacyValue
+  yamlCodecSpec @LegacyObject
 
 yamlCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
 yamlCodecSpec = describe (nameOf @a) $ do
