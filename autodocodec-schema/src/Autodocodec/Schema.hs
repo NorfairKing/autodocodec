@@ -79,14 +79,20 @@ data ObjectSchema
 
 instance Validity ObjectSchema
 
---ObjectSchema ks ->
---  declare "there are no two equal keys in a keys schema" $
---    let l = map fst ks
---     in nub l == l
-
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
   where
+    goObject :: JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
+    goObject obj = \case
+      ObjectAnySchema -> pure True
+      ObjectKeySchema key kr ks _ -> case HM.lookup key obj of
+        Nothing -> case kr of
+          Required -> pure False
+          Optional _ -> pure True
+        Just value' -> go value' ks
+      ObjectBothSchema ne -> and <$> mapM (goObject obj) ne
+      ObjectChoiceSchema ne -> or <$> mapM (goObject obj) ne
+
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
       AnySchema -> pure True
@@ -108,20 +114,8 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       MapSchema vs -> case value of
         JSON.Object hm -> and <$> mapM (`go` vs) hm
         _ -> pure False
-      ObjectSchema kss -> case value of
-        JSON.Object hm -> undefined
-        -- let goKey :: Text -> JSON.Value -> State (Map Text JSONSchema) Bool
-        --     goKey key value' = case lookup key kss of
-        --       Nothing -> pure True -- Keys not mentioned in the schema are fine.
-        --       Just (_, ks, _) -> go value' ks
-        --     goKeySchema :: Text -> (KeyRequirement, JSONSchema, Maybe Text) -> State (Map Text JSONSchema) Bool
-        --     goKeySchema key (kr, ks, _) = case HM.lookup key hm of
-        --       Nothing -> case kr of
-        --         Required -> pure False
-        --         Optional _ -> pure True
-        --       Just value' -> go value' ks
-        --     actualKeys = HM.toList hm
-        --  in liftA2 (&&) (and <$> mapM (uncurry goKey) actualKeys) (and <$> mapM (uncurry goKeySchema) kss)
+      ObjectSchema os -> case value of
+        JSON.Object obj -> goObject obj os
         _ -> pure False
       ValueSchema v -> pure $ v == value
       ChoiceSchema ss -> or <$> mapM (go value) ss
