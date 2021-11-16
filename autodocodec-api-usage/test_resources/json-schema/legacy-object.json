@@ -1,0 +1,98 @@
+{
+    "$comment": "LegacyObject",
+    "allOf": [
+        {
+            "allOf": [
+                {
+                    "anyOf": [
+                        {
+                            "required": [
+                                "1"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "1": {
+                                    "$comment": "text 1",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        {
+                            "required": [
+                                "1old"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "1old": {
+                                    "$comment": "text 1",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ],
+                    "type": "object"
+                },
+                {
+                    "anyOf": [
+                        {
+                            "required": [
+                                "2"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "2": {
+                                    "$comment": "text 2",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        {
+                            "required": [
+                                "2old"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "2old": {
+                                    "$comment": "text 2",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ],
+                    "type": "object"
+                }
+            ],
+            "type": "object"
+        },
+        {
+            "anyOf": [
+                {
+                    "required": [
+                        "3"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "3": {
+                            "$comment": "text 3",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "3old"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "3old": {
+                            "$comment": "text 3",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "type": "object"
+        }
+    ],
+    "type": "object"
+}

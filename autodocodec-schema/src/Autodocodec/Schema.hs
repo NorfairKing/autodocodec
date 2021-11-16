@@ -129,7 +129,11 @@ instance FromJSON JSONSchema where
         case mI of
           Nothing -> pure $ ArraySchema AnySchema
           Just is -> pure $ ArraySchema is
-      Just "object" -> ObjectSchema <$> parseJSON (JSON.Object o)
+      Just "object" -> do
+        mAdditional <- o JSON..:? "additionalProperties"
+        case mAdditional of
+          Nothing -> ObjectSchema <$> parseJSON (JSON.Object o)
+          Just additional -> pure $ MapSchema additional
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
@@ -157,55 +161,73 @@ data ObjectSchema
 instance Validity ObjectSchema
 
 instance FromJSON ObjectSchema where
-  parseJSON = undefined
+  parseJSON = JSON.withObject "ObjectSchema" go
+    where
+      go :: JSON.Object -> JSON.Parser ObjectSchema
+      go o = do
+        t <- o JSON..: "type"
+        guard $ t == ("object" :: Text)
+        mAllOf <- o JSON..:? "allOf"
+        case mAllOf of
+          Just ao -> do
+            ne <- parseJSON ao
+            ObjectBothSchema <$> mapM go ne
+          Nothing -> do
+            mAnyOf <- o JSON..:? "anyOf"
+            case mAnyOf of
+              Just ao -> do
+                ne <- parseJSON ao
+                ObjectChoiceSchema <$> mapM go ne
+              Nothing -> do
+                props <- o JSON..:? "properties" JSON..!= HM.empty
+                reqs <- o JSON..:? "required" JSON..!= []
+                let keySchemaFor k v = do
+                      ks <- parseJSON v
+                      let (mDoc, ks') = case ks of
+                            CommentSchema doc ks' -> (Just doc, ks')
+                            _ -> (Nothing, ks)
+                      pure $
+                        if k `elem` reqs
+                          then ObjectKeySchema k Required ks' mDoc
+                          else ObjectKeySchema k (Optional Nothing) ks' mDoc
+                keySchemas <- mapM (uncurry keySchemaFor) (HM.toList props)
+                pure $ case NE.nonEmpty keySchemas of
+                  Nothing -> ObjectAnySchema
+                  Just (el :| []) -> el
+                  Just ne -> ObjectBothSchema ne
 
--- let combine (ps, rps) (k, (r, s, mDoc)) =
---       ( (k, maybe id CommentSchema mDoc s) : ps,
---         case r of
---           Required -> S.insert k rps
---           Optional _ -> rps
---       )
-
---     (props :: [(Text, JSONSchema)], requiredProps) = foldl' combine ([], S.empty) os
---     propVals :: HashMap Text JSON.Value
---     propVals = HM.map (JSON.object . go) (HM.fromList props)
---     propVal :: JSON.Value
---     propVal = JSON.toJSON propVals
---  in case props of
---       [] -> ["type" JSON..= ("object" :: Text)]
---       _ ->
---         if S.null requiredProps
---           then
---             [ "type" JSON..= ("object" :: Text),
---               "properties" JSON..= propVal
---             ]
---           else
---             [ "type" JSON..= ("object" :: Text),
---               "properties" JSON..= propVal,
---               "required" JSON..= requiredProps
---             ]
 instance ToJSON ObjectSchema where
-  toJSON = undefined
+  toJSON = JSON.object . (("type" JSON..= ("object" :: Text)) :) . go
+    where
+      go :: ObjectSchema -> [JSON.Pair]
+      go = \case
+        ObjectAnySchema -> []
+        ObjectKeySchema k kr ks mDoc ->
+          let (propVal, reqPiece) = keySchemaToPieces (k, kr, ks, mDoc)
+           in -- TODO deal with the default value somehow.
+              concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | kr == Required]]
+        ObjectChoiceSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
+        ObjectBothSchema ne ->
+          case mapM parseAndObjectKeySchema (NE.toList ne) of
+            Nothing -> ["allOf" JSON..= NE.map toJSON ne]
+            Just ne' ->
+              let f (hm, l) tup@(k, _, _, _) =
+                    let (propVal, req) = keySchemaToPieces tup
+                     in (HM.insert k propVal hm, if req then k : l else l)
+                  (propValMap, reqs) = foldl' f (HM.empty, []) (concat ne')
+               in concat [["properties" JSON..= propValMap], ["required" JSON..= reqs | not $ null reqs]]
 
--- do
---   mP <- o JSON..:? "properties"
---   mAP <- o JSON..:? "additionalProperties"
---   case mP of
---     Nothing -> case mAP of
---       Nothing -> pure $ ObjectSchema []
---       Just ps -> pure $ MapSchema ps
---     Just (props :: Map Text JSONSchema) -> do
---       requiredProps <- fromMaybe [] <$> o JSON..:? "required"
---       let keySchemaFor k s =
---             ( k,
---               ( if k `elem` requiredProps
---                   then Required
---                   else Optional Nothing,
---                 s,
---                 Nothing
---               )
---             )
---       pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
+      keySchemaToPieces :: (Text, KeyRequirement, JSONSchema, Maybe Text) -> (JSON.Value, Bool)
+      keySchemaToPieces (k, kr, ks, mDoc) =
+        let propVal = toJSON (maybe id CommentSchema mDoc ks)
+         in (propVal, kr == Required)
+
+      parseAndObjectKeySchema :: ObjectSchema -> Maybe [(Text, KeyRequirement, JSONSchema, Maybe Text)]
+      parseAndObjectKeySchema = \case
+        ObjectKeySchema k kr ks mDoc -> Just [(k, kr, ks, mDoc)]
+        ObjectBothSchema os -> concat <$> mapM parseAndObjectKeySchema os
+        _ -> Nothing
+
 defsPrefix :: Text
 defsPrefix = "#/$defs/"
 

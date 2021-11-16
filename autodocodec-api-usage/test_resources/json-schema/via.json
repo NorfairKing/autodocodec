@@ -1,8 +1,8 @@
 {
     "$comment": "Via",
     "required": [
-        "one",
-        "two"
+        "two",
+        "one"
     ],
     "type": "object",
     "properties": {

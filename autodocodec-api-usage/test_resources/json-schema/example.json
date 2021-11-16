@@ -1,9 +1,9 @@
 {
     "$comment": "Example",
     "required": [
-        "bool",
         "fruit",
         "maybe",
+        "bool",
         "text"
     ],
     "type": "object",

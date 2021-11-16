@@ -153,8 +153,19 @@ instance GenValid JSONSchema where
           ]
 
 instance GenValid ObjectSchema where
-  genValid = genValidStructurallyWithoutExtraChecking
-  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+  shrinkValid os = case os of
+    ObjectAnySchema -> []
+    ObjectChoiceSchema ne@(s :| _) -> s : (ObjectChoiceSchema <$> shrinkValid ne)
+    ObjectBothSchema ne@(s :| _) -> s : (ObjectBothSchema <$> shrinkValid ne)
+    _ -> shrinkValidStructurallyWithoutExtraFiltering os
+  genValid = oneof [pure ObjectAnySchema, go]
+    where
+      go = sized $ \n ->
+        oneof
+          [ ObjectKeySchema <$> genValid <*> genValid <*> genValid <*> genValid,
+            ObjectChoiceSchema <$> genValid,
+            ObjectBothSchema <$> genValid
+          ]
 
 instance GenValid NumberBounds where
   genValid = genValidStructurallyWithoutExtraChecking
