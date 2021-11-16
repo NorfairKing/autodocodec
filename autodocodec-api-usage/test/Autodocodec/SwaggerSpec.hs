@@ -78,6 +78,7 @@ spec = do
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @Via "via"
   swaggerSchemaSpec @VeryComment "very-comment"
+  swaggerSchemaSpec @Legacy "legacy"
 
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =

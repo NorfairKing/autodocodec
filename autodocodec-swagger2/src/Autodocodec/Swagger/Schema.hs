@@ -96,7 +96,7 @@ declareNamedSchemaVia c' Proxy = go c'
               }
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
-        pure $ NamedSchema mname $ mconcat ss
+        pure $ NamedSchema mname $ combineObjectSchemas ss
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $
@@ -107,51 +107,9 @@ declareNamedSchemaVia c' Proxy = go c'
       EitherCodec c1 c2 -> do
         ns1 <- go c1
         let s1 = _namedSchemaSchema ns1
-        let ps1 = _schemaParamSchema s1
         ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
-        let ps2 = _schemaParamSchema s2
-        -- Swagger 2 doesn't support sum types so we have to work around that here.
-        --
-        -- We support a few cases:
-        --
-        --   * Enum: If both of them have the enum field set
-        --   * Two obects: If both of them have the object type set.
-        --
-        -- If none of these cases match, we just take an overapproximation of
-        -- the schema: one which lets any value through.
-        let overApproximation =
-              mempty
-                { _schemaProperties = InsOrdHashMap.union (_schemaProperties s1) (_schemaProperties s2)
-                }
-        pure $
-          NamedSchema Nothing $
-            case (,) <$> _paramSchemaEnum ps1 <*> _paramSchemaEnum ps2 of
-              (Just (es1, es2)) ->
-                mempty
-                  { _schemaParamSchema =
-                      mempty
-                        { _paramSchemaEnum = Just $ es1 ++ es2,
-                          _paramSchemaType =
-                            case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
-                              Just (t1, t2)
-                                | t1 == t2 -> Just t1
-                                | otherwise -> Nothing
-                              Nothing -> Nothing
-                        }
-                  }
-              Nothing ->
-                case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
-                  Just (SwaggerObject, SwaggerObject) ->
-                    mempty
-                      { _schemaRequired = _schemaRequired s1 `intersect` _schemaRequired s2,
-                        _schemaProperties = InsOrdHashMap.union (_schemaProperties s1) (_schemaProperties s2),
-                        _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
-                      }
-                  Just (a, b)
-                    | a == b -> mempty {_schemaParamSchema = mempty {_paramSchemaType = Just a}}
-                    | otherwise -> overApproximation
-                  _ -> overApproximation
+        pure $ NamedSchema Nothing $ combineSchemaOr s1 s2
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
@@ -202,6 +160,10 @@ declareNamedSchemaVia c' Proxy = go c'
           ]
       OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
+      EitherCodec oc1 oc2 -> do
+        ss1 <- goObject oc1
+        ss2 <- goObject oc2
+        pure [combineSchemaOr (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
@@ -216,6 +178,51 @@ declareNamedSchemaVia c' Proxy = go c'
             Nothing -> Just doc
             Just doc' -> Just $ doc <> "\n" <> doc'
         }
+    combineObjectSchemas :: [Schema] -> Schema
+    combineObjectSchemas = mconcat
+    combineSchemaOr :: Schema -> Schema -> Schema
+    combineSchemaOr s1 s2 =
+      let ps1 = _schemaParamSchema s1
+          ps2 = _schemaParamSchema s2
+          -- Swagger 2 doesn't support sum types so we have to work around that here.
+          --
+          -- We support a few cases:
+          --
+          --   * Enum: If both of them have the enum field set
+          --   * Two obects: If both of them have the object type set.
+          --
+          -- If none of these cases match, we just take an overapproximation of
+          -- the schema: one which lets any value through.
+          overApproximation =
+            mempty
+              { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
+              }
+       in case (,) <$> _paramSchemaEnum ps1 <*> _paramSchemaEnum ps2 of
+            (Just (es1, es2)) ->
+              mempty
+                { _schemaParamSchema =
+                    mempty
+                      { _paramSchemaEnum = Just $ es1 ++ es2,
+                        _paramSchemaType =
+                          case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
+                            Just (t1, t2)
+                              | t1 == t2 -> Just t1
+                              | otherwise -> Nothing
+                            Nothing -> Nothing
+                      }
+                }
+            Nothing ->
+              case (,) <$> _paramSchemaType ps1 <*> _paramSchemaType ps2 of
+                Just (SwaggerObject, SwaggerObject) ->
+                  mempty
+                    { _schemaRequired = _schemaRequired s1 `intersect` _schemaRequired s2,
+                      _schemaProperties = InsOrdHashMap.union (_schemaProperties s1) (_schemaProperties s2),
+                      _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
+                    }
+                Just (a, b)
+                  | a == b -> mempty {_schemaParamSchema = mempty {_paramSchemaType = Just a}}
+                  | otherwise -> overApproximation
+                _ -> overApproximation
 
 declareSpecificNamedSchemaRef :: Swagger.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

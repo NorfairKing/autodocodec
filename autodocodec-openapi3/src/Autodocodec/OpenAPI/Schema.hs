@@ -85,21 +85,11 @@ declareNamedSchemaVia c' Proxy = go c'
       BimapCodec _ _ c -> go c
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
-        pure $ NamedSchema mname $ mconcat ss
+        pure $ NamedSchema mname $ combineObjectSchemas ss
       EitherCodec c1 c2 -> do
         ns1 <- go c1
-        let s1 = _namedSchemaSchema ns1
-        s1Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns1
         ns2 <- go c2
-        let s2 = _namedSchemaSchema ns2
-        s2Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns2
-        let prototype = mempty {_schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True}
-        pure $
-          NamedSchema Nothing $ case (_schemaAnyOf s1, _schemaAnyOf s2) of
-            (Just s1s, Just s2s) -> prototype {_schemaAnyOf = Just $ s1s ++ s2s}
-            (Just s1s, Nothing) -> prototype {_schemaAnyOf = Just $ s1s ++ [s2Ref]}
-            (Nothing, Just s2s) -> prototype {_schemaAnyOf = Just $ s1Ref : s2s}
-            (Nothing, Nothing) -> prototype {_schemaAnyOf = Just [s1Ref, s2Ref]}
+        combineSchemasOr ns1 ns2
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
@@ -161,6 +151,20 @@ declareNamedSchemaVia c' Proxy = go c'
             Nothing -> Just doc
             Just doc' -> Just $ doc <> "\n" <> doc'
         }
+    combineObjectSchemas = mconcat
+    combineSchemasOr :: NamedSchema -> NamedSchema -> Declare (Definitions Schema) NamedSchema
+    combineSchemasOr ns1 ns2 = do
+      let s1 = _namedSchemaSchema ns1
+      let s2 = _namedSchemaSchema ns2
+      s1Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns1
+      s2Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns2
+      let prototype = mempty {_schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True}
+      pure $
+        NamedSchema Nothing $ case (_schemaAnyOf s1, _schemaAnyOf s2) of
+          (Just s1s, Just s2s) -> prototype {_schemaAnyOf = Just $ s1s ++ s2s}
+          (Just s1s, Nothing) -> prototype {_schemaAnyOf = Just $ s1s ++ [s2Ref]}
+          (Nothing, Just s2s) -> prototype {_schemaAnyOf = Just $ s1Ref : s2s}
+          (Nothing, Nothing) -> prototype {_schemaAnyOf = Just [s1Ref, s2Ref]}
 
 declareSpecificNamedSchemaRef :: OpenAPI.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

@@ -152,18 +152,18 @@ data Codec context input output where
   --
   -- This codec is used to implement choice.
   --
-  -- Note that this codec only works for Values, not for objects.
-  -- This is because of the documentation side of things.
-  -- Things like JSON schemas, OpenAPI, and Swagger are not built for this type
-  -- of alternatives and, while it is certainly possible to make them, human
-  -- readable docs will not look very natural either.
+  -- Note that this codec works for both values and objects.
+  -- However: due to the complex nature of documentation, the documentation may
+  -- not be as good as you would hope when you use this codec.
+  -- In particular, you should prefer using it for values rather than objects,
+  -- because those docs are easier to generate.
   EitherCodec ::
     -- | Codec for the 'Left' side
-    (ValueCodec input1 output1) ->
+    (Codec context input1 output1) ->
     -- | Codec for the 'Right' side
-    (ValueCodec input2 output2) ->
+    (Codec context input2 output2) ->
     -- |
-    ValueCodec (Either input1 input2) (Either output1 output2)
+    Codec context (Either input1 input2) (Either output1 output2)
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
@@ -448,9 +448,9 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 -- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
 -- String "hello"
 eitherCodec ::
-  ValueCodec input1 output1 ->
-  ValueCodec input2 output2 ->
-  ValueCodec (Either input1 input2) (Either output1 output2)
+  Codec context input1 output1 ->
+  Codec context input2 output2 ->
+  Codec context (Either input1 input2) (Either output1 output2)
 eitherCodec = EitherCodec
 
 -- | Map a codec's input and output types.
@@ -866,13 +866,13 @@ literalTextValue value text = dimapCodec (const value) (const text) (literalText
 --
 -- TODO docs, example and footguns
 matchChoiceCodec ::
-  forall input output newInput.
+  forall input output newInput context.
   -- |
-  (newInput -> Maybe input, ValueCodec input output) ->
+  (newInput -> Maybe input, Codec context input output) ->
   -- |
-  (newInput -> Maybe input, ValueCodec input output) ->
+  (newInput -> Maybe input, Codec context input output) ->
   -- |
-  ValueCodec newInput output
+  Codec context newInput output
 matchChoiceCodec (f1, c1) (f2, c2) =
   dimapCodec f g $
     eitherCodec c1 c2
@@ -891,11 +891,11 @@ matchChoiceCodec (f1, c1) (f2, c2) =
 --
 -- TODO docs, example  and footguns
 matchChoicesCodec ::
-  forall input output.
+  forall input output context.
   -- |
-  NonEmpty (input -> Maybe input, ValueCodec input output) ->
+  NonEmpty (input -> Maybe input, Codec context input output) ->
   -- |
-  ValueCodec input output
+  Codec context input output
 matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
   Nothing -> c
   Just ne ->
@@ -916,8 +916,15 @@ matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
-parseAlternatives :: ValueCodec input output -> [ValueCodec input output] -> ValueCodec input output
-parseAlternatives c cRest = matchChoicesCodec $ (Just, c) :| map (\c' -> (const Nothing, c')) cRest
+parseAlternatives ::
+  -- | Main codec, for parsing and rendering
+  Codec context input output ->
+  -- | Alternative codecs just for parsing
+  [Codec context input output] ->
+  Codec context input output
+parseAlternatives c cRest =
+  matchChoicesCodec $
+    (Just, c) :| map (\c' -> (const Nothing, c')) cRest
 
 -- | A codec for an enum that can be written each with their own codec.
 --

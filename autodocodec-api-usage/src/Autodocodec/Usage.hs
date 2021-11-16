@@ -240,3 +240,32 @@ instance HasCodec VeryComment where
       <?> "This is the innermost outer comment"
       <?> "This is the middle outer comment"
       <??> ["This is the outermost outer comment", "on multiple lines", "because we can."]
+
+newtype Legacy = Legacy {legacyText :: Text}
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec Legacy)
+
+instance Validity Legacy
+
+instance GenValid Legacy where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Legacy where
+  codec =
+    dimapCodec Legacy legacyText $
+      parseAlternatives
+        codec
+        [ object "Legacy" $ requiredField "legacy" "legacy parser which is just a field.",
+          object "Legacy" $
+            parseAlternatives
+              (requiredField "legacy" "legacy parser which is just a field.")
+              [ requiredField "legacy2" "legacy parser alternative as part of an object codec"
+              ]
+        ]
