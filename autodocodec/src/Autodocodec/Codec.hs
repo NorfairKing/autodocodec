@@ -38,6 +38,8 @@ import GHC.Generics (Generic)
 -- >>> import qualified Data.Aeson as JSON
 -- >>> import Data.Aeson (Value(..))
 -- >>> import qualified Data.Vector as Vector
+-- >>> import Data.Int
+-- >>> import Data.Word
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
@@ -710,6 +712,10 @@ valueCodec = ValueCodec
 --
 -- >>> toJSONVia nullCodec ()
 -- Null
+-- >>> JSON.parseMaybe (parseJSONVia nullCodec) Null
+-- Just ()
+-- >>> JSON.parseMaybe (parseJSONVia nullCodec) (Number 5)
+-- Nothing
 nullCodec :: JSONCodec ()
 nullCodec = NullCodec
 
@@ -744,7 +750,7 @@ textCodec = StringCodec Nothing
 --
 -- === WARNING
 --
--- This codec uses 'T.unpack' and 'T.pack' to dimap a 'textCodec', so it DOES NOT ROUNDTRIP.
+-- This codec uses 'T.unpack' and 'T.pack' to dimap a 'textCodec', so it __does not roundtrip__.
 --
 -- >>> toJSONVia stringCodec "\55296"
 -- String "\65533"
@@ -798,6 +804,14 @@ object name = ObjectOfCodec (Just name)
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --
 -- This codec will not have a name, and it will use the 'boundedNumberBounds' to add number bounds.
+--
+-- >>> let c = boundedIntegralCodec :: JSONCodec Int8
+-- >>> toJSONVia c 5
+-- Number 5.0
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 100)
+-- Just 100
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 200)
+-- Nothing
 boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
 boundedIntegralCodec =
   bimapCodec go fromIntegral $
@@ -810,6 +824,9 @@ boundedIntegralCodec =
       Nothing -> Left $ "Number did not fit into bounded integer: " <> show s
       Just i -> Right i
 
+-- | 'NumberBounds' for a bounded integral type.
+--
+-- You can call this using @TypeApplications@: @boundedIntegralNumberBounds @Word@
 boundedIntegralNumberBounds :: forall i. (Integral i, Bounded i) => NumberBounds
 boundedIntegralNumberBounds =
   NumberBounds
@@ -821,8 +838,13 @@ boundedIntegralNumberBounds =
 --
 -- === Example usage
 --
--- >>> toJSONVia (literalText "hello") "hello"
+-- >>> let c = literalText "hello"
+-- >>> toJSONVia c "hello"
 -- String "hello"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "hello")
+-- Just "hello"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "world")
+-- Nothing
 literalText :: Text -> JSONCodec Text
 literalText text = EqCodec text textCodec
 
@@ -830,8 +852,13 @@ literalText text = EqCodec text textCodec
 --
 -- === Example usage
 --
--- >>> toJSONVia (literalTextValue True "yes") True
+-- >>> let c = literalTextValue True "yes"
+-- >>> toJSONVia c True
 -- String "yes"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "yes") :: Maybe Bool
+-- Just True
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "no") :: Maybe Bool
+-- Nothing
 literalTextValue :: value -> Text -> JSONCodec value
 literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
 
@@ -881,10 +908,22 @@ matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
 --
 -- You can use this for keeping old ways of parsing intact while already rendering in the new way.
 --
--- TODO tests
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = parseAlternatives shownBoundedEnumCodec [stringConstCodec [(Apple, "foo"), (Orange, "bar")]]
+-- >>> toJSONVia c Apple
+-- String "Apple"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "foo") :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
+-- Just Apple
 parseAlternatives :: ValueCodec input output -> [ValueCodec input output] -> ValueCodec input output
 parseAlternatives c cRest = matchChoicesCodec $ (Just, c) :| map (\c' -> (const Nothing, c')) cRest
 
+-- | A codec for an enum that can be written each with their own codec.
+--
+-- === WARNING
+--
+-- If you don't provide a string for one of the type's constructors, the last codec in the list will be used instead.
 enumCodec ::
   forall enum.
   Eq enum =>
@@ -909,8 +948,19 @@ enumCodec =
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq)
--- >>> toJSONVia (stringConstCodec [(Apple, "foo"), (Orange, "bar")]) Orange
+-- >>> let c = stringConstCodec [(Apple, "foo"), (Orange, "bar")]
+-- >>> toJSONVia c Orange
 -- String "bar"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "foo") :: Maybe Fruit
+-- Just Apple
+--
+-- === WARNING
+--
+-- If you don't provide a string for one of the type's constructors, the last string in the list will be used instead:
+--
+-- >>> let c = stringConstCodec [(Apple, "foo")]
+-- >>> toJSONVia c Orange
+-- String "foo"
 stringConstCodec ::
   forall constant.
   Eq constant =>
@@ -932,8 +982,11 @@ stringConstCodec =
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Enum, Bounded)
--- >>> toJSONVia shownBoundedEnumCodec Apple
+-- >>> let c = shownBoundedEnumCodec
+-- >>> toJSONVia c Apple
 -- String "Apple"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "Orange") :: Maybe Fruit
+-- Just Orange
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
@@ -971,8 +1024,18 @@ named = ReferenceCodec
 
 -- | Produce a codec using a type's 'FromJSON' and 'ToJSON' instances.
 --
+-- You will only want to use this if you cannot figure out how to produce a
+-- 'JSONCodec' for your type.
+--
 -- Note that this will not have good documentation because, at a codec level,
 -- it's just parsing and rendering a 'JSON.Value'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia (codecViaAeson "Int") (5 :: Int)
+-- Number 5.0
+-- >>> JSON.parseMaybe (parseJSONVia (codecViaAeson "Int")) (Number 5) :: Maybe Int
+-- Just 5
 codecViaAeson ::
   (FromJSON a, ToJSON a) =>
   -- | Name
