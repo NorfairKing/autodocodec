@@ -56,8 +56,8 @@ module Autodocodec
     -- ** Writing your own value codecs.
     maybeCodec,
     eitherCodec,
-    arrayCodec,
     listCodec,
+    vectorCodec,
     valueCodec,
     nullCodec,
     boolCodec,

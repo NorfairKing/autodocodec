@@ -32,6 +32,15 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import GHC.Generics (Generic)
 
+-- $setup
+-- >>> import Autodocodec.Aeson (toJSONVia, parseJSONVia)
+-- >>> import Autodocodec.Class (HasCodec(codec))
+-- >>> import qualified Data.Aeson as JSON
+-- >>> import Data.Aeson (Value(..))
+-- >>> import qualified Data.Vector as Vector
+-- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedLists
+
 -- | A Self-documenting encoder and decoder,
 --
 -- also called an "Autodocodec".
@@ -459,16 +468,16 @@ bimapCodec ::
   Codec context newInput newOutput
 bimapCodec = BimapCodec
 
--- | Forward-compatible version of 'ArrayCodec' without a name
+-- | Forward-compatible version of 'ArrayOfCodec' without a name
 --
--- > arrayCodec = ArrayOfCodec Nothing
+-- > vectorCodec = ArrayOfCodec Nothing
 --
 -- === Example usage
 --
--- >>> toJSONVia (listCodec codec) (Array.fromList ['a','b'])
--- Array [String "a", String "b"]
-arrayCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
-arrayCodec = ArrayOfCodec Nothing
+-- >>> toJSONVia (vectorCodec codec) (Vector.fromList ['a','b'])
+-- Array [String "a",String "b"]
+vectorCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
+vectorCodec = ArrayOfCodec Nothing
 
 -- | Build a codec for lists of values from a codec for a single value.
 --
@@ -477,7 +486,7 @@ arrayCodec = ArrayOfCodec Nothing
 -- >>> toJSONVia (listCodec codec) ['a','b']
 -- Array [String "a",String "b"]
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
-listCodec = dimapCodec V.toList V.fromList . arrayCodec
+listCodec = dimapCodec V.toList V.fromList . vectorCodec
 
 -- | Build a codec for nonempty lists of values from a codec for a single value.
 --
@@ -757,10 +766,12 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 -- Do not use it for any calculations.
 -- Instead, convert to another number type before doing any calculations.
 --
--- >>> (1 / 3) :: Scientific
--- *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
--- CallStack (from HasCallStack):
---   error, called at src/Data/Scientific.hs:311:23 in scientific-0.3.6.2-19iaXRaHwRdEEucqiDAVk5:Data.Scientific
+-- @
+--     λ> (1 / 3) :: Scientific
+--     *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
+--     CallStack (from HasCallStack):
+--       error, called at src/Data/Scientific.hs:311:23 in scientific-0.3.6.2-19iaXRaHwRdEEucqiDAVk5:Data.Scientific
+-- @
 scientificCodec :: JSONCodec Scientific
 scientificCodec = NumberCodec Nothing Nothing
 
@@ -787,13 +798,6 @@ object name = ObjectOfCodec (Just name)
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --
 -- This codec will not have a name, and it will use the 'boundedNumberBounds' to add number bounds.
---
--- === WARNING
---
--- This codec will fail to parse numbers that are too big, for security reasons.
---
--- >>> JSON.parseEither( parseJSONVia boundedIntegerCodec) (Number 1e100) :: Either String Int
--- Left "Error in $: Number too big: 1.0e100"
 boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
 boundedIntegralCodec =
   bimapCodec go fromIntegral $
@@ -904,14 +908,8 @@ enumCodec =
 --
 -- === Example usage
 --
--- > data Fruit = Apple | Orange
--- >  deriving (Show, Eq)
--- >
--- > instance HasCodec Fruit
--- >   codec = stringConstCodec [(Apple, "foo"), (Orange, "bar")]
--- >
---
--- >>> toJSONVia shownBoundedEnumCodec Orange
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq)
+-- >>> toJSONVia (stringConstCodec [(Apple, "foo"), (Orange, "bar")]) Orange
 -- String "bar"
 stringConstCodec ::
   forall constant.
@@ -933,13 +931,7 @@ stringConstCodec =
 --
 -- === Example usage
 --
--- > data Fruit = Apple | Orange
--- >  deriving (Show, Eq, Enum, Bounded)
--- >
--- > instance HasCodec Fruit
--- >   codec = shownBoundedEnumCodec
--- >
---
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Enum, Bounded)
 -- >>> toJSONVia shownBoundedEnumCodec Apple
 -- String "Apple"
 shownBoundedEnumCodec ::

@@ -47,3 +47,16 @@ library
     , validity-scientific
     , vector
   default-language: Haskell2010
+
+test-suite autodocodec-doctest
+  type: exitcode-stdio-1.0
+  main-is: DocTest.hs
+  other-modules:
+      Paths_autodocodec
+  hs-source-dirs:
+      doctest/
+  ghc-options: -main-is DocTest -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:
+      base >=4.7 && <5
+    , doctest
+  default-language: Haskell2010

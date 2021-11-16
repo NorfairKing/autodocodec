@@ -25,3 +25,17 @@ library:
   - validity
   - validity-scientific
   - vector
+
+tests:
+  autodocodec-doctest:
+    main: DocTest.hs
+    source-dirs: doctest/
+    ghc-options:
+    - -main-is DocTest
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    dependencies:
+    - doctest
+
