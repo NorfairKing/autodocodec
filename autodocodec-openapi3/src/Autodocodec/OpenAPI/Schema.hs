@@ -137,6 +137,13 @@ declareNamedSchemaVia c' Proxy = go c'
           ]
       OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
+      EitherCodec oc1 oc2 -> do
+        s1s <- goObject oc1
+        s2s <- goObject oc2
+        (: []) . _namedSchemaSchema
+          <$> combineSchemasOr
+            (NamedSchema Nothing (combineObjectSchemas s1s))
+            (NamedSchema Nothing (combineObjectSchemas s2s))
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
@@ -151,6 +158,7 @@ declareNamedSchemaVia c' Proxy = go c'
             Nothing -> Just doc
             Just doc' -> Just $ doc <> "\n" <> doc'
         }
+    combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
     combineSchemasOr :: NamedSchema -> NamedSchema -> Declare (Definitions Schema) NamedSchema
     combineSchemasOr ns1 ns2 = do

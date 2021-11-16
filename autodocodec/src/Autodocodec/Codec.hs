@@ -926,6 +926,24 @@ parseAlternatives c cRest =
   matchChoicesCodec $
     (Just, c) :| map (\c' -> (const Nothing, c')) cRest
 
+-- | Like 'parseAlternatives', but with only one alternative codec
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = parseAlternatives shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
+-- >>> toJSONVia c Apple
+-- String "Apple"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "foo") :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
+-- Just Apple
+parseAlternative ::
+  -- | Main codec, for parsing and rendering
+  Codec context input output ->
+  -- | Alternative codecs just for parsing
+  Codec context input output ->
+  Codec context input output
+parseAlternative c cAlt = parseAlternatives c [cAlt]
+
 -- | A codec for an enum that can be written each with their own codec.
 --
 -- === WARNING

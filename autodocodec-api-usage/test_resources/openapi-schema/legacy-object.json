@@ -1,0 +1,41 @@
+{
+    "components": {
+        "schemas": {
+            "LegacyObject": {
+                "anyOf": [
+                    {
+                        "required": [
+                            "3"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "3": {
+                                "type": "string",
+                                "description": "text 3"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "3old"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "3old": {
+                                "type": "string",
+                                "description": "text 3"
+                            }
+                        }
+                    }
+                ],
+                "additionalProperties": true
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

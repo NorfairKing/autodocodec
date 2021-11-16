@@ -241,7 +241,11 @@ instance HasCodec VeryComment where
       <?> "This is the middle outer comment"
       <??> ["This is the outermost outer comment", "on multiple lines", "because we can."]
 
-newtype Legacy = Legacy {legacyText :: Text}
+data LegacyValue = LegacyValue
+  { legacyValueText1 :: Text,
+    legacyValueText2 :: Text,
+    legacyValueText3 :: Text
+  }
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
@@ -249,23 +253,54 @@ newtype Legacy = Legacy {legacyText :: Text}
       Swagger.ToSchema,
       OpenAPI.ToSchema
     )
-    via (Autodocodec Legacy)
+    via (Autodocodec LegacyValue)
 
-instance Validity Legacy
+instance Validity LegacyValue
 
-instance GenValid Legacy where
+instance GenValid LegacyValue where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
-instance HasCodec Legacy where
+instance HasCodec LegacyValue where
   codec =
-    dimapCodec Legacy legacyText $
-      parseAlternatives
-        codec
-        [ object "Legacy" $ requiredField "legacy" "legacy parser which is just a field.",
-          object "Legacy" $
-            parseAlternatives
-              (requiredField "legacy" "legacy parser which is just a field.")
-              [ requiredField "legacy2" "legacy parser alternative as part of an object codec"
-              ]
-        ]
+    parseAlternatives
+      ( object "LegacyValue" $
+          LegacyValue
+            <$> requiredField "1" "text 1" .= legacyValueText1
+            <*> requiredField "2" "text 2" .= legacyValueText2
+            <*> requiredField "3" "text 3" .= legacyValueText3
+      )
+      [ object "LegacyValue" $
+          LegacyValue
+            <$> requiredField "1old" "text 1" .= legacyValueText1
+            <*> requiredField "2old" "text 2" .= legacyValueText2
+            <*> requiredField "3old" "text 3" .= legacyValueText3
+      ]
+
+data LegacyObject = LegacyObject
+  { legacyObjectText1 :: Text,
+    legacyObjectText2 :: Text,
+    legacyObjectText3 :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec LegacyObject)
+
+instance Validity LegacyObject
+
+instance GenValid LegacyObject where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec LegacyObject where
+  codec =
+    object "LegacyObject" $
+      LegacyObject
+        <$> parseAlternative (requiredField "1" "text 1") (requiredField "1old" "text 1") .= legacyObjectText1
+        <*> parseAlternative (requiredField "2" "text 2") (requiredField "2old" "text 2") .= legacyObjectText1
+        <*> parseAlternative (requiredField "3" "text 3") (requiredField "3old" "text 3") .= legacyObjectText1

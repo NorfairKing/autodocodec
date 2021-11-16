@@ -1,0 +1,38 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "definitions": {
+        "LegacyValue": {
+            "type": "object",
+            "properties": {
+                "3old": {
+                    "type": "string",
+                    "description": "text 3"
+                },
+                "1old": {
+                    "type": "string",
+                    "description": "text 1"
+                },
+                "1": {
+                    "type": "string",
+                    "description": "text 1"
+                },
+                "2": {
+                    "type": "string",
+                    "description": "text 2"
+                },
+                "2old": {
+                    "type": "string",
+                    "description": "text 2"
+                },
+                "3": {
+                    "type": "string",
+                    "description": "text 3"
+                }
+            }
+        }
+    }
+}
