@@ -89,6 +89,20 @@ spec = do
                  in context decodedCtx $
                       let encodedAgain = JSON.encode (decoded :: JSONSchema)
                        in encodedAgain `shouldBe` encoded
+  describe "ObjectSchema" $ do
+    genValidSpec @ObjectSchema
+    it "roundtrips through object and back" $
+      forAllValid $ \objectSchema ->
+        -- We use the reencode version to survive the ordering change through map
+        let encoded = JSON.encode (objectSchema :: ObjectSchema)
+            encodedCtx = unwords ["encoded: ", show encoded]
+         in context encodedCtx $ case JSON.eitherDecode encoded of
+              Left err -> expectationFailure err
+              Right decoded ->
+                let decodedCtx = unwords ["decoded: ", show decoded]
+                 in context decodedCtx $
+                      let encodedAgain = JSON.encode (decoded :: ObjectSchema)
+                       in encodedAgain `shouldBe` encoded
 
 instance GenValid JSONSchema where
   shrinkValid = \case

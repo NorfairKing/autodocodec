@@ -70,6 +70,83 @@ instance Validity JSONSchema where
           _ -> valid
       ]
 
+instance ToJSON JSONSchema where
+  toJSON = JSON.object . go
+    where
+      go :: JSONSchema -> [JSON.Pair]
+      go = \case
+        AnySchema -> []
+        NullSchema -> ["type" JSON..= ("null" :: Text)]
+        BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
+        StringSchema -> ["type" JSON..= ("string" :: Text)]
+        NumberSchema mBounds ->
+          ("type" JSON..= ("number" :: Text)) : case mBounds of
+            Nothing -> []
+            Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
+        ArraySchema s ->
+          let itemSchemaVal = go s
+           in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
+        ValueSchema v -> ["const" JSON..= v]
+        MapSchema s ->
+          let itemSchemaVal = go s
+           in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
+        ObjectSchema os ->
+          case toJSON os of
+            JSON.Object o -> HM.toList o
+            _ -> [] -- Should not happen.
+        ChoiceSchema jcs ->
+          let svals :: [JSON.Value]
+              svals = map (JSON.object . go) (NE.toList jcs)
+              val :: JSON.Value
+              val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
+           in [("anyOf", val)]
+        (CommentSchema outerComment (CommentSchema innerComment s)) ->
+          go (CommentSchema (outerComment <> "\n" <> innerComment) s)
+        CommentSchema comment s -> ("$comment" JSON..= comment) : go s
+        RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
+        WithDefSchema defs s -> ("$defs" JSON..= defs) : go s
+
+instance FromJSON JSONSchema where
+  parseJSON = JSON.withObject "JSONSchema" $ \o -> do
+    mt <- o JSON..:? "type"
+    mc <- o JSON..:? "$comment"
+    let commentFunc = maybe id CommentSchema mc
+    mdefs <- o JSON..:? "$defs"
+    let defsFunc = maybe id WithDefSchema mdefs
+    fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
+      Just "null" -> pure NullSchema
+      Just "boolean" -> pure BoolSchema
+      Just "string" -> pure StringSchema
+      Just "number" -> do
+        mLower <- o JSON..:? "minimum"
+        mUpper <- o JSON..:? "maximum"
+        pure $
+          NumberSchema $ case (,) <$> mLower <*> mUpper of
+            Nothing -> Nothing
+            Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
+      Just "array" -> do
+        mI <- o JSON..:? "items"
+        case mI of
+          Nothing -> pure $ ArraySchema AnySchema
+          Just is -> pure $ ArraySchema is
+      Just "object" -> ObjectSchema <$> parseJSON (JSON.Object o)
+      Nothing -> do
+        mAny <- o JSON..:? "anyOf"
+        case mAny of
+          Just anies -> pure $ ChoiceSchema anies
+          Nothing -> do
+            let mConst = HM.lookup "const" o
+            case mConst of
+              Just constant -> pure $ ValueSchema constant
+              Nothing -> do
+                mRef <- o JSON..:? "$ref"
+                pure $ case mRef of
+                  Just ref -> case T.stripPrefix defsPrefix ref of
+                    Just name -> RefSchema name
+                    Nothing -> AnySchema
+                  Nothing -> AnySchema
+      t -> fail $ "unknown schema type:" <> show t
+
 data ObjectSchema
   = ObjectKeySchema Text KeyRequirement JSONSchema (Maybe Text)
   | ObjectAnySchema -- For 'pure'
@@ -78,6 +155,59 @@ data ObjectSchema
   deriving (Show, Eq, Generic)
 
 instance Validity ObjectSchema
+
+instance FromJSON ObjectSchema where
+  parseJSON = undefined
+
+-- let combine (ps, rps) (k, (r, s, mDoc)) =
+--       ( (k, maybe id CommentSchema mDoc s) : ps,
+--         case r of
+--           Required -> S.insert k rps
+--           Optional _ -> rps
+--       )
+
+--     (props :: [(Text, JSONSchema)], requiredProps) = foldl' combine ([], S.empty) os
+--     propVals :: HashMap Text JSON.Value
+--     propVals = HM.map (JSON.object . go) (HM.fromList props)
+--     propVal :: JSON.Value
+--     propVal = JSON.toJSON propVals
+--  in case props of
+--       [] -> ["type" JSON..= ("object" :: Text)]
+--       _ ->
+--         if S.null requiredProps
+--           then
+--             [ "type" JSON..= ("object" :: Text),
+--               "properties" JSON..= propVal
+--             ]
+--           else
+--             [ "type" JSON..= ("object" :: Text),
+--               "properties" JSON..= propVal,
+--               "required" JSON..= requiredProps
+--             ]
+instance ToJSON ObjectSchema where
+  toJSON = undefined
+
+-- do
+--   mP <- o JSON..:? "properties"
+--   mAP <- o JSON..:? "additionalProperties"
+--   case mP of
+--     Nothing -> case mAP of
+--       Nothing -> pure $ ObjectSchema []
+--       Just ps -> pure $ MapSchema ps
+--     Just (props :: Map Text JSONSchema) -> do
+--       requiredProps <- fromMaybe [] <$> o JSON..:? "required"
+--       let keySchemaFor k s =
+--             ( k,
+--               ( if k `elem` requiredProps
+--                   then Required
+--                   else Optional Nothing,
+--                 s,
+--                 Nothing
+--               )
+--             )
+--       pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
+defsPrefix :: Text
+defsPrefix = "#/$defs/"
 
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
@@ -135,127 +265,6 @@ data KeyRequirement
   deriving (Show, Eq, Generic)
 
 instance Validity KeyRequirement
-
-instance ToJSON JSONSchema where
-  toJSON = JSON.object . go
-    where
-      go :: JSONSchema -> [JSON.Pair]
-      go = \case
-        AnySchema -> []
-        NullSchema -> ["type" JSON..= ("null" :: Text)]
-        BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
-        StringSchema -> ["type" JSON..= ("string" :: Text)]
-        NumberSchema mBounds ->
-          ("type" JSON..= ("number" :: Text)) : case mBounds of
-            Nothing -> []
-            Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
-        ArraySchema s ->
-          let itemSchemaVal = go s
-           in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
-        ValueSchema v -> ["const" JSON..= v]
-        MapSchema s ->
-          let itemSchemaVal = go s
-           in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
-        ObjectSchema os -> undefined
-        -- let combine (ps, rps) (k, (r, s, mDoc)) =
-        --       ( (k, maybe id CommentSchema mDoc s) : ps,
-        --         case r of
-        --           Required -> S.insert k rps
-        --           Optional _ -> rps
-        --       )
-
-        --     (props :: [(Text, JSONSchema)], requiredProps) = foldl' combine ([], S.empty) os
-        --     propVals :: HashMap Text JSON.Value
-        --     propVals = HM.map (JSON.object . go) (HM.fromList props)
-        --     propVal :: JSON.Value
-        --     propVal = JSON.toJSON propVals
-        --  in case props of
-        --       [] -> ["type" JSON..= ("object" :: Text)]
-        --       _ ->
-        --         if S.null requiredProps
-        --           then
-        --             [ "type" JSON..= ("object" :: Text),
-        --               "properties" JSON..= propVal
-        --             ]
-        --           else
-        --             [ "type" JSON..= ("object" :: Text),
-        --               "properties" JSON..= propVal,
-        --               "required" JSON..= requiredProps
-        --             ]
-        ChoiceSchema jcs ->
-          let svals :: [JSON.Value]
-              svals = map (JSON.object . go) (NE.toList jcs)
-              val :: JSON.Value
-              val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
-           in [("anyOf", val)]
-        (CommentSchema outerComment (CommentSchema innerComment s)) ->
-          go (CommentSchema (outerComment <> "\n" <> innerComment) s)
-        CommentSchema comment s -> ("$comment" JSON..= comment) : go s
-        RefSchema name -> ["$ref" JSON..= (defsPrefix <> name :: Text)]
-        WithDefSchema defs s -> ("$defs" JSON..= defs) : go s
-
-instance FromJSON JSONSchema where
-  parseJSON = JSON.withObject "JSONSchema" $ \o -> do
-    mt <- o JSON..:? "type"
-    mc <- o JSON..:? "$comment"
-    let commentFunc = maybe id CommentSchema mc
-    mdefs <- o JSON..:? "$defs"
-    let defsFunc = maybe id WithDefSchema mdefs
-    fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
-      Just "null" -> pure NullSchema
-      Just "boolean" -> pure BoolSchema
-      Just "string" -> pure StringSchema
-      Just "number" -> do
-        mLower <- o JSON..:? "minimum"
-        mUpper <- o JSON..:? "maximum"
-        pure $
-          NumberSchema $ case (,) <$> mLower <*> mUpper of
-            Nothing -> Nothing
-            Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
-      Just "array" -> do
-        mI <- o JSON..:? "items"
-        case mI of
-          Nothing -> pure $ ArraySchema AnySchema
-          Just is -> pure $ ArraySchema is
-      Just "object" -> undefined
-      -- do
-      --   mP <- o JSON..:? "properties"
-      --   mAP <- o JSON..:? "additionalProperties"
-      --   case mP of
-      --     Nothing -> case mAP of
-      --       Nothing -> pure $ ObjectSchema []
-      --       Just ps -> pure $ MapSchema ps
-      --     Just (props :: Map Text JSONSchema) -> do
-      --       requiredProps <- fromMaybe [] <$> o JSON..:? "required"
-      --       let keySchemaFor k s =
-      --             ( k,
-      --               ( if k `elem` requiredProps
-      --                   then Required
-      --                   else Optional Nothing,
-      --                 s,
-      --                 Nothing
-      --               )
-      --             )
-      --       pure $ ObjectSchema $ map (uncurry keySchemaFor) $ M.toList props
-      Nothing -> do
-        mAny <- o JSON..:? "anyOf"
-        case mAny of
-          Just anies -> pure $ ChoiceSchema anies
-          Nothing -> do
-            let mConst = HM.lookup "const" o
-            case mConst of
-              Just constant -> pure $ ValueSchema constant
-              Nothing -> do
-                mRef <- o JSON..:? "$ref"
-                pure $ case mRef of
-                  Just ref -> case T.stripPrefix defsPrefix ref of
-                    Just name -> RefSchema name
-                    Nothing -> AnySchema
-                  Nothing -> AnySchema
-      t -> fail $ "unknown schema type:" <> show t
-
-defsPrefix :: Text
-defsPrefix = "#/$defs/"
 
 jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
