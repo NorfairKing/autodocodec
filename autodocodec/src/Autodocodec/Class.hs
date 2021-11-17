@@ -122,7 +122,7 @@ instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) w
 instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
   codec = HashMapCodec codec
 
--- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Tite@ or @Data.Attoparsec.Time@ modules.
+-- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Time@ or @Data.Attoparsec.Time@ modules.
 instance HasCodec Day where
   codec = codecViaAeson "Day"
 
