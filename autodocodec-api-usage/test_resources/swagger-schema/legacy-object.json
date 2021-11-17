@@ -12,21 +12,45 @@
                     "type": "string",
                     "description": "text 3"
                 },
+                "old": {
+                    "type": "string",
+                    "description": "old key"
+                },
+                "newer": {
+                    "type": "string",
+                    "description": "newer key"
+                },
                 "1old": {
                     "type": "string",
                     "description": "text 1"
+                },
+                "newest": {
+                    "type": "string",
+                    "description": "newest key"
                 },
                 "1": {
                     "type": "string",
                     "description": "text 1"
                 },
+                "new": {
+                    "type": "string",
+                    "description": "new key"
+                },
                 "2": {
                     "type": "string",
                     "description": "text 2"
                 },
+                "oldest": {
+                    "type": "string",
+                    "description": "oldest key"
+                },
                 "2old": {
                     "type": "string",
                     "description": "text 2"
+                },
+                "older": {
+                    "type": "string",
+                    "description": "older key"
                 },
                 "3": {
                     "type": "string",

@@ -5,25 +5,73 @@
                 "anyOf": [
                     {
                         "required": [
-                            "3"
+                            "newest"
                         ],
                         "type": "object",
                         "properties": {
-                            "3": {
+                            "newest": {
                                 "type": "string",
-                                "description": "text 3"
+                                "description": "newest key"
                             }
                         }
                     },
                     {
                         "required": [
-                            "3old"
+                            "newer"
                         ],
                         "type": "object",
                         "properties": {
-                            "3old": {
+                            "newer": {
                                 "type": "string",
-                                "description": "text 3"
+                                "description": "newer key"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "new"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "new": {
+                                "type": "string",
+                                "description": "new key"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "old"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "old": {
+                                "type": "string",
+                                "description": "old key"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "older"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "older": {
+                                "type": "string",
+                                "description": "older key"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "oldest"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "oldest": {
+                                "type": "string",
+                                "description": "oldest key"
                             }
                         }
                     }

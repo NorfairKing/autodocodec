@@ -10,20 +10,16 @@
 module Autodocodec.Schema where
 
 import Autodocodec
-import Control.Applicative
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import Data.Foldable
-import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -184,7 +180,7 @@ instance FromJSON ObjectSchema where
                 let keySchemaFor k v = do
                       ks <- parseJSON v
                       let (mDoc, ks') = case ks of
-                            CommentSchema doc ks' -> (Just doc, ks')
+                            CommentSchema doc ks'' -> (Just doc, ks'')
                             _ -> (Nothing, ks)
                       pure $
                         if k `elem` reqs
@@ -203,9 +199,9 @@ instance ToJSON ObjectSchema where
       go = \case
         ObjectAnySchema -> []
         ObjectKeySchema k kr ks mDoc ->
-          let (propVal, reqPiece) = keySchemaToPieces (k, kr, ks, mDoc)
+          let (propVal, req) = keySchemaToPieces (k, kr, ks, mDoc)
            in -- TODO deal with the default value somehow.
-              concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | kr == Required]]
+              concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | req]]
         ObjectChoiceSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
         ObjectAllOfSchema ne ->
           case mapM parseAndObjectKeySchema (NE.toList ne) of
@@ -218,7 +214,7 @@ instance ToJSON ObjectSchema where
                in concat [["properties" JSON..= propValMap], ["required" JSON..= reqs | not $ null reqs]]
 
       keySchemaToPieces :: (Text, KeyRequirement, JSONSchema, Maybe Text) -> (JSON.Value, Bool)
-      keySchemaToPieces (k, kr, ks, mDoc) =
+      keySchemaToPieces (_, kr, ks, mDoc) =
         let propVal = toJSON (maybe id CommentSchema mDoc ks)
          in (propVal, kr == Required)
 
@@ -351,12 +347,32 @@ jsonSchemaVia = (`evalState` S.empty) . go
       EitherCodec oc1 oc2 -> do
         os1 <- goObject oc1
         os2 <- goObject oc2
-        pure $ ObjectChoiceSchema (os1 :| [os2])
+        pure $ ObjectChoiceSchema (goObjectChoice (os1 :| [os2]))
       PureCodec _ -> pure ObjectAnySchema
       ApCodec oc1 oc2 -> do
         os1 <- goObject oc1
         os2 <- goObject oc2
-        pure $ ObjectAllOfSchema (os1 :| [os2])
+        pure $ ObjectAllOfSchema (goObjectAllOf (os1 :| [os2]))
+
+    goObjectChoice :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
+    goObjectChoice (s :| rest) = case NE.nonEmpty rest of
+      Nothing -> goSingle s
+      Just ne -> goSingle s <> goObjectChoice ne
+      where
+        goSingle :: ObjectSchema -> NonEmpty ObjectSchema
+        goSingle = \case
+          ObjectChoiceSchema ss -> goObjectChoice ss
+          s' -> s' :| []
+
+    goObjectAllOf :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
+    goObjectAllOf (s :| rest) = case NE.nonEmpty rest of
+      Nothing -> goSingle s
+      Just ne -> goSingle s <> goObjectAllOf ne
+      where
+        goSingle :: ObjectSchema -> NonEmpty ObjectSchema
+        goSingle = \case
+          ObjectAllOfSchema ss -> goObjectAllOf ss
+          s' -> s' :| []
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f (a, b, c) = f a b c

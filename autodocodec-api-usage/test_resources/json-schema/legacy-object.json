@@ -2,64 +2,59 @@
     "$comment": "LegacyObject",
     "allOf": [
         {
-            "allOf": [
+            "anyOf": [
                 {
-                    "anyOf": [
-                        {
-                            "required": [
-                                "1"
-                            ],
-                            "type": "object",
-                            "properties": {
-                                "1": {
-                                    "$comment": "text 1",
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        {
-                            "required": [
-                                "1old"
-                            ],
-                            "type": "object",
-                            "properties": {
-                                "1old": {
-                                    "$comment": "text 1",
-                                    "type": "string"
-                                }
-                            }
-                        }
+                    "required": [
+                        "1"
                     ],
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                        "1": {
+                            "$comment": "text 1",
+                            "type": "string"
+                        }
+                    }
                 },
                 {
-                    "anyOf": [
-                        {
-                            "required": [
-                                "2"
-                            ],
-                            "type": "object",
-                            "properties": {
-                                "2": {
-                                    "$comment": "text 2",
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        {
-                            "required": [
-                                "2old"
-                            ],
-                            "type": "object",
-                            "properties": {
-                                "2old": {
-                                    "$comment": "text 2",
-                                    "type": "string"
-                                }
-                            }
-                        }
+                    "required": [
+                        "1old"
                     ],
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                        "1old": {
+                            "$comment": "text 1",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "type": "object"
+        },
+        {
+            "anyOf": [
+                {
+                    "required": [
+                        "2"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "2": {
+                            "$comment": "text 2",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "2old"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "2old": {
+                            "$comment": "text 2",
+                            "type": "string"
+                        }
+                    }
                 }
             ],
             "type": "object"
@@ -86,6 +81,83 @@
                     "properties": {
                         "3old": {
                             "$comment": "text 3",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "type": "object"
+        },
+        {
+            "anyOf": [
+                {
+                    "required": [
+                        "newest"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "newest": {
+                            "$comment": "newest key",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "newer"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "newer": {
+                            "$comment": "newer key",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "new"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "new": {
+                            "$comment": "new key",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "old"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "old": {
+                            "$comment": "old key",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "older"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "older": {
+                            "$comment": "older key",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "oldest"
+                    ],
+                    "type": "object",
+                    "properties": {
+                        "oldest": {
+                            "$comment": "oldest key",
                             "type": "string"
                         }
                     }

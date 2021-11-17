@@ -20,3 +20,22 @@
     # text 3
     [33m<string>[m
 ]
+[ [37mnewest[m: # [31mrequired[m
+    # newest key
+    [33m<string>[m
+, [37mnewer[m: # [31mrequired[m
+    # newer key
+    [33m<string>[m
+, [37mnew[m: # [31mrequired[m
+    # new key
+    [33m<string>[m
+, [37mold[m: # [31mrequired[m
+    # old key
+    [33m<string>[m
+, [37molder[m: # [31mrequired[m
+    # older key
+    [33m<string>[m
+, [37moldest[m: # [31mrequired[m
+    # oldest key
+    [33m<string>[m
+]

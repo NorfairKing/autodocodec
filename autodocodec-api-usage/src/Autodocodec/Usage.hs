@@ -280,7 +280,8 @@ instance HasCodec LegacyValue where
 data LegacyObject = LegacyObject
   { legacyObjectText1 :: Text,
     legacyObjectText2 :: Text,
-    legacyObjectText3 :: Text
+    legacyObjectText3 :: Text,
+    legacyObjectWithHistory :: Text
   }
   deriving stock (Show, Eq, Generic)
   deriving
@@ -304,3 +305,12 @@ instance HasCodec LegacyObject where
         <$> parseAlternative (requiredField "1" "text 1") (requiredField "1old" "text 1") .= legacyObjectText1
         <*> parseAlternative (requiredField "2" "text 2") (requiredField "2old" "text 2") .= legacyObjectText2
         <*> parseAlternative (requiredField "3" "text 3") (requiredField "3old" "text 3") .= legacyObjectText3
+        <*> parseAlternatives
+          (requiredField "newest" "newest key")
+          [ requiredField "newer" "newer key",
+            requiredField "new" "new key",
+            requiredField "old" "old key",
+            requiredField "older" "older key",
+            requiredField "oldest" "oldest key"
+          ]
+          .= legacyObjectWithHistory
