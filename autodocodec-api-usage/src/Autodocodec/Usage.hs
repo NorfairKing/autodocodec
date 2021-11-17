@@ -17,6 +17,7 @@ import Autodocodec.Aeson ()
 import Autodocodec.OpenAPI ()
 import Autodocodec.Swagger ()
 import Control.Applicative
+import Control.DeepSeq
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import Data.GenValidity
@@ -35,6 +36,8 @@ data NullUnit = NullUnit
   deriving (Show, Eq, Generic)
 
 instance Validity NullUnit
+
+instance NFData NullUnit
 
 instance GenValid NullUnit where
   genValid = genValidStructurallyWithoutExtraChecking
@@ -61,6 +64,8 @@ data Fruit
 
 instance Validity Fruit
 
+instance NFData Fruit
+
 instance GenValid Fruit where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
@@ -86,6 +91,8 @@ data Example = Example
   deriving (Show, Eq, Generic)
 
 instance Validity Example
+
+instance NFData Example
 
 instance GenValid Example where
   genValid = genValidStructurally
@@ -151,6 +158,8 @@ data Recursive
 
 instance Validity Recursive
 
+instance NFData Recursive
+
 instance GenValid Recursive where
   shrinkValid = \case
     Base i -> Base <$> shrinkValid i
@@ -210,6 +219,8 @@ instance HasCodec Via where
 
 instance Validity Via
 
+instance NFData Via
+
 instance GenValid Via where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
@@ -226,6 +237,8 @@ data VeryComment = VeryComment
     via (Autodocodec VeryComment)
 
 instance Validity VeryComment
+
+instance NFData VeryComment
 
 instance GenValid VeryComment where
   genValid = genValidStructurallyWithoutExtraChecking
@@ -256,6 +269,8 @@ data LegacyValue = LegacyValue
     via (Autodocodec LegacyValue)
 
 instance Validity LegacyValue
+
+instance NFData LegacyValue
 
 instance GenValid LegacyValue where
   genValid = genValidStructurallyWithoutExtraChecking
@@ -293,6 +308,8 @@ data LegacyObject = LegacyObject
     via (Autodocodec LegacyObject)
 
 instance Validity LegacyObject
+
+instance NFData LegacyObject
 
 instance GenValid LegacyObject where
   genValid = genValidStructurallyWithoutExtraChecking
