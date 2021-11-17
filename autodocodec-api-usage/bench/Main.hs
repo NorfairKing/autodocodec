@@ -20,7 +20,6 @@ import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Maybe
-import Data.Scientific
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -38,13 +37,14 @@ main =
     [ comparisonBench @NullUnit,
       comparisonBench @Bool,
       comparisonBench @Ordering,
-      comparisonBench @Char,
       comparisonBench @Text,
       comparisonBench @LT.Text,
-      comparisonBench @String,
-      comparisonBench @Scientific,
-      comparisonBench @JSON.Object,
-      comparisonBench @JSON.Value,
+      -- Do not roundtrip
+      -- comparisonBench @Char,
+      -- comparisonBench @String,
+      -- comparisonBench @Scientific,
+      -- comparisonBench @JSON.Object,
+      -- comparisonBench @JSON.Value,
       comparisonBench @Int,
       comparisonBench @Int8,
       comparisonBench @Int16,

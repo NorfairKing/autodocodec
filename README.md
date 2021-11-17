@@ -67,4 +67,4 @@ While we don't provide any actual guarantees, we do have tests for the following
 * [Encoding and decoding roundtrips through YAML.](./autodocodec-api-usage/test/Autodocodec/YamlSpec.hs)
 * [We try to make sure that backward compatibility is maintained.](./autodocodec-api-usage/src/Autodocodec/Usage.hs)
 * [Codecs are more or less inspectable.](./autodocodec-api-usage/test/Autodocodec/ShowSpec.hs)
-* [TODO: Encoding and decoding is still fast](TODO)
+* [Encoding and decoding is still fast](./autodocodec-api-usage/bench/Main.hs)
