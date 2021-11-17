@@ -459,6 +459,8 @@ eitherCodec = EitherCodec
 --
 -- If you use this function, then you will most likely want to add documentation about how not every value that the schema specifies will be accepted.
 --
+-- This function is like 'BimapCodec' except it also combines one level of a nested 'BimapCodec's.
+--
 -- === Example usage
 --
 -- logLevelCodec :: JSONCodec LogLevel
@@ -468,7 +470,9 @@ bimapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput oldOutput ->
   Codec context newInput newOutput
-bimapCodec = BimapCodec
+bimapCodec f g = \case
+  BimapCodec f' g' c -> BimapCodec (f' >=> f) (g' . g) c
+  c -> BimapCodec f g c
 
 -- | Forward-compatible version of 'ArrayOfCodec' without a name
 --

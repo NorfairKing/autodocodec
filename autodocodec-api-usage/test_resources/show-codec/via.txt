@@ -1,1 +1,1 @@
-ObjectOfCodec (Just "Via") (ApCodec (BimapCodec _ _ (BimapCodec _ _ (RequiredKeyCodec "one" (Just "first field") (StringCodec Nothing)))) (BimapCodec _ _ (RequiredKeyCodec "two" (Just "second field") (StringCodec Nothing))))
+ObjectOfCodec (Just "Via") (ApCodec (BimapCodec _ _ (RequiredKeyCodec "one" (Just "first field") (StringCodec Nothing))) (BimapCodec _ _ (RequiredKeyCodec "two" (Just "second field") (StringCodec Nothing))))
