@@ -19,11 +19,11 @@ import qualified Data.Vector as V
 import qualified Data.Yaml as JSON
 import Data.Yaml.Builder as Yaml
 
--- | Encode a value using its codec.
+-- | Implement 'Yaml.toYaml' using a type's codec
 toYamlViaCodec :: HasCodec a => a -> YamlBuilder
 toYamlViaCodec = toYamlVia codec
 
--- | Encode a value using a codec for it.
+-- | Implement 'Yaml.toYaml' using a given codec
 toYamlVia :: ValueCodec a void -> a -> YamlBuilder
 toYamlVia = flip go
   where

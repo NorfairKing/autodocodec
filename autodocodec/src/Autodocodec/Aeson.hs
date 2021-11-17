@@ -1,15 +1,17 @@
 {-# OPTIONS_GHC -fno-warn-dodgy-exports -fno-warn-duplicate-exports #-}
 
 module Autodocodec.Aeson
-  ( -- * Encoding
+  ( -- * Encoding and decoding JSON
     encodeJSONViaCodec,
+    eitherDecodeJSONViaCodec,
+
+    -- * Instantiating @ToJSON@
     toJSONViaCodec,
     toJSONVia,
     toEncodingViaCodec,
     toEncodingVia,
 
-    -- * Decoding
-    eitherDecodeJSONViaCodec,
+    -- * Instantiating @FromJSON@
     parseJSONViaCodec,
     parseJSONVia,
 
@@ -23,7 +25,7 @@ import Autodocodec.Aeson.Decode
 import Autodocodec.Aeson.Encode
 import Autodocodec.Class
 import Autodocodec.DerivingVia
-import qualified Data.Aeson as Aeson (eitherDecode, encode)
+import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as LB
 
 -- | Encode a value as a JSON 'LB.ByteString' via its type's 'codec'.

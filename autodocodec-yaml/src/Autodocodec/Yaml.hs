@@ -1,11 +1,15 @@
 {-# OPTIONS_GHC -fno-warn-dodgy-exports -fno-warn-duplicate-exports #-}
 
 module Autodocodec.Yaml
-  ( -- * Reading Yaml Files
+  ( -- * Encoding and decoding Yaml
+    encodeYamlViaCodec,
+    eitherDecodeYamlViaCodec,
+
+    -- * Reading Yaml Files
     readYamlConfigFile,
     readFirstYamlConfigFile,
 
-    -- * Yaml schemas
+    -- * Producing a Yaml schema
     renderColouredSchemaViaCodec,
     renderColouredSchemaVia,
     renderPlainSchemaViaCodec,
@@ -14,7 +18,7 @@ module Autodocodec.Yaml
     schemaChunksVia,
     jsonSchemaChunks,
 
-    -- * ToYaml implementation
+    -- * Instantiating @ToYaml@
     toYamlViaCodec,
     toYamlVia,
 
@@ -25,6 +29,17 @@ module Autodocodec.Yaml
   )
 where
 
+import Autodocodec
 import Autodocodec.Yaml.Encode
 import Autodocodec.Yaml.IO
 import Autodocodec.Yaml.Schema
+import Data.ByteString
+import qualified Data.Yaml as Yaml
+
+-- | Encode a value as a Yaml 'ByteString' via its type's 'codec'.
+encodeYamlViaCodec :: HasCodec a => a -> ByteString
+encodeYamlViaCodec = Yaml.encode . Autodocodec
+
+-- | Parse a Yaml 'ByteString' using a type's 'codec'.
+eitherDecodeYamlViaCodec :: HasCodec a => ByteString -> Either Yaml.ParseException a
+eitherDecodeYamlViaCodec = fmap unAutodocodec . Yaml.decodeEither'

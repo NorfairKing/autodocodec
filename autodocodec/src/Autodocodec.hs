@@ -1,15 +1,17 @@
 {-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
 
 module Autodocodec
-  ( -- * Encoding
+  ( -- * Encoding and decoding JSON
     encodeJSONViaCodec,
+    eitherDecodeJSONViaCodec,
+
+    -- * Instantiating 'Aeson.ToJSON'
     toJSONViaCodec,
     toJSONVia,
     toEncodingViaCodec,
     toEncodingVia,
 
-    -- * Decoding
-    eitherDecodeJSONViaCodec,
+    -- * Instantiating 'Aeson.FromJSON'
     parseJSONViaCodec,
     parseJSONVia,
 
