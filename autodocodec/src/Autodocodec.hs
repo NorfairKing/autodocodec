@@ -2,14 +2,14 @@
 
 module Autodocodec
   ( -- * Encoding
-    encodeViaCodec,
+    encodeJSONViaCodec,
     toJSONViaCodec,
     toJSONVia,
     toEncodingViaCodec,
     toEncodingVia,
 
     -- * Decoding
-    eitherDecodeViaCodec,
+    eitherDecodeJSONViaCodec,
     parseJSONViaCodec,
     parseJSONVia,
 

@@ -105,7 +105,7 @@ comparisonBench =
                 bgroup
                   "toByteString"
                   [ bench "encode (Autodocodec)" $
-                      nf encodeViaCodec as,
+                      nf encodeJSONViaCodec as,
                     bench "encode (Aeson)" $
                       nf Aeson.encode as
                   ]
@@ -126,7 +126,7 @@ comparisonBench =
                       bgroup
                         "parseByteString"
                         [ bench "decode (Autodocodec)" $
-                            nf (eitherDecodeViaCodec :: LB.ByteString -> Either String a) bs,
+                            nf (eitherDecodeJSONViaCodec :: LB.ByteString -> Either String a) bs,
                           bench "decode (Aeson)" $
                             nf (Aeson.eitherDecode :: LB.ByteString -> Either String a) bs
                         ]
