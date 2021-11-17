@@ -53,9 +53,9 @@ import GHC.Generics (Generic)
 --
 -- The two type parameters correspond to the phase in which they are used:
 --
--- * The @input@ parameter is used for the type that is used during encoding of a value.
--- * The @output@ parameter is used for the type that is used during decoding of a value.
--- * Both parameters are usused during documentation.
+-- * The @input@ parameter is used for the type that is used during encoding of a value, so it's the @input@ to the codec.
+-- * The @output@ parameter is used for the type that is used during decoding of a value, so it's the @output@ of the codec.
+-- * Both parameters are unused during documentation.
 data Codec context input output where
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
@@ -777,10 +777,8 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 -- Instead, convert to another number type before doing any calculations.
 --
 -- @
---     λ> (1 / 3) :: Scientific
---     *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
---     CallStack (from HasCallStack):
---       error, called at src/Data/Scientific.hs:311:23 in scientific-0.3.6.2-19iaXRaHwRdEEucqiDAVk5:Data.Scientific
+-- λ> (1 / 3) :: Scientific
+-- *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
 -- @
 scientificCodec :: JSONCodec Scientific
 scientificCodec = NumberCodec Nothing Nothing
@@ -840,77 +838,139 @@ boundedIntegralNumberBounds =
 
 -- | A codec for a literal piece of 'Text'.
 --
+-- During parsing, only the given 'Text' is accepted.
+--
+-- During rendering, the given 'Text' is always output.
+--
 -- === Example usage
 --
--- >>> let c = literalText "hello"
+-- >>> let c = literalTextCodec "hello"
 -- >>> toJSONVia c "hello"
+-- String "hello"
+-- >>> toJSONVia c "world"
 -- String "hello"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "hello")
 -- Just "hello"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "world")
 -- Nothing
-literalText :: Text -> JSONCodec Text
-literalText text = EqCodec text textCodec
+literalTextCodec :: Text -> JSONCodec Text
+literalTextCodec text = EqCodec text textCodec
 
 -- | A codec for a literal value corresponding to a literal piece of 'Text'.
 --
+-- During parsing, only the given 'Text' is accepted.
+--
+-- During rendering, the given @value@ is always output.
+--
 -- === Example usage
 --
--- >>> let c = literalTextValue True "yes"
+-- >>> let c = literalTextValueCodec True "yes"
 -- >>> toJSONVia c True
+-- String "yes"
+-- >>> toJSONVia c False
 -- String "yes"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "yes") :: Maybe Bool
 -- Just True
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "no") :: Maybe Bool
 -- Nothing
-literalTextValue :: value -> Text -> JSONCodec value
-literalTextValue value text = dimapCodec (const value) (const text) (literalText text)
+literalTextValueCodec :: value -> Text -> JSONCodec value
+literalTextValueCodec value text = dimapCodec (const value) (const text) (literalTextCodec text)
 
--- |
+-- | A choice codec, but unlike 'eitherCodec', it's for the same type instead of different ones.
 --
--- TODO docs, example and footguns
+-- While parsing, this codec will first try the left codec, then the right if that fails.
+--
+-- While rendering, the provided function is used to decide which codec to use for rendering.
+--
+-- Note: The reason this is less primitive than the 'eitherCodec' is that 'Either' makes it clear which codec you want to use for rendering.
+-- In this case, we need to provide our own function for choosing which codec we want to use for rendering.
+--
+-- === Example usage
+--
+-- >>> :{
+--   let c =
+--        matchChoiceCodec
+--         (literalTextCodec "even")
+--         (literalTextCodec "odd")
+--         (\s -> if s == "even" then Left s else Right s)
+-- :}
+--
+-- >>> toJSONVia c "even"
+-- String "even"
+-- >>> toJSONVia c "odd"
+-- String "odd"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "even") :: Maybe Text
+-- Just "even"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "odd") :: Maybe Text
+-- Just "odd"
 matchChoiceCodec ::
-  forall input output newInput context.
-  -- |
-  (newInput -> Maybe input, Codec context input output) ->
-  -- |
-  (newInput -> Maybe input, Codec context input output) ->
+  -- | First codec
+  Codec context input output ->
+  -- | Second codec
+  Codec context input output ->
+  -- | Rendering chooser
+  (newInput -> Either input input) ->
   -- |
   Codec context newInput output
-matchChoiceCodec (f1, c1) (f2, c2) =
-  dimapCodec f g $
+matchChoiceCodec c1 c2 renderingChooser =
+  dimapCodec f renderingChooser $
     eitherCodec c1 c2
   where
     f = \case
       Left a -> a
       Right a -> a
-    g :: newInput -> Either input input
-    g newInput = case f1 newInput of
-      Just input -> Left input
-      Nothing -> case f2 newInput of
-        Just input -> Right input
-        Nothing -> error "no match"
 
--- |
+-- | A choice codec for a list of options, each with their own rendering matcher.
 --
--- TODO docs, example  and footguns
+-- During parsing, each of the codecs are tried from first to last until one succeeds.
+--
+-- During rendering, each matching function is tried until either one succeeds and the corresponding codec is used, or none succeed and the fallback codec is used.
+--
+-- === Example usage
+--
+-- >>> :{
+--   let c =
+--        matchChoicesCodec
+--          [ (\s -> if s == "even" then Just s else Nothing, literalTextCodec "even")
+--          , (\s -> if s == "odd" then Just s else Nothing, literalTextCodec "odd")
+--          ] (literalTextCodec "fallback")
+-- :}
+--
+-- >>> toJSONVia c "even"
+-- String "even"
+-- >>> toJSONVia c "odd"
+-- String "odd"
+-- >>> toJSONVia c "foobar"
+-- String "fallback"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "even") :: Maybe Text
+-- Just "even"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "odd") :: Maybe Text
+-- Just "odd"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "foobar") :: Maybe Text
+-- Nothing
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "fallback") :: Maybe Text
+-- Just "fallback"
 matchChoicesCodec ::
-  forall input output context.
-  -- |
-  NonEmpty (input -> Maybe input, Codec context input output) ->
+  -- | Codecs, each which their own rendering matcher
+  [(input -> Maybe input, Codec context input output)] ->
+  -- | Fallback codec, in case none of the matchers in the list match
+  Codec context input output ->
   -- |
   Codec context input output
-matchChoicesCodec ((f, c) :| rest) = case NE.nonEmpty rest of
-  Nothing -> c
-  Just ne ->
-    matchChoiceCodec
-      (f, c)
-      (Just, matchChoicesCodec ne)
+matchChoicesCodec l fallback = go l
+  where
+    go = \case
+      [] -> fallback
+      ((m, c) : rest) -> matchChoiceCodec c (go rest) $ \i -> case m i of
+        Just j -> Left j
+        Nothing -> Right i
 
 -- | Use one codec for the default way of parsing and rendering, but then also
 -- use a list of other codecs for potentially different parsing.
 --
 -- You can use this for keeping old ways of parsing intact while already rendering in the new way.
+--
+-- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternatives shownBoundedEnumCodec [stringConstCodec [(Apple, "foo"), (Orange, "bar")]]
@@ -926,11 +986,17 @@ parseAlternatives ::
   -- | Alternative codecs just for parsing
   [Codec context input output] ->
   Codec context input output
-parseAlternatives c cRest =
-  matchChoicesCodec $
-    (Just, c) :| map (\c' -> (const Nothing, c')) cRest
+parseAlternatives c rest = go (c :| rest)
+  where
+    go :: NonEmpty (Codec context input output) -> Codec context input output
+    go = \case
+      (c' :| cRest) -> case NE.nonEmpty cRest of
+        Nothing -> c'
+        Just ne' -> matchChoiceCodec c' (go ne') Left
 
 -- | Like 'parseAlternatives', but with only one alternative codec
+--
+-- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternative shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
@@ -960,17 +1026,15 @@ enumCodec ::
   NonEmpty (enum, Codec context enum enum) ->
   -- |
   Codec context enum enum
-enumCodec =
-  matchChoicesCodec
-    . NE.map
-      ( \(constant, c) ->
-          ( \constant' ->
-              if constant' == constant
-                then Just constant'
-                else Nothing,
-            c
-          )
-      )
+enumCodec = go
+  where
+    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
+    go ((e, c) :| rest) = case NE.nonEmpty rest of
+      Nothing -> c
+      Just ne -> matchChoiceCodec c (go ne) $ \i ->
+        if e == i
+          then Left e
+          else Right i
 
 -- | A codec for an enum that can be written as constant string values>
 --
@@ -1002,7 +1066,7 @@ stringConstCodec =
     . NE.map
       ( \(constant, text) ->
           ( constant,
-            literalTextValue constant text
+            literalTextValueCodec constant text
           )
       )
 
@@ -1045,7 +1109,12 @@ orNullHelper = dimapCodec f g
       Nothing -> Nothing
       Just a -> Just (Just a)
 
--- | Forward-compatible version of 'ReferenceCodec'
+-- | Name a codec.
+--
+-- This is used to allow for references to the codec, and that's necessary
+-- to produce finite documentation for recursive codecs.
+--
+-- Forward-compatible version of 'ReferenceCodec'
 --
 -- > named = ReferenceCodec
 named :: Text -> ValueCodec input output -> ValueCodec input output

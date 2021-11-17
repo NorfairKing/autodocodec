@@ -66,8 +66,8 @@ module Autodocodec
     scientificCodec,
     boundedIntegralCodec,
     boundedIntegralNumberBounds,
-    literalText,
-    literalTextValue,
+    literalTextCodec,
+    literalTextValueCodec,
     (<?>),
     (<??>),
 
