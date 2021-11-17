@@ -19,11 +19,11 @@ import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
--- | Parse a JSON Value via the codec for the type that is being parsed.
+-- | Implement 'JSON.parseJSON' via a type's codec.
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
 
--- | Parse a JSON Value via a codec for the type that is being parsed.
+-- | Implement 'JSON.parseJSON' via a given codec.
 parseJSONVia :: ValueCodec void a -> JSON.Value -> JSON.Parser a
 parseJSONVia = parseJSONContextVia
 

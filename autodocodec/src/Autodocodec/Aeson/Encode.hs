@@ -18,11 +18,11 @@ import Data.Text (Text)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
--- | Encode a value using its JSON codec.
+-- | Implement 'JSON.toJSON' via a type's codec.
 toJSONViaCodec :: HasCodec a => a -> JSON.Value
 toJSONViaCodec = toJSONVia codec
 
--- | Encode a value using a codec for it.
+-- | Implement 'JSON.toJSON' via a given codec.
 toJSONVia :: ValueCodec a void -> a -> JSON.Value
 toJSONVia = flip go
   where
@@ -65,9 +65,11 @@ toJSONVia = flip go
         Right a2 -> goObject a2 c2
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
+-- | Implement 'JSON.toEncoding' via a type's codec.
 toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding
 toEncodingViaCodec = toEncodingVia codec
 
+-- | Implement 'JSON.toEncoding' via the given codec.
 toEncodingVia :: ValueCodec a void -> a -> JSON.Encoding
 toEncodingVia = flip go
   where

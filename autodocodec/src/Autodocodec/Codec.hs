@@ -279,15 +279,21 @@ type ValueCodec = Codec JSON.Value
 -- This cannot be used in certain places where 'ValueCodec' could be used, and vice versa.
 type ObjectCodec = Codec JSON.Object
 
--- | A completed autodocodec
+-- | A completed autodocodec for parsing and rendering a 'JSON.Value'.
 --
 -- You can use a value of this type to get everything else for free:
 --
--- * Encode values to JSON using 'toJSONViaCodec' from @autodocodec-aeson@
--- * Decode values from JSON using 'parseJSONViaCodec' from @autodocodec-aeson@
--- * Produce a JSON Schema using 'jsonSchemaViaCodec' from @autodocodec-aeson@
+-- * Encode values to JSON using 'toJSONViaCodec' or 'toJSONVia'
+-- * Decode values from JSON using 'parseJSONViaCodec' or 'parseJSONVia'
+-- * Produce a JSON Schema using 'jsonSchemaViaCodec' or 'jsonSchemaVia' from @autodocodec-schema@
+-- * Encode to and decode from Yaml using @autodocodec-yaml@
 -- * Produce a human-readible YAML schema using @renderColouredSchemaViaCodec@ from @autodocodec-yaml@
+-- * Produce a Swagger2 schema using @autodocodec-swagger2@
+-- * Produce a OpenAPI3 schema using @autodocodec-openapi3@
 type JSONCodec a = ValueCodec a a
+
+-- | A completed autodocodec for parsing and rendering a 'JSON.Object'.
+type JSONObjectCodec a = ObjectCodec a a
 
 -- | Show a codec to a human.
 --

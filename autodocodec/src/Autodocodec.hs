@@ -15,6 +15,7 @@ module Autodocodec
 
     -- * Codec
     JSONCodec,
+    JSONObjectCodec,
     HasCodec (..),
 
     -- * Writing a codec
