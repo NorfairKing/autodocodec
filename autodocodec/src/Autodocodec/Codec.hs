@@ -954,12 +954,12 @@ parseAlternative c cAlt = parseAlternatives c [cAlt]
 --
 -- If you don't provide a string for one of the type's constructors, the last codec in the list will be used instead.
 enumCodec ::
-  forall enum.
+  forall enum context.
   Eq enum =>
   -- |
-  NonEmpty (enum, JSONCodec enum) ->
+  NonEmpty (enum, Codec context enum enum) ->
   -- |
-  JSONCodec enum
+  Codec context enum enum
 enumCodec =
   matchChoicesCodec
     . NE.map
