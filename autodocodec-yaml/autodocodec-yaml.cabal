@@ -22,9 +22,9 @@ source-repository head
 library
   exposed-modules:
       Autodocodec.Yaml
-      Autodocodec.Yaml.Document
       Autodocodec.Yaml.Encode
       Autodocodec.Yaml.IO
+      Autodocodec.Yaml.Schema
   other-modules:
       Paths_autodocodec_yaml
   hs-source-dirs:

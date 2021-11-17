@@ -5,7 +5,7 @@
 module Autodocodec.Yaml.IO where
 
 import Autodocodec
-import Autodocodec.Yaml.Document
+import Autodocodec.Yaml.Schema
 import qualified Data.ByteString as SB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE

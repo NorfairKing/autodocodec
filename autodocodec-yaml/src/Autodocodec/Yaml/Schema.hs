@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.Yaml.Document where
+module Autodocodec.Yaml.Schema where
 
 import Autodocodec
 import Autodocodec.Schema

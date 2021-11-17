@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.Yaml.DocumentSpec (spec) where
+module Autodocodec.Yaml.SchemaSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Usage

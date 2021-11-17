@@ -57,7 +57,7 @@ test-suite autodocodec-api-usage-test
       Autodocodec.OpenAPISpec
       Autodocodec.ShowSpec
       Autodocodec.SwaggerSpec
-      Autodocodec.Yaml.DocumentSpec
+      Autodocodec.Yaml.SchemaSpec
       Autodocodec.YamlSpec
       Paths_autodocodec_api_usage
   hs-source-dirs:
