@@ -84,8 +84,14 @@ module Autodocodec
     shownBoundedEnumCodec,
     stringConstCodec,
     enumCodec,
-    matchChoicesCodec,
+
+    -- *** Alternative parsing
+    parseAlternative,
+    parseAlternatives,
+
+    -- *** Choice
     matchChoiceCodec,
+    matchChoicesCodec,
 
     -- * Bare codec
     Codec (..),

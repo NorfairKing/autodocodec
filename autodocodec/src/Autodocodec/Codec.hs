@@ -1042,7 +1042,7 @@ enumCodec = go
           then Left e
           else Right i
 
--- | A codec for an enum that can be written as constant string values>
+-- | A codec for an enum that can be written as constant string values
 --
 -- === Example usage
 --
