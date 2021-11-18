@@ -19,6 +19,20 @@
                 }
             ]
         },
+        "single-or-list": {
+            "$comment": "an optional list that can also be specified as a single element",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            ]
+        },
         "text": {
             "$comment": "a text",
             "type": "string"

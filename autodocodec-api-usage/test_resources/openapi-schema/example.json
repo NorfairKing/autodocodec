@@ -23,6 +23,21 @@
                         "additionalProperties": true,
                         "description": "a maybe text"
                     },
+                    "single-or-list": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "additionalProperties": true,
+                        "description": "an optional list that can also be specified as a single element"
+                    },
                     "text": {
                         "type": "string",
                         "description": "a text"

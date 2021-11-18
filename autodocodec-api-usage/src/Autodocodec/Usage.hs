@@ -86,6 +86,7 @@ data Example = Example
     exampleOptionalOrNull :: !(Maybe Text),
     exampleOptionalWithDefault :: !Text,
     exampleOptionalWithNullDefault :: ![Text],
+    exampleSingleOrList :: ![Text],
     exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
@@ -109,6 +110,7 @@ instance HasCodec Example where
         <*> optionalFieldOrNull "optional-or-null" "an optional-or-null text" .= exampleOptionalOrNull
         <*> optionalFieldWithDefault "optional-with-default" "foobar" "an optional text with a default" .= exampleOptionalWithDefault
         <*> optionalFieldWithOmittedDefault "optional-with-null-default" [] "an optional list of texts with a default empty list where the empty list would be omitted" .= exampleOptionalWithNullDefault
+        <*> optionalFieldWithOmittedDefaultWith "single-or-list" (singleOrListCodec codec) [] "an optional list that can also be specified as a single element" .= exampleSingleOrList
         <*> requiredField "fruit" "fruit!!" .= exampleFruit
 
 instance ToJSON Example where
@@ -129,6 +131,11 @@ instance ToJSON Example where
           ],
           [ "optional-with-null-default" JSON..= exampleOptionalWithNullDefault
             | not (null exampleOptionalWithNullDefault)
+          ],
+          [ case exampleSingleOrList of
+              [e] -> "single-or-list" JSON..= e
+              l -> "single-or-list" JSON..= l
+            | not (null exampleSingleOrList)
           ]
         ]
 
@@ -142,6 +149,9 @@ instance FromJSON Example where
       <*> o JSON..:? "optional-or-null"
       <*> o JSON..:? "optional-with-default" JSON..!= "foobar"
       <*> o JSON..:? "optional-with-null-default" JSON..!= []
+      <*> ( ((: []) <$> o JSON..: "single-or-list")
+              <|> (o JSON..:? "single-or-list" JSON..!= [])
+          )
       <*> o JSON..: "fruit"
 
 -- | A simple Recursive type

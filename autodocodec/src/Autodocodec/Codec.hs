@@ -513,6 +513,68 @@ nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
       Nothing -> Left "Expected a nonempty list, but got an empty list."
       Just ne -> Right ne
 
+-- | Like 'listCodec', except the values may also be simplified as a single value.
+--
+-- During parsing, a single element may be parsed as the list of just that element.
+-- During rendering, a list with only one element will be rendered as just that element.
+--
+-- === Example usage
+--
+-- >>> let c = singleOrListCodec codec :: JSONCodec [Int]
+-- >>> toJSONVia c [5]
+-- Number 5.0
+-- >>> toJSONVia c [5,6]
+-- Array [Number 5.0,Number 6.0]
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5) :: Maybe [Int]
+-- Just [5]
+-- >>> JSON.parseMaybe (parseJSONVia c) (Array [Number 5, Number 6]) :: Maybe [Int]
+-- Just [5,6]
+--
+-- === WARNING
+--
+-- If you use nested lists, for example when the given value codec is also a
+-- 'listCodec', you may get in trouble with ambiguities during parsing.
+singleOrListCodec :: ValueCodec input output -> ValueCodec [input] [output]
+singleOrListCodec c = dimapCodec f g $ eitherCodec c $ listCodec c
+  where
+    f = \case
+      Left v -> [v]
+      Right vs -> vs
+    g = \case
+      [v] -> Left v
+      vs -> Right vs
+
+-- | Like 'nonEmptyCodec', except the values may also be simplified as a single value.
+--
+-- During parsing, a single element may be parsed as the list of just that element.
+-- During rendering, a list with only one element will be rendered as just that element.
+--
+-- === Example usage
+--
+-- >>> let c = singleOrNonEmptyCodec codec :: JSONCodec (NonEmpty Int)
+-- >>> toJSONVia c (5 :| [])
+-- Number 5.0
+-- >>> toJSONVia c (5 :| [6])
+-- Array [Number 5.0,Number 6.0]
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5) :: Maybe (NonEmpty Int)
+-- Just (5 :| [])
+-- >>> JSON.parseMaybe (parseJSONVia c) (Array [Number 5, Number 6]) :: Maybe (NonEmpty Int)
+-- Just (5 :| [6])
+--
+-- === WARNING
+--
+-- If you use nested lists, for example when the given value codec is also a
+-- 'nonEmptyCodec', you may get in trouble with ambiguities during parsing.
+singleOrNonEmptyCodec :: ValueCodec input output -> ValueCodec (NonEmpty input) (NonEmpty output)
+singleOrNonEmptyCodec c = dimapCodec f g $ eitherCodec c $ nonEmptyCodec c
+  where
+    f = \case
+      Left v -> v :| []
+      Right vs -> vs
+    g = \case
+      v :| [] -> Left v
+      vs -> Right vs
+
 -- | A required field
 --
 -- During decoding, the field must be in the object.

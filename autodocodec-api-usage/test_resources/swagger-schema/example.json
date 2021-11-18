@@ -19,6 +19,10 @@
                     "additionalProperties": true,
                     "description": "a maybe text"
                 },
+                "single-or-list": {
+                    "additionalProperties": true,
+                    "description": "an optional list that can also be specified as a single element"
+                },
                 "text": {
                     "type": "string",
                     "description": "a text"

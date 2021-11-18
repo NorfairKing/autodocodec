@@ -26,6 +26,12 @@
   # default: [35m[][m
   # an optional list of texts with a default empty list where the empty list would be omitted
   - [33m<string>[m
+[37msingle-or-list[m: # [34moptional[m
+  # default: [35m[][m
+  # an optional list that can also be specified as a single element
+  [ [33m<string>[m
+  , - [33m<string>[m
+  ]
 [37mfruit[m: # [31mrequired[m
   # fruit!!
   [ Apple
