@@ -13,7 +13,10 @@ author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
 copyright:      2021 Tom Sydney Kerckhove
 license:        MIT
+license-file:   LICENSE
 build-type:     Simple
+extra-source-files:
+    LICENSE
 
 source-repository head
   type: git

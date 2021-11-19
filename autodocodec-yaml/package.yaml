@@ -5,7 +5,11 @@ license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
-synopsis: Self-documenting encoder and decoder for yaml
+synopsis: Autodocodec interpreters for yaml
+
+extra-source-files:
+- LICENSE
+- CHANGELOG.md
 
 dependencies:
 - base >= 4.7 && < 5

@@ -6,14 +6,18 @@ cabal-version: 1.12
 
 name:           autodocodec-openapi3
 version:        0.0.0.0
-synopsis:       OpenAPI3 support for autodocodecs
+synopsis:       Autodocodec interpreters for openapi3
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
 author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
 copyright:      2021 Tom Sydney Kerckhove
 license:        MIT
+license-file:   LICENSE
 build-type:     Simple
+extra-source-files:
+    LICENSE
+    CHANGELOG.md
 
 source-repository head
   type: git

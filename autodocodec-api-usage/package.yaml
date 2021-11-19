@@ -7,6 +7,9 @@ maintainer: "syd@cs-syd.eu"
 copyright: "2021 Tom Sydney Kerckhove"
 synopsis: Autodocodec api usage tests
 
+extra-source-files:
+- LICENSE
+
 dependencies:
 - base >= 4.7 && < 5
 
