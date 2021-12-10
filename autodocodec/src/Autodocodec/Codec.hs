@@ -33,7 +33,7 @@ import qualified Data.Vector as V
 import GHC.Generics (Generic)
 
 -- $setup
--- >>> import Autodocodec.Aeson (toJSONVia, parseJSONVia)
+-- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia)
 -- >>> import Autodocodec.Class (HasCodec(codec))
 -- >>> import qualified Data.Aeson as JSON
 -- >>> import Data.Aeson (Value(..))
@@ -42,6 +42,7 @@ import GHC.Generics (Generic)
 -- >>> import Data.Word
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
+-- >>> :set -XLambdaCase
 
 -- | A Self-documenting encoder and decoder,
 --
@@ -390,6 +391,9 @@ lmapCodec g = dimapCodec id g
 --
 -- You can use this function to change the type of a codec as long as the two
 -- functions are inverses.
+--
+-- === 'HasCodec' instance for newtypes
+--
 -- A good use-case is implementing 'HasCodec' for newtypes:
 --
 -- > newtype MyInt = MyInt { unMyInt :: Int }
@@ -446,6 +450,33 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 -- | Forward-compatible version of 'EitherCodec'
 --
 -- > eitherCodec = EitherCodec
+--
+-- === 'HasCodec' instance for sum types
+--
+-- The 'eitherCodec' can be used to implement 'HasCodec' instances for newtypes.
+-- If you just have two codecs that you want to try in order, while parsing, you can do this:
+--
+-- >>> data War = WorldWar Word8 | OtherWar Text
+-- >>> :{
+--   instance HasCodec War where
+--    codec =
+--      dimapCodec f g $
+--        eitherCodec
+--          (codec :: JSONCodec Word8)
+--          (codec :: JSONCodec Text)
+--      where
+--        f = \case
+--          Left w -> WorldWar w
+--          Right t -> OtherWar t
+--        g = \case
+--          WorldWar w -> Left w
+--          OtherWar t -> Right t
+-- :}
+--
+-- >>> toJSONViaCodec (WorldWar 2)
+-- Number 2.0
+-- >>> toJSONViaCodec (OtherWar "OnDrugs")
+-- String "OnDrugs"
 --
 -- === Example usage
 --
