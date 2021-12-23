@@ -77,6 +77,9 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
     oneOfChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
     oneOfChunks = (["# ", fore green "one of"] :) . choiceChunks
 
+    orNullChunks :: JSONSchema -> [[Chunk]]
+    orNullChunks = (["# ", fore green "or null"] :) . go
+
     go :: JSONSchema -> [[Chunk]]
     go = \case
       AnySchema -> [[fore yellow "<any>"]]
@@ -104,8 +107,14 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
         addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
       ObjectSchema os -> goObject os
       ValueSchema v -> [[jsonValueChunk v]]
-      AnyOfSchema ne -> anyOfChunks $ NE.map go ne
-      OneOfSchema ne -> oneOfChunks $ NE.map go ne
+      AnyOfSchema ne -> case ne of
+        (NullSchema :| [s]) -> orNullChunks s
+        (s :| [NullSchema]) -> orNullChunks s
+        _ -> anyOfChunks $ NE.map go ne
+      OneOfSchema ne -> case ne of
+        (NullSchema :| [s]) -> orNullChunks s
+        (s :| [NullSchema]) -> orNullChunks s
+        _ -> oneOfChunks $ NE.map go ne
       CommentSchema comment s -> docToLines comment ++ go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
       WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs)

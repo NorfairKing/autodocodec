@@ -5,6 +5,7 @@
 ### Changed
 
 * Support for `autodocodec-schema >=0.1.0.0` with comments for `anyOf` and `oneOf`.
+* Added special support for 'or null'.
 
 ## [0.0.0.0] - 2021-11-19
 

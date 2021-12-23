@@ -7,19 +7,15 @@
   [33m<boolean>[m
 [37mmaybe[m: # [31mrequired[m
   # a maybe text
-  # [32many of[m
-  [ [33mnull[m
-  , [33m<string>[m
-  ]
+  # [32mor null[m
+  [33m<string>[m
 [37moptional[m: # [34moptional[m
   # an optional text
   [33m<string>[m
 [37moptional-or-null[m: # [34moptional[m
   # an optional-or-null text
-  # [32many of[m
-  [ [33mnull[m
-  , [33m<string>[m
-  ]
+  # [32mor null[m
+  [33m<string>[m
 [37moptional-with-default[m: # [34moptional[m
   # default: [35mfoobar[m
   # an optional text with a default
