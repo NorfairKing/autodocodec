@@ -57,25 +57,32 @@ module Autodocodec
     optionalFieldOrNullWithOmittedDefaultWith',
 
     -- ** Writing your own value codecs.
-    maybeCodec,
-    eitherCodec,
-    listCodec,
-    nonEmptyCodec,
-    singleOrListCodec,
-    singleOrNonEmptyCodec,
-    vectorCodec,
-    valueCodec,
+
+    -- *** Primitive codecs
     nullCodec,
     boolCodec,
     textCodec,
     stringCodec,
     scientificCodec,
+    valueCodec,
+
+    -- *** Integral codecs
     boundedIntegralCodec,
     boundedIntegralNumberBounds,
+
+    -- *** Literal value codecs
     literalTextCodec,
     literalTextValueCodec,
-    (<?>),
-    (<??>),
+
+    -- *** Enums
+    shownBoundedEnumCodec,
+    stringConstCodec,
+    enumCodec,
+
+    -- *** Sum type codecs
+    eitherCodec,
+    disjointEitherCodec,
+    possiblyJointEitherCodec,
 
     -- *** Mapping
     dimapCodec,
@@ -83,10 +90,13 @@ module Autodocodec
     rmapCodec,
     lmapCodec,
 
-    -- *** Enums
-    shownBoundedEnumCodec,
-    stringConstCodec,
-    enumCodec,
+    -- *** Composing codecs
+    maybeCodec,
+    listCodec,
+    nonEmptyCodec,
+    singleOrListCodec,
+    singleOrNonEmptyCodec,
+    vectorCodec,
 
     -- *** Alternative parsing
     parseAlternative,
@@ -95,6 +105,10 @@ module Autodocodec
     -- *** Choice
     matchChoiceCodec,
     matchChoicesCodec,
+
+    -- *** Adding documentation to a codec
+    (<?>),
+    (<??>),
 
     -- * Bare codec
     Codec (..),

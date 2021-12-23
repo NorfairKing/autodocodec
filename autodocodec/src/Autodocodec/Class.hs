@@ -103,7 +103,7 @@ instance HasCodec a => HasCodec (Maybe a) where
 
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
-    eitherCodec
+    disjointEitherCodec
       (ObjectOfCodec Nothing (requiredField' "Left"))
       (ObjectOfCodec Nothing (requiredField' "Right"))
 

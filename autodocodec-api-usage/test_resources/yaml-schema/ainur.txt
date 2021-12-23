@@ -1,0 +1,13 @@
+# [32many of[m
+[ # Valar
+  [37mdomain[m: # [31mrequired[m
+    # Domain which the Valar rules over
+    [33m<string>[m
+  [37mname[m: # [31mrequired[m
+    # Name of the Valar
+    [33m<string>[m
+, # Maiar
+  [37mname[m: # [31mrequired[m
+    # Name of the Maiar
+    [33m<string>[m
+]

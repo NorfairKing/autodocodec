@@ -80,6 +80,8 @@ spec = do
   openAPISchemaSpec @VeryComment "very-comment"
   openAPISchemaSpec @LegacyValue "legacy-value"
   openAPISchemaSpec @LegacyObject "legacy-object"
+  openAPISchemaSpec @Ainur "ainur"
+  openAPISchemaSpec @War "war"
 
 openAPISchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =

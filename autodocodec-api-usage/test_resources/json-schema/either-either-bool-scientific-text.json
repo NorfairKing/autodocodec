@@ -1,5 +1,5 @@
 {
-    "anyOf": [
+    "oneOf": [
         {
             "required": [
                 "Left"
@@ -7,7 +7,7 @@
             "type": "object",
             "properties": {
                 "Left": {
-                    "anyOf": [
+                    "oneOf": [
                         {
                             "required": [
                                 "Left"

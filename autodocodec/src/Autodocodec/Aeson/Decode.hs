@@ -88,12 +88,26 @@ parseJSONContextVia codec_ context_ =
         case f old of
           Left err -> fail err
           Right new -> pure new
-      EitherCodec c1 c2 ->
+      EitherCodec u c1 c2 ->
         let leftParser = (\v -> Left <$> go v c1)
-            rightParser = Right <$> go value c2
-         in case parseEither leftParser value of
-              Right l -> pure l
-              Left err -> prependFailure ("  Previous branch failure: " <> err <> "\n") rightParser
+            rightParser = (\v -> Right <$> go v c2)
+         in case u of
+              PossiblyJointUnion ->
+                case parseEither leftParser value of
+                  Right l -> pure l
+                  Left err -> prependFailure ("  Previous branch failure: " <> err <> "\n") (rightParser value)
+              DisjointUnion ->
+                case (parseEither leftParser value, parseEither rightParser value) of
+                  (Left _, Right r) -> pure r
+                  (Right l, Left _) -> pure l
+                  (Right _, Right _) -> fail "Both branches of a disjoint union succeeded."
+                  (Left lErr, Left rErr) ->
+                    fail $
+                      unlines
+                        [ "Both branches of a disjoint union failed: ",
+                          unwords ["Left:  ", lErr],
+                          unwords ["Right: ", rErr]
+                        ]
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do

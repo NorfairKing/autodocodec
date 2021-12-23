@@ -1,3 +1,4 @@
 Error in $: 
-  Previous branch failure: Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array
-parsing HashMap ~Text failed, expected Object, but encountered Array
+Both branches of a disjoint union failed: 
+Left:   Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array
+Right:  Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array

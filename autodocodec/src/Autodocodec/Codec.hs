@@ -33,9 +33,10 @@ import qualified Data.Vector as V
 import GHC.Generics (Generic)
 
 -- $setup
--- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia)
--- >>> import Autodocodec.Class (HasCodec(codec))
+-- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia, parseJSONViaCodec)
+-- >>> import Autodocodec.Class (HasCodec(codec), requiredField)
 -- >>> import qualified Data.Aeson as JSON
+-- >>> import qualified Data.HashMap.Strict as HM
 -- >>> import Data.Aeson (Value(..))
 -- >>> import qualified Data.Vector as Vector
 -- >>> import Data.Int
@@ -159,6 +160,8 @@ data Codec context input output where
   -- In particular, you should prefer using it for values rather than objects,
   -- because those docs are easier to generate.
   EitherCodec ::
+    -- | What type of union we encode and decode
+    !Union ->
     -- | Codec for the 'Left' side
     (Codec context input1 output1) ->
     -- | Codec for the 'Right' side
@@ -257,6 +260,7 @@ data NumberBounds = NumberBounds
 
 instance Validity NumberBounds
 
+-- | Check if a number falls within given 'NumberBounds'.
 checkNumberBounds :: NumberBounds -> Scientific -> Either String Scientific
 checkNumberBounds NumberBounds {..} s =
   if numberBoundsLower <= s
@@ -265,6 +269,16 @@ checkNumberBounds NumberBounds {..} s =
         then Right s
         else Left $ unwords ["Number", show s, "is bigger than the upper bound", show numberBoundsUpper]
     else Left $ unwords ["Number", show s, "is smaller than the lower bound", show numberBoundsUpper]
+
+-- | What type of union the encoding uses
+data Union
+  = -- | Not disjoint, see 'possiblyJointEitherCodec'.
+    PossiblyJointUnion
+  | -- | Disjoint, see 'disjointEitherCodec'.
+    DisjointUnion
+  deriving (Show, Eq, Generic)
+
+instance Validity Union
 
 -- | A codec within the 'JSON.Value' context.
 --
@@ -316,7 +330,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
-      EitherCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
@@ -438,7 +452,11 @@ instance Applicative (ObjectCodec input) where
 -- >>> toJSONVia (maybeCodec codec) (Nothing :: Maybe Char)
 -- Null
 maybeCodec :: ValueCodec input output -> ValueCodec (Maybe input) (Maybe output)
-maybeCodec = dimapCodec f g . EitherCodec nullCodec
+maybeCodec =
+  -- We must use 'possiblyJointEitherCodec' here, otherwise a codec for (Maybe
+  -- (Maybe Text)) will fail to parse.
+  dimapCodec f g
+    . possiblyJointEitherCodec nullCodec
   where
     f = \case
       Left () -> Nothing
@@ -449,19 +467,113 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 
 -- | Forward-compatible version of 'EitherCodec'
 --
--- > eitherCodec = EitherCodec
+-- > eitherCodec = EitherCodec PossiblyJointUnion
 --
 -- === 'HasCodec' instance for sum types
 --
--- The 'eitherCodec' can be used to implement 'HasCodec' instances for newtypes.
+-- To write a 'HasCodec' instance for sum types, you will need to decide whether encoding is disjoint or not.
+-- The default, so also the implementation of this function, is 'possiblyJointEitherCodec', but you may want to use 'disjointEitherCodec' instead.
+--
+-- Ask yourself: Can the encoding of a 'Left' value be decoded as 'Right' value (or vice versa)?
+--
+-- @Yes ->@ use 'possiblyJointEitherCodec'.
+--
+-- @No  ->@ use 'disjointEitherCodec'.
+--
+-- === Example usage
+--
+-- >>> let c = eitherCodec codec codec :: JSONCodec (Either Int String)
+-- >>> toJSONVia c (Left 5)
+-- Number 5.0
+-- >>> toJSONVia c (Right "hello")
+-- String "hello"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "world") :: Maybe (Either Int String)
+-- Just (Right "world")
+eitherCodec ::
+  -- |
+  Codec context input1 output1 ->
+  -- |
+  Codec context input2 output2 ->
+  -- |
+  Codec context (Either input1 input2) (Either output1 output2)
+eitherCodec = possiblyJointEitherCodec
+
+-- | Forward-compatible version of 'EitherCodec PossiblyJointUnion'
+--
+-- > possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+--
+-- === 'HasCodec' instance for sum types with an encoding that is not disjoint.
+--
+-- The 'eitherCodec' can be used to implement 'HasCodec' instances for sum types.
 -- If you just have two codecs that you want to try in order, while parsing, you can do this:
 --
--- >>> data War = WorldWar Word8 | OtherWar Text
+-- >>> :{
+--   data Ainur
+--     = Valar Text Text
+--     | Maiar Text
+--     deriving (Show, Eq)
+-- :}
+--
+-- >>> :{
+--   instance HasCodec Ainur where
+--     codec =
+--       dimapCodec f g $
+--         possiblyJointEitherCodec
+--           (object "Valar" $
+--             (,)
+--              <$> requiredField "domain" "Domain which the Valar rules over" .= fst
+--              <*> requiredField "name" "Name of the Valar" .= snd)
+--           (object "Maiar" $ requiredField "name" "Name of the Maiar")
+--       where
+--         f = \case
+--           Left (domain, name) -> Valar domain name
+--           Right name -> Maiar name
+--         g = \case
+--           Valar domain name -> Left (domain, name)
+--           Maiar name -> Right name
+-- :}
+--
+-- Note that this encoding is indeed not disjoint, because a @Valar@ object can
+-- parse as a @Maiar@ value.
+--
+-- >>> toJSONViaCodec (Valar "Stars" "Varda")
+-- Object (fromList [("domain",String "Stars"),("name",String "Varda")])
+-- >>> toJSONViaCodec (Maiar "Sauron")
+-- Object (fromList [("name",String "Sauron")])
+-- >>> JSON.parseMaybe parseJSONViaCodec (Object (HM.fromList [("name",String "Olorin")])) :: Maybe Ainur
+-- Just (Maiar "Olorin")
+--
+-- === WARNING
+--
+-- The order of the codecs in a 'possiblyJointEitherCodec' matters.
+--
+-- In the above example, decoding works as expected because the @Valar@ case is parsed first.
+-- If the @Maiar@ case were first in the 'possiblyJointEitherCodec', then
+-- @Valar@ could never be parsed.
+possiblyJointEitherCodec ::
+  -- |
+  Codec context input1 output1 ->
+  -- |
+  Codec context input2 output2 ->
+  -- |
+  Codec context (Either input1 input2) (Either output1 output2)
+possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+
+-- | Forward-compatible version of 'EitherCodec DisjointUnion'
+--
+-- > disjointEitherCodec = EitherCodec DisjointUnion
+--
+-- === 'HasCodec' instance for sum types with an encoding that is definitely disjoint.
+--
+-- The 'eitherCodec' can be used to implement 'HasCodec' instances sum types
+-- for which the encoding is definitely disjoint.
+--
+-- >>> data War = WorldWar Word8 | OtherWar Text deriving (Show, Eq)
 -- >>> :{
 --   instance HasCodec War where
 --    codec =
 --      dimapCodec f g $
---        eitherCodec
+--        disjointEitherCodec
 --          (codec :: JSONCodec Word8)
 --          (codec :: JSONCodec Text)
 --      where
@@ -473,22 +585,46 @@ maybeCodec = dimapCodec f g . EitherCodec nullCodec
 --          OtherWar t -> Right t
 -- :}
 --
+-- Note that this incoding is indeed disjoint because an encoded 'String' can
+-- never be parsed as an 'Word8' and vice versa.
+--
 -- >>> toJSONViaCodec (WorldWar 2)
 -- Number 2.0
 -- >>> toJSONViaCodec (OtherWar "OnDrugs")
 -- String "OnDrugs"
+-- >>> JSON.parseMaybe parseJSONViaCodec (String "of the roses") :: Maybe War
+-- Just (OtherWar "of the roses")
+--
+-- === WARNING
+--
+-- If it turns out that the encoding of a value is not disjoint, decoding may
+-- fail and documentation may be wrong.
+--
+-- >>> let c = disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec Int)
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5) :: Maybe (Either Int Int)
+-- Nothing
+--
+-- Encoding still works as expected, however:
+--
+-- >>> toJSONVia c (Left 5)
+-- Number 5.0
+-- >>> toJSONVia c (Right 6)
+-- Number 6.0
 --
 -- === Example usage
 --
--- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Left 5)
+-- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Left 5)
 -- Number 5.0
--- >>> toJSONVia (eitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
+-- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
 -- String "hello"
-eitherCodec ::
+disjointEitherCodec ::
+  -- |
   Codec context input1 output1 ->
+  -- |
   Codec context input2 output2 ->
+  -- |
   Codec context (Either input1 input2) (Either output1 output2)
-eitherCodec = EitherCodec
+disjointEitherCodec = EitherCodec DisjointUnion
 
 -- | Map a codec's input and output types.
 --

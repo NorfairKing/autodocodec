@@ -63,6 +63,20 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
     docToLines :: Text -> [[Chunk]]
     docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
 
+    choiceChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
+    choiceChunks = \case
+      chunks :| [] -> addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
+      (chunks :| restChunks) ->
+        concat $
+          addInFrontOfFirstInList ["[ "] chunks :
+          map (addInFrontOfFirstInList [", "]) restChunks ++ [[["]"]]]
+
+    anyOfChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
+    anyOfChunks = (["# ", fore green "any of"] :) . choiceChunks
+
+    oneOfChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
+    oneOfChunks = (["# ", fore green "one of"] :) . choiceChunks
+
     go :: JSONSchema -> [[Chunk]]
     go = \case
       AnySchema -> [[fore yellow "<any>"]]
@@ -90,19 +104,12 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
         addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
       ObjectSchema os -> goObject os
       ValueSchema v -> [[jsonValueChunk v]]
-      ChoiceSchema ne -> choiceChunks $ NE.map go ne
+      AnyOfSchema ne -> anyOfChunks $ NE.map go ne
+      OneOfSchema ne -> oneOfChunks $ NE.map go ne
       CommentSchema comment s -> docToLines comment ++ go s
       RefSchema name -> [[fore cyan $ chunk $ "ref: " <> name]]
       WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs)
       WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : go s') (M.toList defs) ++ go s
-
-    choiceChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
-    choiceChunks = \case
-      chunks :| [] -> addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
-      (chunks :| restChunks) ->
-        concat $
-          addInFrontOfFirstInList ["[ "] chunks :
-          map (addInFrontOfFirstInList [", "]) restChunks ++ [[["]"]]]
 
     goObject :: ObjectSchema -> [[Chunk]]
     goObject = \case
@@ -121,4 +128,5 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                 prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
              in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
       ObjectAllOfSchema ne -> concatMap goObject $ NE.toList ne
-      ObjectChoiceSchema ne -> choiceChunks $ NE.map goObject ne
+      ObjectAnyOfSchema ne -> anyOfChunks $ NE.map goObject ne
+      ObjectOneOfSchema ne -> oneOfChunks $ NE.map goObject ne

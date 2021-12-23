@@ -1,0 +1,35 @@
+{
+    "anyOf": [
+        {
+            "$comment": "Valar",
+            "required": [
+                "name",
+                "domain"
+            ],
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "$comment": "Domain which the Valar rules over",
+                    "type": "string"
+                },
+                "name": {
+                    "$comment": "Name of the Valar",
+                    "type": "string"
+                }
+            }
+        },
+        {
+            "$comment": "Maiar",
+            "required": [
+                "name"
+            ],
+            "type": "object",
+            "properties": {
+                "name": {
+                    "$comment": "Name of the Maiar",
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

@@ -72,6 +72,8 @@ spec = do
   yamlSchemaSpec @VeryComment "very-comment"
   yamlSchemaSpec @LegacyValue "legacy-value"
   yamlSchemaSpec @LegacyObject "legacy-object"
+  yamlSchemaSpec @Ainur "ainur"
+  yamlSchemaSpec @War "war"
 
 yamlSchemaSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

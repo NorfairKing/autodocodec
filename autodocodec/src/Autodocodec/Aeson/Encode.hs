@@ -41,7 +41,7 @@ toJSONVia = flip go
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
@@ -60,7 +60,7 @@ toJSONVia = flip go
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       BimapCodec _ g c -> goObject (g a) c
       PureCodec _ -> mempty
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
@@ -86,7 +86,7 @@ toEncodingVia = flip go
       ValueCodec -> JSON.value (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
@@ -104,7 +104,7 @@ toEncodingVia = flip go
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
       PureCodec _ -> mempty :: JSON.Series
       BimapCodec _ g c -> goObject (g a) c
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2

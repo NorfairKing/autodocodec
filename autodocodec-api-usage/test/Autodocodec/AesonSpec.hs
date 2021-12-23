@@ -92,6 +92,8 @@ spec = do
   aesonCodecSpec @VeryComment
   aesonCodecSpec @LegacyValue
   aesonCodecSpec @LegacyObject
+  aesonCodecSpec @Ainur
+  aesonCodecSpec @War
 
 aesonCodecErrorSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> LB.ByteString -> Spec
 aesonCodecErrorSpec filePath encoded =

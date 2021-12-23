@@ -1,5 +1,5 @@
 name: autodocodec-openapi3
-version: 0.0.0.0
+version: 0.0.1.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -20,6 +20,7 @@ library:
   - aeson
   - autodocodec
   - insert-ordered-containers
-  - scientific
+  - lens
   - openapi3
+  - scientific
   - text

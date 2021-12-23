@@ -104,12 +104,12 @@ declareNamedSchemaVia c' Proxy = go c'
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
       BimapCodec _ _ c -> go c
-      EitherCodec c1 c2 -> do
+      EitherCodec u c1 c2 -> do
         ns1 <- go c1
         let s1 = _namedSchemaSchema ns1
         ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
-        pure $ NamedSchema Nothing $ combineSchemaOr s1 s2
+        pure $ NamedSchema Nothing $ combineSchemaOr u s1 s2
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
@@ -160,10 +160,10 @@ declareNamedSchemaVia c' Proxy = go c'
           ]
       OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
-      EitherCodec oc1 oc2 -> do
+      EitherCodec u oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
-        pure [combineSchemaOr (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
+        pure [combineSchemaOr u (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
@@ -180,8 +180,8 @@ declareNamedSchemaVia c' Proxy = go c'
         }
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
-    combineSchemaOr :: Schema -> Schema -> Schema
-    combineSchemaOr s1 s2 =
+    combineSchemaOr :: Union -> Schema -> Schema -> Schema
+    combineSchemaOr u s1 s2 =
       let ps1 = _schemaParamSchema s1
           ps2 = _schemaParamSchema s2
           -- Swagger 2 doesn't support sum types so we have to work around that here.
@@ -195,7 +195,9 @@ declareNamedSchemaVia c' Proxy = go c'
           -- the schema: one which lets any value through.
           overApproximation =
             mempty
-              { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
+              { _schemaAdditionalProperties = case u of
+                  PossiblyJointUnion -> Just $ AdditionalPropertiesAllowed True
+                  DisjointUnion -> Nothing
               }
        in case (,) <$> _paramSchemaEnum ps1 <*> _paramSchemaEnum ps2 of
             (Just (es1, es2)) ->

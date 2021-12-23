@@ -28,6 +28,7 @@ import Data.Maybe
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.Swagger as Swagger
 import Data.Text (Text)
+import Data.Word
 import GHC.Generics (Generic)
 import Test.QuickCheck
 
@@ -341,3 +342,75 @@ instance HasCodec LegacyObject where
             requiredField "oldest" "oldest key"
           ]
           .= legacyObjectWithHistory
+
+data Ainur
+  = Valar !Text !Text
+  | Maiar !Text
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec Ainur)
+
+instance Validity Ainur
+
+instance NFData Ainur
+
+instance GenValid Ainur where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Ainur where
+  codec =
+    dimapCodec f g $
+      possiblyJointEitherCodec
+        ( object "Valar" $
+            (,)
+              <$> requiredField "domain" "Domain which the Valar rules over" .= fst
+              <*> requiredField "name" "Name of the Valar" .= snd
+        )
+        (object "Maiar" $ requiredField "name" "Name of the Maiar")
+    where
+      f = \case
+        Left (domain, name) -> Valar domain name
+        Right name -> Maiar name
+      g = \case
+        Valar domain name -> Left (domain, name)
+        Maiar name -> Right name
+
+data War
+  = WorldWar !Word8
+  | OtherWar !Text
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec War)
+
+instance Validity War
+
+instance NFData War
+
+instance GenValid War where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec War where
+  codec =
+    dimapCodec f g $
+      disjointEitherCodec
+        (codec :: JSONCodec Word8)
+        (codec :: JSONCodec Text)
+    where
+      f = \case
+        Left w -> WorldWar w
+        Right t -> OtherWar t
+      g = \case
+        WorldWar w -> Left w
+        OtherWar t -> Right t

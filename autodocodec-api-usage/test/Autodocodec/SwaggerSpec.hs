@@ -80,6 +80,8 @@ spec = do
   swaggerSchemaSpec @VeryComment "very-comment"
   swaggerSchemaSpec @LegacyValue "legacy-value"
   swaggerSchemaSpec @LegacyObject "legacy-object"
+  swaggerSchemaSpec @Ainur "ainur"
+  swaggerSchemaSpec @War "war"
 
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =

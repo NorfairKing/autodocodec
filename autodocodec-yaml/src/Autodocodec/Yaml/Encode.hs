@@ -42,7 +42,7 @@ toYamlVia = flip go
       ValueCodec -> yamlValue (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
@@ -60,7 +60,7 @@ toYamlVia = flip go
           then []
           else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ g c -> goObject (g a) c
-      EitherCodec c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
       PureCodec _ -> []

@@ -75,20 +75,23 @@ spec = do
   jsonSchemaSpec @VeryComment "very-comment"
   jsonSchemaSpec @LegacyValue "legacy-value"
   jsonSchemaSpec @LegacyObject "legacy-object"
+  jsonSchemaSpec @Ainur "ainur"
+  jsonSchemaSpec @War "war"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
-    it "roundtrips through json and back" $
-      forAllValid $ \jsonSchema ->
-        -- We use the reencode version to survive the ordering change through map
-        let encoded = JSON.encode (jsonSchema :: JSONSchema)
-            encodedCtx = unwords ["encoded: ", show encoded]
-         in context encodedCtx $ case JSON.eitherDecode encoded of
-              Left err -> expectationFailure err
-              Right decoded ->
-                let decodedCtx = unwords ["decoded: ", show decoded]
-                 in context decodedCtx $
-                      let encodedAgain = JSON.encode (decoded :: JSONSchema)
-                       in encodedAgain `shouldBe` encoded
+    xdescribe "does not hold because this property does not hold for Scientific values like -7.85483897507979979e17" $
+      it "roundtrips through json and back" $
+        forAllValid $ \jsonSchema ->
+          -- We use the reencode version to survive the ordering change through map
+          let encoded = JSON.encode (jsonSchema :: JSONSchema)
+              encodedCtx = unwords ["encoded: ", show encoded]
+           in context encodedCtx $ case JSON.eitherDecode encoded of
+                Left err -> expectationFailure err
+                Right decoded ->
+                  let decodedCtx = unwords ["decoded: ", show decoded]
+                   in context decodedCtx $
+                        let encodedAgain = JSON.encode (decoded :: JSONSchema)
+                         in encodedAgain `shouldBe` encoded
   describe "ObjectSchema" $ do
     genValidSpec @ObjectSchema
     it "roundtrips through object and back" $
@@ -115,9 +118,10 @@ instance GenValid JSONSchema where
     ArraySchema s -> AnySchema : s : (ArraySchema <$> shrinkValid s)
     ObjectSchema os -> AnySchema : (ObjectSchema <$> shrinkValid os)
     ValueSchema v -> AnySchema : (ValueSchema <$> shrinkValid v)
-    ChoiceSchema ss -> case ss of
-      s :| [] -> [s]
-      _ -> ChoiceSchema <$> shrinkValid ss
+    AnyOfSchema ss -> case ss of
+      s :| _ -> s : filter isValid (AnyOfSchema <$> shrinkValid ss)
+    OneOfSchema ss -> case ss of
+      s :| _ -> s : filter isValid (OneOfSchema <$> shrinkValid ss)
     CommentSchema k s -> (s :) $ do
       (k', s') <- shrinkValid (k, s)
       pure $ CommentSchema k' s'
@@ -141,7 +145,15 @@ instance GenValid JSONSchema where
               choice2 <- resize b genValid
               rest <- resize c genValid
               pure $
-                ChoiceSchema $
+                AnyOfSchema $
+                  choice1 :| (choice2 : rest),
+            do
+              (a, b, c) <- genSplit3 (n -1)
+              choice1 <- resize a genValid
+              choice2 <- resize b genValid
+              rest <- resize c genValid
+              pure $
+                OneOfSchema $
                   choice1 :| (choice2 : rest),
             do
               (a, b) <- genSplit (n -1)
@@ -155,7 +167,8 @@ instance GenValid JSONSchema where
 instance GenValid ObjectSchema where
   shrinkValid os = case os of
     ObjectAnySchema -> []
-    ObjectChoiceSchema ne@(s :| _) -> s : (ObjectChoiceSchema <$> shrinkValid ne)
+    ObjectAnyOfSchema ne@(s :| _) -> s : (ObjectAnyOfSchema <$> shrinkValid ne)
+    ObjectOneOfSchema ne@(s :| _) -> s : (ObjectOneOfSchema <$> shrinkValid ne)
     ObjectAllOfSchema ne@(s :| _) -> s : (ObjectAllOfSchema <$> shrinkValid ne)
     _ -> shrinkValidStructurallyWithoutExtraFiltering os
   genValid = oneof [pure ObjectAnySchema, go]
@@ -163,7 +176,8 @@ instance GenValid ObjectSchema where
       go =
         oneof
           [ ObjectKeySchema <$> genValid <*> genValid <*> genValid <*> genValid,
-            ObjectChoiceSchema <$> genValid,
+            ObjectAnyOfSchema <$> genValid,
+            ObjectOneOfSchema <$> genValid,
             ObjectAllOfSchema <$> genValid
           ]
 

@@ -68,6 +68,8 @@ spec = do
   showCodecSpec @VeryComment "very-comment"
   showCodecSpec @LegacyValue "legacy-value"
   showCodecSpec @LegacyObject "legacy-object"
+  showCodecSpec @Ainur "ainur"
+  showCodecSpec @War "war"
 
 showCodecSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 showCodecSpec filePath =

@@ -2,7 +2,7 @@
     "components": {
         "schemas": {
             "(Either Bool Text)": {
-                "anyOf": [
+                "oneOf": [
                     {
                         "required": [
                             "Left"
@@ -25,8 +25,7 @@
                             }
                         }
                     }
-                ],
-                "additionalProperties": true
+                ]
             }
         }
     },

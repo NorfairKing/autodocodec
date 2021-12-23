@@ -1,0 +1,52 @@
+{
+    "components": {
+        "schemas": {
+            "Ainur": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/Valar"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Maiar"
+                    }
+                ],
+                "additionalProperties": true
+            },
+            "Valar": {
+                "required": [
+                    "domain",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain which the Valar rules over"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the Valar"
+                    }
+                }
+            },
+            "Maiar": {
+                "required": [
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the Maiar"
+                    }
+                }
+            }
+        }
+    },
+    "openapi": "3.0.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "paths": {}
+}

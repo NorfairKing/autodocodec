@@ -48,7 +48,8 @@ data JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
     ObjectSchema ObjectSchema
   | ValueSchema !JSON.Value
-  | ChoiceSchema !(NonEmpty JSONSchema)
+  | AnyOfSchema !(NonEmpty JSONSchema)
+  | OneOfSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
   | RefSchema !Text
   | WithDefSchema !(Map Text JSONSchema) !JSONSchema
@@ -62,7 +63,8 @@ instance Validity JSONSchema where
           CommentSchema _ (CommentSchema _ _) -> False
           _ -> True,
         case js of
-          ChoiceSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
+          AnyOfSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
+          OneOfSchema cs -> declare "there are 2 of more choices" $ length cs >= 2
           _ -> valid
       ]
 
@@ -90,12 +92,18 @@ instance ToJSON JSONSchema where
           case toJSON os of
             JSON.Object o -> HM.toList o
             _ -> [] -- Should not happen.
-        ChoiceSchema jcs ->
+        AnyOfSchema jcs ->
           let svals :: [JSON.Value]
               svals = map (JSON.object . go) (NE.toList jcs)
               val :: JSON.Value
               val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
            in [("anyOf", val)]
+        OneOfSchema jcs ->
+          let svals :: [JSON.Value]
+              svals = map (JSON.object . go) (NE.toList jcs)
+              val :: JSON.Value
+              val = (JSON.toJSON :: [JSON.Value] -> JSON.Value) svals
+           in [("oneOf", val)]
         (CommentSchema outerComment (CommentSchema innerComment s)) ->
           go (CommentSchema (outerComment <> "\n" <> innerComment) s)
         CommentSchema comment s -> ("$comment" JSON..= comment) : go s
@@ -133,25 +141,30 @@ instance FromJSON JSONSchema where
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
-          Just anies -> pure $ ChoiceSchema anies
+          Just anies -> pure $ AnyOfSchema anies
           Nothing -> do
-            let mConst = HM.lookup "const" o
-            case mConst of
-              Just constant -> pure $ ValueSchema constant
+            mOne <- o JSON..:? "oneOf"
+            case mOne of
+              Just ones -> pure $ OneOfSchema ones
               Nothing -> do
-                mRef <- o JSON..:? "$ref"
-                pure $ case mRef of
-                  Just ref -> case T.stripPrefix defsPrefix ref of
-                    Just name -> RefSchema name
-                    Nothing -> AnySchema
-                  Nothing -> AnySchema
+                let mConst = HM.lookup "const" o
+                case mConst of
+                  Just constant -> pure $ ValueSchema constant
+                  Nothing -> do
+                    mRef <- o JSON..:? "$ref"
+                    pure $ case mRef of
+                      Just ref -> case T.stripPrefix defsPrefix ref of
+                        Just name -> RefSchema name
+                        Nothing -> AnySchema
+                      Nothing -> AnySchema
       t -> fail $ "unknown schema type:" <> show t
 
 data ObjectSchema
-  = ObjectKeySchema Text KeyRequirement JSONSchema (Maybe Text)
+  = ObjectKeySchema !Text !KeyRequirement !JSONSchema !(Maybe Text)
   | ObjectAnySchema -- For 'pure'
-  | ObjectChoiceSchema (NonEmpty ObjectSchema)
-  | ObjectAllOfSchema (NonEmpty ObjectSchema)
+  | ObjectAnyOfSchema !(NonEmpty ObjectSchema)
+  | ObjectOneOfSchema !(NonEmpty ObjectSchema)
+  | ObjectAllOfSchema !(NonEmpty ObjectSchema)
   deriving (Show, Eq, Generic)
 
 instance Validity ObjectSchema
@@ -171,26 +184,32 @@ instance FromJSON ObjectSchema where
           Nothing -> do
             mAnyOf <- o JSON..:? "anyOf"
             case mAnyOf of
-              Just ao -> do
-                ne <- parseJSON ao
-                ObjectChoiceSchema <$> mapM go ne
+              Just anies -> do
+                ne <- parseJSON anies
+                ObjectAnyOfSchema <$> mapM go ne
               Nothing -> do
-                props <- o JSON..:? "properties" JSON..!= HM.empty
-                reqs <- o JSON..:? "required" JSON..!= []
-                let keySchemaFor k v = do
-                      ks <- parseJSON v
-                      let (mDoc, ks') = case ks of
-                            CommentSchema doc ks'' -> (Just doc, ks'')
-                            _ -> (Nothing, ks)
-                      pure $
-                        if k `elem` reqs
-                          then ObjectKeySchema k Required ks' mDoc
-                          else ObjectKeySchema k (Optional Nothing) ks' mDoc
-                keySchemas <- mapM (uncurry keySchemaFor) (HM.toList props)
-                pure $ case NE.nonEmpty keySchemas of
-                  Nothing -> ObjectAnySchema
-                  Just (el :| []) -> el
-                  Just ne -> ObjectAllOfSchema ne
+                mOneOf <- o JSON..:? "oneOf"
+                case mOneOf of
+                  Just ones -> do
+                    ne <- parseJSON ones
+                    ObjectOneOfSchema <$> mapM go ne
+                  Nothing -> do
+                    props <- o JSON..:? "properties" JSON..!= HM.empty
+                    reqs <- o JSON..:? "required" JSON..!= []
+                    let keySchemaFor k v = do
+                          ks <- parseJSON v
+                          let (mDoc, ks') = case ks of
+                                CommentSchema doc ks'' -> (Just doc, ks'')
+                                _ -> (Nothing, ks)
+                          pure $
+                            if k `elem` reqs
+                              then ObjectKeySchema k Required ks' mDoc
+                              else ObjectKeySchema k (Optional Nothing) ks' mDoc
+                    keySchemas <- mapM (uncurry keySchemaFor) (HM.toList props)
+                    pure $ case NE.nonEmpty keySchemas of
+                      Nothing -> ObjectAnySchema
+                      Just (el :| []) -> el
+                      Just ne -> ObjectAllOfSchema ne
 
 instance ToJSON ObjectSchema where
   toJSON = JSON.object . (("type" JSON..= ("object" :: Text)) :) . go
@@ -202,7 +221,8 @@ instance ToJSON ObjectSchema where
           let (propVal, req) = keySchemaToPieces (k, kr, ks, mDoc)
            in -- TODO deal with the default value somehow.
               concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | req]]
-        ObjectChoiceSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
+        ObjectAnyOfSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
+        ObjectOneOfSchema ne -> ["oneOf" JSON..= NE.map toJSON ne]
         ObjectAllOfSchema ne ->
           case mapM parseAndObjectKeySchema (NE.toList ne) of
             Nothing -> ["allOf" JSON..= NE.map toJSON ne]
@@ -239,7 +259,8 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
           Optional _ -> pure True
         Just value' -> go value' ks
       ObjectAllOfSchema ne -> and <$> mapM (goObject obj) ne
-      ObjectChoiceSchema ne -> or <$> mapM (goObject obj) ne
+      ObjectAnyOfSchema ne -> or <$> mapM (goObject obj) ne
+      ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (goObject obj) ne
 
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
@@ -266,7 +287,8 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
         JSON.Object obj -> goObject obj os
         _ -> pure False
       ValueSchema v -> pure $ v == value
-      ChoiceSchema ss -> or <$> mapM (go value) ss
+      AnyOfSchema ss -> or <$> mapM (go value) ss
+      OneOfSchema ss -> (== 1) . length . NE.filter id <$> mapM (go value) ss
       CommentSchema _ s -> go value s
       RefSchema name -> do
         mSchema <- gets (M.lookup name)
@@ -279,7 +301,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
 
 data KeyRequirement
   = Required
-  | Optional (Maybe JSON.Value) -- Default value
+  | Optional !(Maybe JSON.Value) -- Default value
   deriving (Show, Eq, Generic)
 
 instance Validity KeyRequirement
@@ -306,10 +328,12 @@ jsonSchemaVia = (`evalState` S.empty) . go
       MapCodec c -> MapSchema <$> go c
       ValueCodec -> pure AnySchema
       EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
-      EitherCodec c1 c2 -> do
+      EitherCodec u c1 c2 -> do
         s1 <- go c1
         s2 <- go c2
-        pure $ ChoiceSchema (goChoice (s1 :| [s2]))
+        pure $ case u of
+          DisjointUnion -> OneOfSchema (goOneOf (s1 :| [s2]))
+          PossiblyJointUnion -> AnyOfSchema (goAnyOf (s1 :| [s2]))
       BimapCodec _ _ c -> go c
       CommentCodec t c -> CommentSchema t <$> go c
       ReferenceCodec name c -> do
@@ -321,14 +345,23 @@ jsonSchemaVia = (`evalState` S.empty) . go
             s <- go c
             pure $ WithDefSchema (M.singleton name s) (RefSchema name)
 
-    goChoice :: NonEmpty JSONSchema -> NonEmpty JSONSchema
-    goChoice (s :| rest) = case NE.nonEmpty rest of
+    goAnyOf :: NonEmpty JSONSchema -> NonEmpty JSONSchema
+    goAnyOf (s :| rest) = case NE.nonEmpty rest of
       Nothing -> goSingle s
-      Just ne -> goSingle s <> goChoice ne
+      Just ne -> goSingle s <> goAnyOf ne
       where
         goSingle :: JSONSchema -> NonEmpty JSONSchema
         goSingle = \case
-          ChoiceSchema ss -> goChoice ss
+          AnyOfSchema ss -> goAnyOf ss
+          s' -> s' :| []
+    goOneOf :: NonEmpty JSONSchema -> NonEmpty JSONSchema
+    goOneOf (s :| rest) = case NE.nonEmpty rest of
+      Nothing -> goSingle s
+      Just ne -> goSingle s <> goOneOf ne
+      where
+        goSingle :: JSONSchema -> NonEmpty JSONSchema
+        goSingle = \case
+          OneOfSchema ss -> goOneOf ss
           s' -> s' :| []
 
     goObject :: ObjectCodec input output -> State (Set Text) ObjectSchema
@@ -344,24 +377,36 @@ jsonSchemaVia = (`evalState` S.empty) . go
         pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ _ c -> goObject c
-      EitherCodec oc1 oc2 -> do
+      EitherCodec u oc1 oc2 -> do
         os1 <- goObject oc1
         os2 <- goObject oc2
-        pure $ ObjectChoiceSchema (goObjectChoice (os1 :| [os2]))
+        pure $ case u of
+          DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
+          PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
       PureCodec _ -> pure ObjectAnySchema
       ApCodec oc1 oc2 -> do
         os1 <- goObject oc1
         os2 <- goObject oc2
         pure $ ObjectAllOfSchema (goObjectAllOf (os1 :| [os2]))
 
-    goObjectChoice :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
-    goObjectChoice (s :| rest) = case NE.nonEmpty rest of
+    goObjectAnyOf :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
+    goObjectAnyOf (s :| rest) = case NE.nonEmpty rest of
       Nothing -> goSingle s
-      Just ne -> goSingle s <> goObjectChoice ne
+      Just ne -> goSingle s <> goObjectAnyOf ne
       where
         goSingle :: ObjectSchema -> NonEmpty ObjectSchema
         goSingle = \case
-          ObjectChoiceSchema ss -> goObjectChoice ss
+          ObjectAnyOfSchema ss -> goObjectAnyOf ss
+          s' -> s' :| []
+
+    goObjectOneOf :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
+    goObjectOneOf (s :| rest) = case NE.nonEmpty rest of
+      Nothing -> goSingle s
+      Just ne -> goSingle s <> goObjectOneOf ne
+      where
+        goSingle :: ObjectSchema -> NonEmpty ObjectSchema
+        goSingle = \case
+          ObjectOneOfSchema ss -> goObjectOneOf ss
           s' -> s' :| []
 
     goObjectAllOf :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema

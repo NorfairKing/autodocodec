@@ -1,0 +1,25 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "",
+        "title": ""
+    },
+    "definitions": {
+        "Ainur": {
+            "required": [
+                "name"
+            ],
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain which the Valar rules over"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the Valar"
+                }
+            }
+        }
+    }
+}

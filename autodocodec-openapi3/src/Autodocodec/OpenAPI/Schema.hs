@@ -10,6 +10,7 @@
 module Autodocodec.OpenAPI.Schema where
 
 import Autodocodec
+import Control.Lens (Lens', (&), (?~), (^.))
 import Control.Monad
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
@@ -86,10 +87,10 @@ declareNamedSchemaVia c' Proxy = go c'
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
         pure $ NamedSchema mname $ combineObjectSchemas ss
-      EitherCodec c1 c2 -> do
+      EitherCodec u c1 c2 -> do
         ns1 <- go c1
         ns2 <- go c2
-        combineSchemasOr ns1 ns2
+        combineSchemasOr u ns1 ns2
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
@@ -137,11 +138,12 @@ declareNamedSchemaVia c' Proxy = go c'
           ]
       OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
-      EitherCodec oc1 oc2 -> do
+      EitherCodec u oc1 oc2 -> do
         s1s <- goObject oc1
         s2s <- goObject oc2
         (: []) . _namedSchemaSchema
           <$> combineSchemasOr
+            u
             (NamedSchema Nothing (combineObjectSchemas s1s))
             (NamedSchema Nothing (combineObjectSchemas s2s))
       ApCodec oc1 oc2 -> do
@@ -160,19 +162,28 @@ declareNamedSchemaVia c' Proxy = go c'
         }
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
-    combineSchemasOr :: NamedSchema -> NamedSchema -> Declare (Definitions Schema) NamedSchema
-    combineSchemasOr ns1 ns2 = do
+    combineSchemasOr :: Union -> NamedSchema -> NamedSchema -> Declare (Definitions Schema) NamedSchema
+    combineSchemasOr u ns1 ns2 = do
       let s1 = _namedSchemaSchema ns1
       let s2 = _namedSchemaSchema ns2
       s1Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns1
       s2Ref <- fmap _namedSchemaSchema <$> declareSpecificNamedSchemaRef ns2
-      let prototype = mempty {_schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True}
+      let orLens :: Lens' Schema (Maybe [Referenced Schema])
+          orLens = case u of
+            PossiblyJointUnion -> anyOf
+            DisjointUnion -> oneOf
+      let prototype =
+            mempty
+              { _schemaAdditionalProperties = case u of
+                  PossiblyJointUnion -> Just $ AdditionalPropertiesAllowed True
+                  DisjointUnion -> Nothing
+              }
       pure $
-        NamedSchema Nothing $ case (_schemaAnyOf s1, _schemaAnyOf s2) of
-          (Just s1s, Just s2s) -> prototype {_schemaAnyOf = Just $ s1s ++ s2s}
-          (Just s1s, Nothing) -> prototype {_schemaAnyOf = Just $ s1s ++ [s2Ref]}
-          (Nothing, Just s2s) -> prototype {_schemaAnyOf = Just $ s1Ref : s2s}
-          (Nothing, Nothing) -> prototype {_schemaAnyOf = Just [s1Ref, s2Ref]}
+        NamedSchema Nothing $ case (s1 ^. orLens, s2 ^. orLens) of
+          (Just s1s, Just s2s) -> prototype & orLens ?~ (s1s ++ s2s)
+          (Just s1s, Nothing) -> prototype & orLens ?~ (s1s ++ [s2Ref])
+          (Nothing, Just s2s) -> prototype & orLens ?~ (s1Ref : s2s)
+          (Nothing, Nothing) -> prototype & orLens ?~ [s1Ref, s2Ref]
 
 declareSpecificNamedSchemaRef :: OpenAPI.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

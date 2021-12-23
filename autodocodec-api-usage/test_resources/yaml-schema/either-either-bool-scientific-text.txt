@@ -1,4 +1,6 @@
+# [32mone of[m
 [ [37mLeft[m: # [31mrequired[m
+    # [32mone of[m
     [ [37mLeft[m: # [31mrequired[m
         [33m<boolean>[m
     , [37mRight[m: # [31mrequired[m
