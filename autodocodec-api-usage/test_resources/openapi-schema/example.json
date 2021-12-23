@@ -12,16 +12,9 @@
                 "type": "object",
                 "properties": {
                     "maybe": {
-                        "anyOf": [
-                            {
-                                "type": "null"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
-                        "additionalProperties": true,
-                        "description": "a maybe text"
+                        "type": "string",
+                        "description": "a maybe text",
+                        "nullable": true
                     },
                     "single-or-list": {
                         "anyOf": [
@@ -80,16 +73,9 @@
                         "description": "an optional text with a default"
                     },
                     "optional-or-null": {
-                        "anyOf": [
-                            {
-                                "type": "null"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
-                        "additionalProperties": true,
-                        "description": "an optional-or-null text"
+                        "type": "string",
+                        "description": "an optional-or-null text",
+                        "nullable": true
                     },
                     "bool": {
                         "type": "boolean",

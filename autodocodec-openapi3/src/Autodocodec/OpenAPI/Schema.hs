@@ -87,10 +87,18 @@ declareNamedSchemaVia c' Proxy = go c'
       ObjectOfCodec mname oc -> do
         ss <- goObject oc
         pure $ NamedSchema mname $ combineObjectSchemas ss
-      EitherCodec u c1 c2 -> do
-        ns1 <- go c1
-        ns2 <- go c2
-        combineSchemasOr u ns1 ns2
+      EitherCodec u c1 c2 ->
+        let orNull :: forall input output. ValueCodec input output -> Declare (Definitions Schema) NamedSchema
+            orNull c = do
+              ns <- go c
+              pure $ ns & schema . nullable ?~ True
+         in case (c1, c2) of
+              (NullCodec, c) -> orNull c
+              (c, NullCodec) -> orNull c
+              _ -> do
+                ns1 <- go c1
+                ns2 <- go c2
+                combineSchemasOr u ns1 ns2
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s

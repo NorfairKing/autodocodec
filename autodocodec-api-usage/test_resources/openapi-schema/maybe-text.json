@@ -2,15 +2,8 @@
     "components": {
         "schemas": {
             "(Maybe Text)": {
-                "anyOf": [
-                    {
-                        "type": "null"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ],
-                "additionalProperties": true
+                "type": "string",
+                "nullable": true
             }
         }
     },
