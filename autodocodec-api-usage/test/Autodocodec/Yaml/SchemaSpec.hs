@@ -74,6 +74,7 @@ spec = do
   yamlSchemaSpec @LegacyObject "legacy-object"
   yamlSchemaSpec @Ainur "ainur"
   yamlSchemaSpec @War "war"
+  yamlSchemaSpec @MultilineDefault "multiline-default"
 
 yamlSchemaSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 yamlSchemaSpec filePath = do

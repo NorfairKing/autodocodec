@@ -1,4 +1,5 @@
 - ignore: { name: "Eta reduce" }
+- ignore: { name: "Use newtype instead of data" }
 - ignore: { name: "Use unless" }
 - ignore: { name: "Use fmap" }
 - ignore: { name: "Use tuple-section" }

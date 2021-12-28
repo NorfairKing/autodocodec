@@ -414,3 +414,29 @@ instance HasCodec War where
       g = \case
         WorldWar w -> Left w
         OtherWar t -> Right t
+
+data MultilineDefault = MultilineDefault
+  { multilineDefaultValue :: !Via -- See above
+  }
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec MultilineDefault)
+
+instance Validity MultilineDefault
+
+instance NFData MultilineDefault
+
+instance GenValid MultilineDefault where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec MultilineDefault where
+  codec =
+    object "MultilineDefault" $
+      MultilineDefault
+        <$> optionalFieldWithDefault "value" (Via "foo" "bar") "a field with a multi-line default value" .= multilineDefaultValue

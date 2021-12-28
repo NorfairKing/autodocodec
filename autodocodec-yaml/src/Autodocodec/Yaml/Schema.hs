@@ -57,8 +57,8 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       [] -> [cs] -- Shouldn't happen, but fine if it doesn't
       (l : ls) -> (cs ++ l) : indent ls
 
-    jsonValueChunk :: Yaml.Value -> Chunk
-    jsonValueChunk v = chunk $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)
+    jsonValueChunks :: Yaml.Value -> [[Chunk]]
+    jsonValueChunks v = map ((: []) . chunk) $ T.lines $ T.strip $ TE.decodeUtf8With TE.lenientDecode (Yaml.encode v)
 
     docToLines :: Text -> [[Chunk]]
     docToLines doc = map (\line -> [chunk "# ", chunk line]) (T.lines doc)
@@ -106,7 +106,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       MapSchema s ->
         addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
       ObjectSchema os -> goObject os
-      ValueSchema v -> [[jsonValueChunk v]]
+      ValueSchema v -> jsonValueChunks v
       AnyOfSchema ne -> case ne of
         (NullSchema :| [s]) -> orNullChunks s
         (s :| [NullSchema]) -> orNullChunks s
@@ -133,7 +133,10 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
          in let keySchemaChunks = go ks
                 defaultValueLine = case mDefaultValue kr of
                   Nothing -> []
-                  Just defaultValue -> [[chunk "# default: ", fore magenta $ jsonValueChunk defaultValue]]
+                  Just defaultValue ->
+                    case jsonValueChunks defaultValue of
+                      [c] -> [chunk "# default: " : map (fore magenta) c]
+                      cs -> [chunk "# default: "] : map ((chunk "#   " :) . map (fore magenta)) cs
                 prefixLines = ["# ", requirementComment kr] : defaultValueLine ++ maybe [] docToLines mdoc
              in addInFrontOfFirstInList [fore white $ chunk k, ": "] (prefixLines ++ keySchemaChunks)
       ObjectAllOfSchema ne -> concatMap goObject $ NE.toList ne

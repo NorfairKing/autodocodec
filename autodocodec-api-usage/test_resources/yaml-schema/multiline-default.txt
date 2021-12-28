@@ -1,0 +1,13 @@
+# MultilineDefault
+[37mvalue[m: # [34moptional[m
+  # default: 
+  #   [35mtwo: bar[m
+  #   [35mone: foo[m
+  # a field with a multi-line default value
+  # Via
+  [37mone[m: # [31mrequired[m
+    # first field
+    [33m<string>[m
+  [37mtwo[m: # [31mrequired[m
+    # second field
+    [33m<string>[m
