@@ -18,6 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
+  - aeson-compat
   - autodocodec >=0.0.1.0
   - containers
   - mtl

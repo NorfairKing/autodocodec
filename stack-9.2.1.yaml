@@ -1,0 +1,51 @@
+resolver: nightly-2022-02-07
+compiler: ghc-9.2.1
+packages:
+- autodocodec
+- autodocodec-api-usage
+- autodocodec-openapi3
+- autodocodec-schema
+- autodocodec-swagger2
+- autodocodec-yaml
+extra-deps:
+- swagger2-2.8.2
+- aeson-2.0.3.0
+- aeson-compat-0.3.10
+- base-compat-0.12.1
+- base-compat-batteries-0.12.1
+- yaml-0.11.7.0 # aeson 2
+- lens-5.1
+# https://github.com/NorfairKing/validity/pull/100
+- github: srid/validity
+  commit: 3d95a17f1223615b7f55e4e7bf9350227023ee9d # ghc921
+  subdirs:
+    - validity
+    - validity-aeson
+    - validity-containers
+    - validity-text
+    - genvalidity
+    - genvalidity-aeson
+    - genvalidity-containers
+    - genvalidity-scientific
+    - genvalidity-sydtest
+    - genvalidity-sydtest-aeson
+    - genvalidity-text
+
+# https://github.com/NorfairKing/safe-coloured-text/pull/5
+- github: srid/safe-coloured-text
+  commit: f64782b8f0be392f7a93261ddaa2e017c51a6d75
+  subdirs:
+    - safe-coloured-text
+    - safe-coloured-text-terminfo
+- github: NorfairKing/sydtest
+  commit: e75c55b920936e344b779093b2a0318fb35d1770
+  subdirs:
+    - sydtest
+    - sydtest-aeson
+    - sydtest-discover
+- envparse-0.4.1@sha256:989902e6368532548f61de1fa245ad2b39176cddd8743b20071af519a709ce30,2842
+
+allow-newer: true
+
+nix:
+  shell-file: shell.nix

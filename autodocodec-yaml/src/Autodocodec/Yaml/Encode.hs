@@ -7,10 +7,12 @@
 module Autodocodec.Yaml.Encode where
 
 import Autodocodec.Aeson.Encode
+import qualified Autodocodec.Aeson.Compat as C
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import qualified Data.HashMap.Strict as HM
+import Data.Bifunctor (first)
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -75,7 +77,7 @@ toYamlVia = flip go
 
     -- Encode a 'JSON.Object'
     yamlObject :: JSON.Object -> YamlBuilder
-    yamlObject a = Yaml.mapping $ HM.toList (HM.map yamlValue (a :: JSON.Object))
+    yamlObject a = Yaml.mapping $ fmap (first C.fromAesonKey) $ C.toList (C.map yamlValue (a :: JSON.Object))
 
     -- Encode a 'JSON.Value'
     yamlValue :: JSON.Value -> YamlBuilder

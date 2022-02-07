@@ -10,14 +10,15 @@ import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import Control.Monad
-import Data.Aeson as JSON
-import Data.Aeson.Types as JSON
+import Data.Aeson.Compat as JSON
+import Data.Aeson.Types as JSON ((<?>), JSONPathElement(Key, Index), modifyFailure, parseEither, prependFailure, liftParseJSON, typeMismatch)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Autodocodec.Aeson.Compat (toAesonKey, lookupKey)
 
 -- | Implement 'JSON.parseJSON' via a type's codec.
 parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
@@ -112,15 +113,15 @@ parseJSONContextVia codec_ context_ =
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: k
-        go valueAtKey c JSON.<?> Key k
+        go valueAtKey c JSON.<?> Key (toAesonKey k)
       OptionalKeyCodec k c _ -> do
-        let mValueAtKey = HM.lookup k (value :: JSON.Object)
-        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
+        let mValueAtKey = lookupKey (toAesonKey k) (value :: JSON.Object)
+        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key (toAesonKey k)
       OptionalKeyWithDefaultCodec k c defaultValue _ -> do
-        let mValueAtKey = HM.lookup k (value :: JSON.Object)
+        let mValueAtKey = lookupKey (toAesonKey k) (value :: JSON.Object)
         case mValueAtKey of
           Nothing -> pure defaultValue
-          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
+          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key (toAesonKey k)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec k c defaultValue mDoc
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca

@@ -9,6 +9,7 @@ pkgs.haskell.lib.buildStackProject {
     (import sources.niv { }).niv
     zlib
     haskellPackages.doctest
+    pkgs.haskell.compiler.ghc921
   ] ++ pre-commit.tools;
   shellHook = pre-commit.run.shellHook;
 }

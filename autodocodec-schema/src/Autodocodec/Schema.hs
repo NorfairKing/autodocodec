@@ -12,8 +12,8 @@ module Autodocodec.Schema where
 import Autodocodec
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Types as JSON
+import qualified Data.Aeson.Compat as JSON
+import qualified Data.Aeson.Types as JSON (Pair)
 import Data.Foldable
 import qualified Data.HashMap.Strict as HM
 import Data.List.NonEmpty (NonEmpty (..))
@@ -29,6 +29,7 @@ import Data.Validity.Aeson ()
 import Data.Validity.Containers ()
 import Data.Validity.Text ()
 import GHC.Generics (Generic)
+import qualified Autodocodec.Aeson.Compat as C
 
 -- | A JSON Schema
 --
@@ -90,7 +91,7 @@ instance ToJSON JSONSchema where
            in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
         ObjectSchema os ->
           case toJSON os of
-            JSON.Object o -> HM.toList o
+            JSON.Object o -> C.toList o
             _ -> [] -- Should not happen.
         AnyOfSchema jcs ->
           let svals :: [JSON.Value]
@@ -147,7 +148,7 @@ instance FromJSON JSONSchema where
             case mOne of
               Just ones -> pure $ OneOfSchema ones
               Nothing -> do
-                let mConst = HM.lookup "const" o
+                let mConst = C.lookupKey "const" o
                 case mConst of
                   Just constant -> pure $ ValueSchema constant
                   Nothing -> do
@@ -220,7 +221,7 @@ instance ToJSON ObjectSchema where
         ObjectKeySchema k kr ks mDoc ->
           let (propVal, req) = keySchemaToPieces (k, kr, ks, mDoc)
            in -- TODO deal with the default value somehow.
-              concat [["properties" JSON..= JSON.object [k JSON..= propVal]], ["required" JSON..= [k] | req]]
+              concat [["properties" JSON..= JSON.object [C.toAesonKey k JSON..= propVal]], ["required" JSON..= [k] | req]]
         ObjectAnyOfSchema ne -> ["anyOf" JSON..= NE.map toJSON ne]
         ObjectOneOfSchema ne -> ["oneOf" JSON..= NE.map toJSON ne]
         ObjectAllOfSchema ne ->
@@ -253,7 +254,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
     goObject :: JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
     goObject obj = \case
       ObjectAnySchema -> pure True
-      ObjectKeySchema key kr ks _ -> case HM.lookup key obj of
+      ObjectKeySchema key kr ks _ -> case C.lookupKey (C.toAesonKey key) obj of
         Nothing -> case kr of
           Required -> pure False
           Optional _ -> pure True

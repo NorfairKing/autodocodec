@@ -17,6 +17,8 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - aeson
+  - aeson-compat
   - autodocodec
   - autodocodec-schema >=0.1.0.0
   - bytestring

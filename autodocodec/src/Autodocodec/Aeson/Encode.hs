@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -17,6 +18,7 @@ import Data.Scientific
 import Data.Text (Text)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Autodocodec.Aeson.Compat (toAesonKey)
 
 -- | Implement 'JSON.toJSON' via a type's codec.
 toJSONViaCodec :: HasCodec a => a -> JSON.Value
@@ -49,10 +51,10 @@ toJSONVia = flip go
 
     goObject :: a -> ObjectCodec a void -> JSON.Object
     goObject a = \case
-      RequiredKeyCodec k c _ -> k JSON..= go a c
+      RequiredKeyCodec k c _ -> (toAesonKey k) JSON..= go a c
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty
-        Just b -> k JSON..= go b c
+        Just b -> (toAesonKey k) JSON..= go b c
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue
@@ -93,10 +95,10 @@ toEncodingVia = flip go
       ReferenceCodec _ c -> go a c
     goObject :: a -> ObjectCodec a void -> JSON.Series
     goObject a = \case
-      RequiredKeyCodec k c _ -> JSON.pair k (go a c)
+      RequiredKeyCodec k c _ -> JSON.pair (toAesonKey k) (go a c)
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty :: JSON.Series
-        Just b -> JSON.pair k (go b c)
+        Just b -> JSON.pair (toAesonKey k) (go b c)
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue

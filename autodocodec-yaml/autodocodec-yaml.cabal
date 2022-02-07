@@ -34,7 +34,9 @@ library
   hs-source-dirs:
       src
   build-depends:
-      autodocodec
+      aeson
+    , aeson-compat
+    , autodocodec
     , autodocodec-schema >=0.1.0.0
     , base >=4.7 && <5
     , bytestring

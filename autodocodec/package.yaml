@@ -18,6 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
+  - aeson-compat
   - bytestring
   - containers
   - hashable
