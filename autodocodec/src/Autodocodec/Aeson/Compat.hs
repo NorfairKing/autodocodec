@@ -15,7 +15,7 @@ import Data.Text (Text)
 toAesonKey :: Text -> Key
 toAesonKey = K.fromText
 
-fromAesonKey :: Key -> Text 
+fromAesonKey :: Key -> Text
 fromAesonKey = K.toText
 
 lookupKey :: Key -> KM.KeyMap v -> Maybe v
@@ -25,22 +25,22 @@ toList :: KM.KeyMap v -> [(Key, v)]
 toList m =
   KM.toList m
 
-map :: (a -> b) -> KM.KeyMap a -> KM.KeyMap b 
+map :: (a -> b) -> KM.KeyMap a -> KM.KeyMap b
 map = KM.map
 
-#else 
-toAesonKey :: Text -> Text 
+#else
+toAesonKey :: Text -> Text
 toAesonKey = id
 
-fromAesonKey :: Text -> Text 
+fromAesonKey :: Text -> Text
 fromAesonKey = id
 
-lookupKey :: Text -> HM.HashMap k v -> Maybe v
+lookupKey :: Text -> HM.HashMap Text v -> Maybe v
 lookupKey = HM.lookup
 
 toList :: HM.HashMap k v -> [(k, v)]
 toList = HM.toList
 
-map :: (v1 -> v2) -> HashMap k v1 -> HashMap k v2
+map :: (v1 -> v2) -> HM.HashMap k v1 -> HM.HashMap k v2
 map = HM.map
 #endif
