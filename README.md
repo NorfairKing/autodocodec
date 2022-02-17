@@ -31,7 +31,8 @@ This project is ready to try out!
 ``` haskell
 data Example = Example
   { exampleTextField :: !Text,
-    exampleIntField :: !Int
+    exampleIntField :: !Int,
+    exampleColorField :: !Color
   }
   deriving stock (Show, Eq, Generic)
   deriving
@@ -42,12 +43,30 @@ data Example = Example
     )
     via (Autodocodec Example)
 
+data Color = White | Black
+
+colorFromText :: Text -> Either String Color
+colorFromText "white" = pure White
+colorFromText "black" = pure Black
+colorFromText txt     = Left $ "Invalid color: " ++ Text.unpack txt
+
+colorToText :: Color -> Text
+colorToText White = "white"
+colorToText Black = "black"
+
+colorField =
+  requiredFieldWith
+    "color"
+    (bimapCodec colorFromText colorToText stringCodec)
+    "any color your like, as long as it's black or white"
+
 instance HasCodec Example where
   codec =
     object "Example" $
       Example
         <$> requiredField "text" "documentation for the text field" .= exampleTextField
         <*> requiredField "int" "documentation for the int field" .= exampleIntField
+        <*> colorField .= exampleColorField
 ```
 
 ## Tests
