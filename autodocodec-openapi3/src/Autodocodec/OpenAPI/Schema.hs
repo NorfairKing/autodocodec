@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Autodocodec.OpenAPI.Schema where
@@ -12,12 +13,17 @@ module Autodocodec.OpenAPI.Schema where
 import Autodocodec
 import Control.Lens (Lens', (&), (?~), (^.))
 import Control.Monad
+import Control.Monad.State.Lazy (StateT, gets, evalStateT, modify)
+import Control.Monad.Trans (lift)
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import Data.Text (Text)
+import Debug.Trace (traceM)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -25,9 +31,9 @@ declareNamedSchemaViaCodec proxy = declareNamedSchemaVia codec proxy
 
 -- | Use a given 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaVia :: JSONCodec value -> Proxy value -> Declare (Definitions Schema) NamedSchema
-declareNamedSchemaVia c' Proxy = go c'
+declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
   where
-    go :: ValueCodec input output -> Declare (Definitions Schema) NamedSchema
+    go :: ValueCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) NamedSchema
     go = \case
       NullCodec ->
         pure $
@@ -35,10 +41,10 @@ declareNamedSchemaVia c' Proxy = go c'
             mempty
               { _schemaType = Just OpenApiNull
               }
-      BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
-      StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      BoolCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
+      StringCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
       NumberCodec mname mBounds -> do
-        s <- declareSchema (Proxy :: Proxy Scientific)
+        s <- lift $ declareSchema (Proxy :: Proxy Scientific)
         let addNumberBounds NumberBounds {..} s_ =
               s_
                 { _schemaMinimum = Just numberBoundsLower,
@@ -88,7 +94,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss <- goObject oc
         pure $ NamedSchema mname $ combineObjectSchemas ss
       EitherCodec u c1 c2 ->
-        let orNull :: forall input output. ValueCodec input output -> Declare (Definitions Schema) NamedSchema
+        let orNull :: forall input output. ValueCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) NamedSchema
             orNull c = do
               ns <- go c
               pure $ ns & schema . nullable ?~ True
@@ -103,17 +109,22 @@ declareNamedSchemaVia c' Proxy = go c'
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
       ReferenceCodec n c -> do
-        d <- look
-        case InsOrdHashMap.lookup n d of
+        existingSchema <- gets (HashMap.lookup n)
+        case existingSchema of
           Nothing -> do
-            -- Insert a dummy to prevent an infinite loop.
-            let dummy = mempty
-            let (d', ns) = runDeclare (go c) (InsOrdHashMap.insert n dummy d)
+            -- Insert a dummy schema to prevent an infinite loop in recursive data structures.
+            let dummySchema = mempty
+            modify (HashMap.insert n dummySchema)
+            namedSchema@NamedSchema{..} <- go c
             -- Override the dummy once we actually know what the result will be.
-            declare $ InsOrdHashMap.insert n (_namedSchemaSchema ns) d'
-            pure ns
-          Just s -> pure $ NamedSchema (Just n) s
-    goObject :: ObjectCodec input output -> Declare (Definitions Schema) [Schema]
+            modify (HashMap.insert n _namedSchemaSchema)
+            declare [(n, _namedSchemaSchema)]
+            pure namedSchema -- TODO(dchambers): Replace the name on the returned schema
+          Just schema -> 
+            -- We've been here before recursively, just reuse the schema we've previously created.
+            pure $ NamedSchema (Just n) schema
+
+    goObject :: ObjectCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) [Schema]
     goObject = \case
       RequiredKeyCodec key vs mDoc -> do
         ns <- go vs
@@ -159,8 +170,10 @@ declareNamedSchemaVia c' Proxy = go c'
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
       BimapCodec _ _ oc -> goObject oc
+
     addMDoc :: Maybe Text -> Schema -> Schema
     addMDoc = maybe id addDoc
+
     addDoc :: Text -> Schema -> Schema
     addDoc doc s =
       s
@@ -168,9 +181,11 @@ declareNamedSchemaVia c' Proxy = go c'
             Nothing -> Just doc
             Just doc' -> Just $ doc <> "\n" <> doc'
         }
+
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
-    combineSchemasOr :: Union -> NamedSchema -> NamedSchema -> Declare (Definitions Schema) NamedSchema
+    
+    combineSchemasOr :: MonadDeclare (Definitions Schema) m => Union -> NamedSchema -> NamedSchema -> m NamedSchema
     combineSchemasOr u ns1 ns2 = do
       let s1 = _namedSchemaSchema ns1
       let s2 = _namedSchemaSchema ns2
@@ -193,12 +208,12 @@ declareNamedSchemaVia c' Proxy = go c'
           (Nothing, Just s2s) -> prototype & orLens ?~ (s1Ref : s2s)
           (Nothing, Nothing) -> prototype & orLens ?~ [s1Ref, s2Ref]
 
-declareSpecificNamedSchemaRef :: OpenAPI.NamedSchema -> Declare (Definitions Schema) (Referenced NamedSchema)
+declareSpecificNamedSchemaRef :: MonadDeclare (Definitions Schema) m => OpenAPI.NamedSchema -> m (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =
   fmap (NamedSchema (_namedSchemaName namedSchema))
     <$> declareSpecificSchemaRef (_namedSchemaName namedSchema) (_namedSchemaSchema namedSchema)
 
-declareSpecificSchemaRef :: Maybe Text -> OpenAPI.Schema -> Declare (Definitions Schema) (Referenced Schema)
+declareSpecificSchemaRef :: MonadDeclare (Definitions Schema) m => Maybe Text -> OpenAPI.Schema -> m (Referenced Schema)
 declareSpecificSchemaRef mName s =
   case mName of
     Nothing -> pure $ Inline s
