@@ -13,7 +13,8 @@ module Autodocodec.OpenAPI.Schema where
 import Autodocodec
 import Control.Lens (Lens', (&), (?~), (^.))
 import Control.Monad
-import Control.Monad.State.Lazy (StateT, gets, evalStateT, modify)
+import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
+import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
@@ -109,19 +110,26 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
       ReferenceCodec n c -> do
-        existingSchema <- gets (HashMap.lookup n)
-        case existingSchema of
+        seenSchemas <- State.get
+        case HashMap.lookup n seenSchemas of
           Nothing -> do
-            -- Insert a dummy schema to prevent an infinite loop in recursive data structures.
+            existingDeclaredSchemas <- look
+
+            -- Insert a dummy schema to prevent an infinite loop in recursive data structures
             let dummySchema = mempty
-            modify (HashMap.insert n dummySchema)
-            namedSchema@NamedSchema{..} <- go c
-            -- Override the dummy once we actually know what the result will be.
-            modify (HashMap.insert n _namedSchemaSchema)
-            declare [(n, _namedSchemaSchema)]
-            pure namedSchema -- TODO(dchambers): Replace the name on the returned schema
+            let seenSchemas' = HashMap.insert n dummySchema seenSchemas
+            
+            -- Run in a new isolated Declare monad so that we can get the results and override
+            -- the dummy before declaring it in our main Declare monad (Declare does not allow overriding itself)
+            let (newDeclaredSchemas, (namedSchema, newSeenSchemas)) = flip runDeclare existingDeclaredSchemas . flip runStateT seenSchemas' $ go c
+            
+            -- Override the dummy now we actually know what the result will be
+            State.put $ HashMap.insert n (_namedSchemaSchema namedSchema) newSeenSchemas
+            declare $ InsOrdHashMap.insert n (_namedSchemaSchema namedSchema) newDeclaredSchemas
+            pure $ namedSchema { _namedSchemaName = Just n }
+
           Just schema -> 
-            -- We've been here before recursively, just reuse the schema we've previously created.
+            -- We've been here before recursively, just reuse the schema we've previously created
             pure $ NamedSchema (Just n) schema
 
     goObject :: ObjectCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) [Schema]
