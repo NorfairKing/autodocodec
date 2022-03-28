@@ -12,6 +12,7 @@ module Autodocodec.OpenAPI.Schema where
 import Autodocodec
 import Control.Lens (Lens', (&), (?~), (^.))
 import Control.Monad
+import qualified Data.Aeson as Aeson
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
@@ -80,9 +81,17 @@ declareNamedSchemaVia c' Proxy = go c'
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $
-            mempty
-              { _schemaEnum = Just [toJSONVia valCodec val]
-              }
+            let jsonVal = toJSONVia valCodec val
+             in mempty
+                  { _schemaEnum = Just [jsonVal],
+                    _schemaType = Just $ case jsonVal of
+                      Aeson.Object {} -> OpenApiObject
+                      Aeson.Array {} -> OpenApiArray
+                      Aeson.String {} -> OpenApiString
+                      Aeson.Number {} -> OpenApiNumber
+                      Aeson.Bool {} -> OpenApiBoolean
+                      Aeson.Null -> OpenApiNull
+                  }
       BimapCodec _ _ c -> go c
       ObjectOfCodec mname oc -> do
         ss <- goObject oc

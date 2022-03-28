@@ -4,16 +4,19 @@
             "Ordering": {
                 "anyOf": [
                     {
+                        "type": "string",
                         "enum": [
                             "LT"
                         ]
                     },
                     {
+                        "type": "string",
                         "enum": [
                             "EQ"
                         ]
                     },
                     {
+                        "type": "string",
                         "enum": [
                             "GT"
                         ]
