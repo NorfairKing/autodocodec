@@ -1,0 +1,6 @@
+[36mdef: MutuallyRecursiveA[m
+# MutuallyRecursiveA
+[37mrelationshipToB[m: # [31mrequired[m
+  # MutuallyRecursiveB
+  [37mrelationshipToA[m: # [34moptional[m
+    [36mref: MutuallyRecursiveA[m

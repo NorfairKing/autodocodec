@@ -1,0 +1,44 @@
+{
+    "reference": {
+        "anyOf": [
+            {
+                "$ref": "#/components/schemas/Valar"
+            },
+            {
+                "$ref": "#/components/schemas/Maiar"
+            }
+        ],
+        "additionalProperties": true
+    },
+    "definitions": {
+        "Valar": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "description": "Domain which the Valar rules over"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the Valar"
+                }
+            },
+            "required": [
+                "domain",
+                "name"
+            ]
+        },
+        "Maiar": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the Maiar"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        }
+    }
+}

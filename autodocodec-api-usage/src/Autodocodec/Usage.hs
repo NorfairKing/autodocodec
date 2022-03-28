@@ -24,6 +24,7 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import Data.HashMap.Strict (HashMap)
 import Data.Maybe
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.Swagger as Swagger
@@ -31,10 +32,12 @@ import Data.Text (Text)
 import Data.Word
 import GHC.Generics (Generic)
 import Test.QuickCheck
+import Data.OpenApi (ToSchema)
 
 -- | A type that's encoded as @null@.
 data NullUnit = NullUnit
   deriving (Show, Eq, Generic)
+  deriving OpenAPI.ToSchema via Autodocodec NullUnit
 
 instance Validity NullUnit
 
@@ -62,6 +65,7 @@ data Fruit
   | Banana
   | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)
+  deriving OpenAPI.ToSchema via Autodocodec Fruit
 
 instance Validity Fruit
 
@@ -91,6 +95,7 @@ data Example = Example
     exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
+  deriving OpenAPI.ToSchema via Autodocodec Example
 
 instance Validity Example
 
@@ -166,6 +171,7 @@ data Recursive
   = Base Int
   | Recurse Recursive
   deriving (Show, Eq, Generic)
+  deriving ToSchema via Autodocodec Recursive
 
 instance Validity Recursive
 
@@ -206,6 +212,53 @@ instance HasCodec Recursive where
             eitherCodec
               (codec @Int <?> "base case")
               (object "Recurse" $ requiredField "recurse" "recursive case")
+
+data MutuallyRecursiveA = MutuallyRecursiveA
+  { relationshipToB :: MutuallyRecursiveB }
+  deriving stock (Show, Generic, Eq)
+  deriving ToSchema via Autodocodec MutuallyRecursiveA
+
+instance Validity MutuallyRecursiveA
+
+instance GenValid MutuallyRecursiveA where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance ToJSON MutuallyRecursiveA where
+  toJSON MutuallyRecursiveA {..} = 
+    JSON.object ["relationshipToB" JSON..= relationshipToB ]
+
+instance FromJSON MutuallyRecursiveA where
+  parseJSON = JSON.withObject "MutuallyRecursiveA" $ \obj -> 
+    MutuallyRecursiveA <$> obj JSON..: "relationshipToB"
+
+instance HasCodec MutuallyRecursiveA where
+  codec =
+    named "MutuallyRecursiveA" $
+      object "MutuallyRecursiveA" $ 
+        MutuallyRecursiveA <$> requiredField "relationshipToB" "" .= relationshipToB
+
+data MutuallyRecursiveB = MutuallyRecursiveB
+  { relationshipToA :: Maybe MutuallyRecursiveA }
+  deriving stock (Show, Generic, Eq)
+
+instance Validity MutuallyRecursiveB
+
+instance GenValid MutuallyRecursiveB where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
+
+instance ToJSON MutuallyRecursiveB where
+  toJSON MutuallyRecursiveB {..} = 
+    JSON.object . filter ((/= JSON.Null) . snd) $ ["relationshipToA" JSON..= relationshipToA ]
+
+instance FromJSON MutuallyRecursiveB where
+  parseJSON = JSON.withObject "MutuallyRecursiveB" $ \obj -> 
+    MutuallyRecursiveB <$> obj JSON..:? "relationshipToA"
+
+instance HasCodec MutuallyRecursiveB where
+  codec = object "MutuallyRecursiveB" $ 
+    MutuallyRecursiveB <$> optionalField "relationshipToA" "" .= relationshipToA
 
 -- | An example of using DerivingVia
 data Via = Via
@@ -296,7 +349,7 @@ instance HasCodec LegacyValue where
             <*> requiredField "2" "text 2" .= legacyValueText2
             <*> requiredField "3" "text 3" .= legacyValueText3
       )
-      [ object "LegacyValue" $
+      [ object "LegacyValueOld" $
           LegacyValue
             <$> requiredField "1old" "text 1" .= legacyValueText1
             <*> requiredField "2old" "text 2" .= legacyValueText2

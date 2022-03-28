@@ -1,0 +1,32 @@
+{
+    "reference": {
+        "$ref": "#/components/schemas/recursive"
+    },
+    "definitions": {
+        "Recurse": {
+            "type": "object",
+            "properties": {
+                "recurse": {
+                    "$ref": "#/components/schemas/recursive"
+                }
+            },
+            "required": [
+                "recurse"
+            ]
+        },
+        "recursive": {
+            "anyOf": [
+                {
+                    "maximum": 9223372036854775807,
+                    "type": "number",
+                    "minimum": -9223372036854775808,
+                    "description": "base case"
+                },
+                {
+                    "$ref": "#/components/schemas/Recurse"
+                }
+            ],
+            "additionalProperties": true
+        }
+    }
+}
