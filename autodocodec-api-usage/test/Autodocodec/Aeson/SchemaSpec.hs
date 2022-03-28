@@ -71,6 +71,7 @@ spec = do
   jsonSchemaSpec @Fruit "fruit"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
+  jsonSchemaSpec @MutuallyRecursiveA "mutually-recursive"
   jsonSchemaSpec @Via "via"
   jsonSchemaSpec @VeryComment "very-comment"
   jsonSchemaSpec @LegacyValue "legacy-value"

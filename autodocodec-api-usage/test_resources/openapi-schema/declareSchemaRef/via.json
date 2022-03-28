@@ -1,0 +1,24 @@
+{
+    "reference": {
+        "$ref": "#/components/schemas/Via"
+    },
+    "definitions": {
+        "Via": {
+            "type": "object",
+            "properties": {
+                "one": {
+                    "type": "string",
+                    "description": "first field"
+                },
+                "two": {
+                    "type": "string",
+                    "description": "second field"
+                }
+            },
+            "required": [
+                "one",
+                "two"
+            ]
+        }
+    }
+}

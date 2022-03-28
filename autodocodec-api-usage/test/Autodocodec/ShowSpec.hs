@@ -64,6 +64,7 @@ spec = do
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"
+  showCodecSpec @MutuallyRecursiveA "mutually-recursive"
   showCodecSpec @Via "via"
   showCodecSpec @VeryComment "very-comment"
   showCodecSpec @LegacyValue "legacy-value"

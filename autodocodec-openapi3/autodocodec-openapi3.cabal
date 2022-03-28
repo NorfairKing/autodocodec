@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.5.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-openapi3
-version:        0.1.0.0
+version:        0.2.0.0
 synopsis:       Autodocodec interpreters for openapi3
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -38,7 +38,9 @@ library
     , base >=4.7 && <5
     , insert-ordered-containers
     , lens
+    , mtl
     , openapi3
     , scientific
     , text
+    , unordered-containers
   default-language: Haskell2010

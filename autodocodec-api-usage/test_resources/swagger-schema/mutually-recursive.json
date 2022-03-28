@@ -1,0 +1,28 @@
+{
+    "swagger": "2.0",
+    "definitions": {
+        "MutuallyRecursiveB": {
+            "type": "object",
+            "properties": {
+                "relationshipToA": {
+                    "$ref": "#/definitions/MutuallyRecursiveA"
+                }
+            }
+        },
+        "MutuallyRecursiveA": {
+            "type": "object",
+            "properties": {
+                "relationshipToB": {
+                    "$ref": "#/definitions/MutuallyRecursiveB"
+                }
+            },
+            "required": [
+                "relationshipToB"
+            ]
+        }
+    },
+    "info": {
+        "version": "",
+        "title": ""
+    }
+}

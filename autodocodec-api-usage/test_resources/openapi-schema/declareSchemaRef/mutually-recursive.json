@@ -1,0 +1,26 @@
+{
+    "reference": {
+        "$ref": "#/components/schemas/MutuallyRecursiveA"
+    },
+    "definitions": {
+        "MutuallyRecursiveA": {
+            "type": "object",
+            "properties": {
+                "relationshipToB": {
+                    "$ref": "#/components/schemas/MutuallyRecursiveB"
+                }
+            },
+            "required": [
+                "relationshipToB"
+            ]
+        },
+        "MutuallyRecursiveB": {
+            "type": "object",
+            "properties": {
+                "relationshipToA": {
+                    "$ref": "#/components/schemas/MutuallyRecursiveA"
+                }
+            }
+        }
+    }
+}

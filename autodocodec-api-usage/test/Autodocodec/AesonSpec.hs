@@ -88,6 +88,7 @@ spec = do
   aesonCodecErrorSpec @Example "example-error-fruit-number" "{\"text\": \"hello\", \"bool\": true, \"maybe\": null, \"fruit\": 5}"
   aesonCodecSpec @Recursive
   aesonCodecErrorSpec @Recursive "recursive-error-recurse-string" "{\"recurse\": {\"recurse\": {\"recurse\": \"hello\"}}}"
+  aesonCodecSpec @MutuallyRecursiveA
   aesonCodecSpec @Via
   aesonCodecSpec @VeryComment
   aesonCodecSpec @LegacyValue

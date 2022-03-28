@@ -9,7 +9,7 @@
   [37m3[m: # [31mrequired[m
     # text 3
     [33m<string>[m
-, # LegacyValue
+, # LegacyValueOld
   [37m1old[m: # [31mrequired[m
     # text 1
     [33m<string>[m
