@@ -136,15 +136,15 @@ openAPISchemaSpec filePath =
                       ]
 
 openAPISchemaSpecViaDeclareSchemaRef :: forall a. (Show a, Typeable a, OpenAPI.ToSchema a, GenValid a, HasCodec a) => FilePath -> Spec
-openAPISchemaSpecViaDeclareSchemaRef filePath = 
+openAPISchemaSpecViaDeclareSchemaRef filePath =
   describe ("openAPISchemaSpecViaDeclareSchemaRef @" <> nameOf @a) $ do
     it "outputs the same schema as before" $
       let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy a)) mempty
-          json = JSON.object [ 
-              "definitions" JSON..= definitions, 
-              "reference" JSON..= reference 
-            ]
-       in pureGoldenJSONFile 
-        ("test_resources/openapi-schema/declareSchemaRef/" <> filePath <> ".json")
-        (JSON.toJSON json)
-            
+          json =
+            JSON.object
+              [ "definitions" JSON..= definitions,
+                "reference" JSON..= reference
+              ]
+       in pureGoldenJSONFile
+            ("test_resources/openapi-schema/declareSchemaRef/" <> filePath <> ".json")
+            (JSON.toJSON json)

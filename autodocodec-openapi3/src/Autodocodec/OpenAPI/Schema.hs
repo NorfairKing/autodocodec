@@ -1,11 +1,11 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Autodocodec.OpenAPI.Schema where
@@ -16,13 +16,13 @@ import Control.Monad
 import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
 import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
-import Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HashMap
 import Data.Text (Text)
 import Debug.Trace (traceM)
 
@@ -118,17 +118,16 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             -- Insert a dummy schema to prevent an infinite loop in recursive data structures
             let dummySchema = mempty
             let seenSchemas' = HashMap.insert n dummySchema seenSchemas
-            
+
             -- Run in a new isolated Declare monad so that we can get the results and override
             -- the dummy before declaring it in our main Declare monad (Declare does not allow overriding itself)
             let (newDeclaredSchemas, (namedSchema, newSeenSchemas)) = flip runDeclare existingDeclaredSchemas . flip runStateT seenSchemas' $ go c
-            
+
             -- Override the dummy now we actually know what the result will be
             State.put $ HashMap.insert n (_namedSchemaSchema namedSchema) newSeenSchemas
             declare $ InsOrdHashMap.insert n (_namedSchemaSchema namedSchema) newDeclaredSchemas
-            pure $ namedSchema { _namedSchemaName = Just n }
-
-          Just schema -> 
+            pure $ namedSchema {_namedSchemaName = Just n}
+          Just schema ->
             -- We've been here before recursively, just reuse the schema we've previously created
             pure $ NamedSchema (Just n) schema
 
@@ -192,7 +191,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
 
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
-    
+
     combineSchemasOr :: MonadDeclare (Definitions Schema) m => Union -> NamedSchema -> NamedSchema -> m NamedSchema
     combineSchemasOr u ns1 ns2 = do
       let s1 = _namedSchemaSchema ns1
