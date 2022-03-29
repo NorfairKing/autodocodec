@@ -24,7 +24,6 @@ import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
-import Debug.Trace (traceM)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -127,9 +126,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             State.put $ HashMap.insert n (_namedSchemaSchema namedSchema) newSeenSchemas
             declare $ InsOrdHashMap.insert n (_namedSchemaSchema namedSchema) newDeclaredSchemas
             pure $ namedSchema {_namedSchemaName = Just n}
-          Just schema ->
+          Just s ->
             -- We've been here before recursively, just reuse the schema we've previously created
-            pure $ NamedSchema (Just n) schema
+            pure $ NamedSchema (Just n) s
 
     goObject :: ObjectCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) [Schema]
     goObject = \case
