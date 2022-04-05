@@ -24,7 +24,7 @@
             }
         },
         {
-            "$comment": "LegacyValue",
+            "$comment": "LegacyValueOld",
             "required": [
                 "3old",
                 "2old",

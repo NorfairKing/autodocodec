@@ -12,20 +12,6 @@
                     }
                 }
             },
-            "Recursive": {
-                "anyOf": [
-                    {
-                        "maximum": 9223372036854775807,
-                        "minimum": -9223372036854775808,
-                        "type": "number",
-                        "description": "base case"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Recurse"
-                    }
-                ],
-                "additionalProperties": true
-            },
             "recursive": {
                 "anyOf": [
                     {

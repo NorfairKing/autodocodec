@@ -1,0 +1,32 @@
+{
+    "reference": {
+        "anyOf": [
+            {
+                "type": "string",
+                "enum": [
+                    "Apple"
+                ]
+            },
+            {
+                "type": "string",
+                "enum": [
+                    "Orange"
+                ]
+            },
+            {
+                "type": "string",
+                "enum": [
+                    "Banana"
+                ]
+            },
+            {
+                "type": "string",
+                "enum": [
+                    "Melon"
+                ]
+            }
+        ],
+        "additionalProperties": true
+    },
+    "definitions": {}
+}

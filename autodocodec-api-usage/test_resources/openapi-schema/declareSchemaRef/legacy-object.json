@@ -1,0 +1,84 @@
+{
+    "reference": {
+        "$ref": "#/components/schemas/LegacyObject"
+    },
+    "definitions": {
+        "LegacyObject": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "newest": {
+                            "type": "string",
+                            "description": "newest key"
+                        }
+                    },
+                    "required": [
+                        "newest"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "newer": {
+                            "type": "string",
+                            "description": "newer key"
+                        }
+                    },
+                    "required": [
+                        "newer"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "new": {
+                            "type": "string",
+                            "description": "new key"
+                        }
+                    },
+                    "required": [
+                        "new"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "old": {
+                            "type": "string",
+                            "description": "old key"
+                        }
+                    },
+                    "required": [
+                        "old"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "older": {
+                            "type": "string",
+                            "description": "older key"
+                        }
+                    },
+                    "required": [
+                        "older"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "oldest": {
+                            "type": "string",
+                            "description": "oldest key"
+                        }
+                    },
+                    "required": [
+                        "oldest"
+                    ]
+                }
+            ],
+            "additionalProperties": true
+        }
+    }
+}

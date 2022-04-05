@@ -19,8 +19,10 @@ library:
   dependencies:
   - aeson
   - autodocodec
+  - unordered-containers
   - insert-ordered-containers
   - lens
+  - mtl
   - openapi3
   - scientific
   - text

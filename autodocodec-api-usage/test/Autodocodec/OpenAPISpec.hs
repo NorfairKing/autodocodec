@@ -40,6 +40,7 @@ import Test.Syd.Validity.Utils
 spec :: Spec
 spec = do
   openAPISchemaSpec @NullUnit "null"
+  openAPISchemaSpecViaDeclareSchemaRef @NullUnit "null"
   openAPISchemaSpec @Bool "bool"
   openAPISchemaSpec @Ordering "ordering"
   openAPISchemaSpec @Char "char"
@@ -74,14 +75,25 @@ spec = do
   openAPISchemaSpec @DiffTime "difftime"
   openAPISchemaSpec @NominalDiffTime "nominal-difftime"
   openAPISchemaSpec @Fruit "fruit"
+  openAPISchemaSpecViaDeclareSchemaRef @Fruit "fruit"
   openAPISchemaSpec @Example "example"
+  openAPISchemaSpecViaDeclareSchemaRef @Example "example"
   openAPISchemaSpec @Recursive "recursive"
+  openAPISchemaSpecViaDeclareSchemaRef @Recursive "recursive"
+  openAPISchemaSpec @MutuallyRecursiveA "mutually-recursive"
+  openAPISchemaSpecViaDeclareSchemaRef @MutuallyRecursiveA "mutually-recursive"
   openAPISchemaSpec @Via "via"
+  openAPISchemaSpecViaDeclareSchemaRef @Via "via"
   openAPISchemaSpec @VeryComment "very-comment"
+  openAPISchemaSpecViaDeclareSchemaRef @VeryComment "very-comment"
   openAPISchemaSpec @LegacyValue "legacy-value"
+  openAPISchemaSpecViaDeclareSchemaRef @LegacyValue "legacy-value"
   openAPISchemaSpec @LegacyObject "legacy-object"
+  openAPISchemaSpecViaDeclareSchemaRef @LegacyObject "legacy-object"
   openAPISchemaSpec @Ainur "ainur"
+  openAPISchemaSpecViaDeclareSchemaRef @Ainur "ainur"
   openAPISchemaSpec @War "war"
+  openAPISchemaSpecViaDeclareSchemaRef @War "war"
 
 openAPISchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =
@@ -122,3 +134,17 @@ openAPISchemaSpec filePath =
                           ],
                         show errors
                       ]
+
+openAPISchemaSpecViaDeclareSchemaRef :: forall a. (Show a, Typeable a, OpenAPI.ToSchema a, GenValid a, HasCodec a) => FilePath -> Spec
+openAPISchemaSpecViaDeclareSchemaRef filePath =
+  describe ("openAPISchemaSpecViaDeclareSchemaRef @" <> nameOf @a) $ do
+    it "outputs the same schema as before" $
+      let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy a)) mempty
+          json =
+            JSON.object
+              [ "definitions" JSON..= definitions,
+                "reference" JSON..= reference
+              ]
+       in pureGoldenJSONFile
+            ("test_resources/openapi-schema/declareSchemaRef/" <> filePath <> ".json")
+            (JSON.toJSON json)

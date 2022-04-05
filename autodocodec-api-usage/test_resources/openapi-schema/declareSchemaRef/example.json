@@ -1,0 +1,97 @@
+{
+    "reference": {
+        "$ref": "#/components/schemas/Example"
+    },
+    "definitions": {
+        "Example": {
+            "type": "object",
+            "properties": {
+                "maybe": {
+                    "type": "string",
+                    "description": "a maybe text",
+                    "nullable": true
+                },
+                "text": {
+                    "type": "string",
+                    "description": "a text"
+                },
+                "fruit": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Apple"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Orange"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Banana"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "Melon"
+                            ]
+                        }
+                    ],
+                    "additionalProperties": true,
+                    "description": "fruit!!"
+                },
+                "optional": {
+                    "type": "string",
+                    "description": "an optional text"
+                },
+                "single-or-list": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ],
+                    "additionalProperties": true,
+                    "description": "an optional list that can also be specified as a single element"
+                },
+                "optional-with-null-default": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "an optional list of texts with a default empty list where the empty list would be omitted"
+                },
+                "optional-with-default": {
+                    "type": "string",
+                    "description": "an optional text with a default"
+                },
+                "optional-or-null": {
+                    "type": "string",
+                    "description": "an optional-or-null text",
+                    "nullable": true
+                },
+                "bool": {
+                    "type": "boolean",
+                    "description": "a bool"
+                }
+            },
+            "default": [],
+            "required": [
+                "text",
+                "bool",
+                "maybe",
+                "fruit"
+            ]
+        }
+    }
+}
