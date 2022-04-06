@@ -1138,6 +1138,21 @@ literalTextValueCodec value text = dimapCodec (const value) (const text) (litera
 -- Just "even"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "odd") :: Maybe Text
 -- Just "odd"
+matchChoiceCodecAs ::
+  -- | Is the union DisjointUnion or PossiblyJointUnion
+  Union ->
+  -- | First codec
+  Codec context input output ->
+  -- | Second codec
+  Codec context input' output ->
+  -- | Rendering chooser
+  (newInput -> Either input input') ->
+  -- |
+  Codec context newInput output
+matchChoiceCodecAs union c1 c2 renderingChooser =
+  dimapCodec (either id id) renderingChooser $
+    eitherCodec c1 c2
+
 matchChoiceCodec ::
   -- | First codec
   Codec context input output ->
@@ -1147,9 +1162,18 @@ matchChoiceCodec ::
   (newInput -> Either input input') ->
   -- |
   Codec context newInput output
-matchChoiceCodec c1 c2 renderingChooser =
-  dimapCodec (either id id) renderingChooser $
-    eitherCodec c1 c2
+matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
+
+disjointMatchChoiceCodec ::
+  -- | First codec
+  Codec context input output ->
+  -- | Second codec
+  Codec context input' output ->
+  -- | Rendering chooser
+  (newInput -> Either input input') ->
+  -- |
+  Codec context newInput output
+disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 
 -- | A choice codec for a list of options, each with their own rendering matcher.
 --
@@ -1181,6 +1205,22 @@ matchChoiceCodec c1 c2 renderingChooser =
 -- Nothing
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "fallback") :: Maybe Text
 -- Just "fallback"
+matchChoicesCodecAs ::
+  Union ->
+  -- | Codecs, each which their own rendering matcher
+  [(input -> Maybe input, Codec context input output)] ->
+  -- | Fallback codec, in case none of the matchers in the list match
+  Codec context input output ->
+  -- |
+  Codec context input output
+matchChoicesCodecAs union l fallback = go l
+  where
+    go = \case
+      [] -> fallback
+      ((m, c) : rest) -> matchChoiceCodecAs union c (go rest) $ \i -> case m i of
+        Just j -> Left j
+        Nothing -> Right i
+
 matchChoicesCodec ::
   -- | Codecs, each which their own rendering matcher
   [(input -> Maybe input, Codec context input output)] ->
@@ -1188,13 +1228,16 @@ matchChoicesCodec ::
   Codec context input output ->
   -- |
   Codec context input output
-matchChoicesCodec l fallback = go l
-  where
-    go = \case
-      [] -> fallback
-      ((m, c) : rest) -> matchChoiceCodec c (go rest) $ \i -> case m i of
-        Just j -> Left j
-        Nothing -> Right i
+matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
+
+disjointMatchChoicesCodec ::
+  -- | Codecs, each which their own rendering matcher
+  [(input -> Maybe input, Codec context input output)] ->
+  -- | Fallback codec, in case none of the matchers in the list match
+  Codec context input output ->
+  -- |
+  Codec context input output
+disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
 
 -- | Use one codec for the default way of parsing and rendering, but then also
 -- use a list of other codecs for potentially different parsing.
@@ -1250,6 +1293,24 @@ parseAlternative c cAlt = parseAlternatives c [cAlt]
 -- === WARNING
 --
 -- If you don't provide a string for one of the type's constructors, the last codec in the list will be used instead.
+enumCodecAs ::
+  forall enum context.
+  Eq enum =>
+  Union ->
+  -- |
+  NonEmpty (enum, Codec context enum enum) ->
+  -- |
+  Codec context enum enum
+enumCodecAs union = go
+  where
+    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
+    go ((e, c) :| rest) = case NE.nonEmpty rest of
+      Nothing -> c
+      Just ne -> matchChoiceCodecAs union c (go ne) $ \i ->
+        if e == i
+          then Left e
+          else Right i
+
 enumCodec ::
   forall enum context.
   Eq enum =>
@@ -1257,15 +1318,16 @@ enumCodec ::
   NonEmpty (enum, Codec context enum enum) ->
   -- |
   Codec context enum enum
-enumCodec = go
-  where
-    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
-    go ((e, c) :| rest) = case NE.nonEmpty rest of
-      Nothing -> c
-      Just ne -> matchChoiceCodec c (go ne) $ \i ->
-        if e == i
-          then Left e
-          else Right i
+enumCodec = enumCodecAs PossiblyJointUnion
+
+disjointEnumCodec ::
+  forall enum context.
+  Eq enum =>
+  -- |
+  NonEmpty (enum, Codec context enum enum) ->
+  -- |
+  Codec context enum enum
+disjointEnumCodec = enumCodecAs DisjointUnion
 
 -- | A codec for an enum that can be written as constant string values
 --
@@ -1285,6 +1347,23 @@ enumCodec = go
 -- >>> let c = stringConstCodec [(Apple, "foo")]
 -- >>> toJSONVia c Orange
 -- String "foo"
+stringConstCodecAs ::
+  forall constant.
+  Eq constant =>
+  Union ->
+  -- |
+  NonEmpty (constant, Text) ->
+  -- |
+  JSONCodec constant
+stringConstCodecAs union =
+  enumCodecAs union
+    . NE.map
+      ( \(constant, text) ->
+          ( constant,
+            literalTextValueCodec constant text
+          )
+      )
+
 stringConstCodec ::
   forall constant.
   Eq constant =>
@@ -1292,14 +1371,16 @@ stringConstCodec ::
   NonEmpty (constant, Text) ->
   -- |
   JSONCodec constant
-stringConstCodec =
-  enumCodec
-    . NE.map
-      ( \(constant, text) ->
-          ( constant,
-            literalTextValueCodec constant text
-          )
-      )
+stringConstCodec = stringConstCodecAs PossiblyJointUnion
+
+disjointStringConstCodec ::
+  forall constant.
+  Eq constant =>
+  -- |
+  NonEmpty (constant, Text) ->
+  -- |
+  JSONCodec constant
+disjointStringConstCodec = stringConstCodecAs DisjointUnion
 
 -- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
 --
@@ -1311,16 +1392,31 @@ stringConstCodec =
 -- String "Apple"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Orange") :: Maybe Fruit
 -- Just Orange
+shownBoundedEnumCodecAs ::
+  forall enum.
+  (Show enum, Eq enum, Enum enum, Bounded enum) =>
+  Union ->
+  -- |
+  JSONCodec enum
+shownBoundedEnumCodecAs union =
+  let ls = [minBound .. maxBound]
+   in case NE.nonEmpty ls of
+        Nothing -> error "0 enum values ?!"
+        Just ne -> stringConstCodecAs union (NE.map (\v -> (v, T.pack (show v))) ne)
+
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
   -- |
   JSONCodec enum
-shownBoundedEnumCodec =
-  let ls = [minBound .. maxBound]
-   in case NE.nonEmpty ls of
-        Nothing -> error "0 enum values ?!"
-        Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
+shownBoundedEnumCodec = shownBoundedEnumCodecAs PossiblyJointUnion
+
+disjointShownBoundedEnumCodec ::
+  forall enum.
+  (Show enum, Eq enum, Enum enum, Bounded enum) =>
+  -- |
+  JSONCodec enum
+disjointShownBoundedEnumCodec = shownBoundedEnumCodecAs DisjointUnion
 
 -- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
 --
