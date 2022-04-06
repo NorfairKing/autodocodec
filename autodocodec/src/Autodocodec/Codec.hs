@@ -1142,18 +1142,14 @@ matchChoiceCodec ::
   -- | First codec
   Codec context input output ->
   -- | Second codec
-  Codec context input output ->
+  Codec context input' output ->
   -- | Rendering chooser
-  (newInput -> Either input input) ->
+  (newInput -> Either input input') ->
   -- |
   Codec context newInput output
 matchChoiceCodec c1 c2 renderingChooser =
-  dimapCodec f renderingChooser $
+  dimapCodec (either id id) renderingChooser $
     eitherCodec c1 c2
-  where
-    f = \case
-      Left a -> a
-      Right a -> a
 
 -- | A choice codec for a list of options, each with their own rendering matcher.
 --
