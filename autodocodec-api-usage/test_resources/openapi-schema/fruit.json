@@ -2,31 +2,12 @@
     "components": {
         "schemas": {
             "Fruit": {
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "enum": [
-                            "Apple"
-                        ]
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "Orange"
-                        ]
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "Banana"
-                        ]
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "Melon"
-                        ]
-                    }
+                "type": "string",
+                "enum": [
+                    "Apple",
+                    "Orange",
+                    "Banana",
+                    "Melon"
                 ],
                 "additionalProperties": true
             }

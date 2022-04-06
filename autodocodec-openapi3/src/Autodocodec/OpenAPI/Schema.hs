@@ -11,7 +11,7 @@
 module Autodocodec.OpenAPI.Schema where
 
 import Autodocodec
-import Control.Lens (Lens', (&), (?~), (^.))
+import Control.Lens (Lens', (&), (.~), (?~), (^.))
 import Control.Monad
 import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
 import qualified Control.Monad.State.Lazy as State
@@ -217,11 +217,19 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                   DisjointUnion -> Nothing
               }
       pure $
-        NamedSchema Nothing $ case (s1 ^. orLens, s2 ^. orLens) of
-          (Just s1s, Just s2s) -> prototype & orLens ?~ (s1s ++ s2s)
-          (Just s1s, Nothing) -> prototype & orLens ?~ (s1s ++ [s2Ref])
-          (Nothing, Just s2s) -> prototype & orLens ?~ (s1Ref : s2s)
-          (Nothing, Nothing) -> prototype & orLens ?~ [s1Ref, s2Ref]
+        NamedSchema Nothing $ case (s1 ^. enum_, s2 ^. enum_) of
+          -- If both schemas are enums with the same type then combine their values
+          (Just s1enums, Just s2enums)
+            | s1 ^. type_ == s2 ^. type_ ->
+              prototype
+                & enum_ ?~ (s1enums ++ s2enums)
+                & type_ .~ s1 ^. type_
+          _ ->
+            case (s1 ^. orLens, s2 ^. orLens) of
+              (Just s1s, Just s2s) -> prototype & orLens ?~ (s1s ++ s2s)
+              (Just s1s, Nothing) -> prototype & orLens ?~ (s1s ++ [s2Ref])
+              (Nothing, Just s2s) -> prototype & orLens ?~ (s1Ref : s2s)
+              (Nothing, Nothing) -> prototype & orLens ?~ [s1Ref, s2Ref]
 
 declareSpecificNamedSchemaRef :: MonadDeclare (Definitions Schema) m => OpenAPI.NamedSchema -> m (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =

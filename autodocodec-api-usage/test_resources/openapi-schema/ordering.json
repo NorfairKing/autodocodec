@@ -2,25 +2,11 @@
     "components": {
         "schemas": {
             "Ordering": {
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "enum": [
-                            "LT"
-                        ]
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "EQ"
-                        ]
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "GT"
-                        ]
-                    }
+                "type": "string",
+                "enum": [
+                    "LT",
+                    "EQ",
+                    "GT"
                 ],
                 "additionalProperties": true
             }
