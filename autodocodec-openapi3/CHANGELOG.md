@@ -1,5 +1,8 @@
 # Changelog
 
+### Changed
+* When combining alternative enum schemas, combine the enum values into one enum if they have the same type.
+
 ## [0.2.0.0] - 2022-04-05
 
 ### Changed
