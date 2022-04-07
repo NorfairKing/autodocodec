@@ -4,31 +4,18 @@
     },
     "definitions": {
         "Example": {
+            "required": [
+                "text",
+                "bool",
+                "maybe",
+                "fruit"
+            ],
             "type": "object",
             "properties": {
                 "maybe": {
                     "type": "string",
                     "description": "a maybe text",
                     "nullable": true
-                },
-                "text": {
-                    "type": "string",
-                    "description": "a text"
-                },
-                "fruit": {
-                    "type": "string",
-                    "enum": [
-                        "Apple",
-                        "Orange",
-                        "Banana",
-                        "Melon"
-                    ],
-                    "additionalProperties": true,
-                    "description": "fruit!!"
-                },
-                "optional": {
-                    "type": "string",
-                    "description": "an optional text"
                 },
                 "single-or-list": {
                     "anyOf": [
@@ -42,17 +29,35 @@
                             "type": "array"
                         }
                     ],
+                    "default": [],
                     "additionalProperties": true,
                     "description": "an optional list that can also be specified as a single element"
                 },
+                "text": {
+                    "type": "string",
+                    "description": "a text"
+                },
                 "optional-with-null-default": {
+                    "default": [],
                     "items": {
                         "type": "string"
                     },
                     "type": "array",
                     "description": "an optional list of texts with a default empty list where the empty list would be omitted"
                 },
+                "fruit": {
+                    "additionalProperties": true,
+                    "type": "string",
+                    "enum": [
+                        "Apple",
+                        "Orange",
+                        "Banana",
+                        "Melon"
+                    ],
+                    "description": "fruit!!"
+                },
                 "optional-with-default": {
+                    "default": "foobar",
                     "type": "string",
                     "description": "an optional text with a default"
                 },
@@ -64,15 +69,12 @@
                 "bool": {
                     "type": "boolean",
                     "description": "a bool"
+                },
+                "optional": {
+                    "type": "string",
+                    "description": "an optional text"
                 }
-            },
-            "default": [],
-            "required": [
-                "text",
-                "bool",
-                "maybe",
-                "fruit"
-            ]
+            }
         }
     }
 }

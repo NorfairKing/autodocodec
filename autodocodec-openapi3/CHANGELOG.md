@@ -2,6 +2,7 @@
 
 ### Changed
 * When combining alternative enum schemas, combine the enum values into one enum if they have the same type.
+* Set default value on the property level instead of object level to fix generation of invalid schemas caused by the default value not matching the type of the object schema
 
 ## [0.2.0.0] - 2022-04-05
 
