@@ -163,10 +163,10 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
       OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
+        let addDefaultToSchema propertySchema = propertySchema {_schemaDefault = Just $ toJSONVia vs defaultValue}
         pure
           [ mempty
-              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
-                _schemaDefault = Just $ toJSONVia vs defaultValue,
+              { _schemaProperties = [(key, addDefaultToSchema . addMDoc mDoc . _namedSchemaSchema <$> ref)],
                 _schemaType = Just OpenApiObject
               }
           ]
