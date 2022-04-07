@@ -1151,7 +1151,7 @@ matchChoiceCodecAs ::
   Codec context newInput output
 matchChoiceCodecAs union c1 c2 renderingChooser =
   dimapCodec (either id id) renderingChooser $
-    eitherCodec c1 c2
+    EitherCodec union c1 c2
 
 matchChoiceCodec ::
   -- | First codec
