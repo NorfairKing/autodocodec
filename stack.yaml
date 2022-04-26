@@ -23,10 +23,11 @@ extra-deps:
     - genvalidity-text
 
 - github: NorfairKing/safe-coloured-text
-  commit: f30fe0e4d2a0fa036967ffe17538b60e5f9861f5
+  commit: 95860cbf6aa7c50d9c3702165bf6df25baf770b1
   subdirs:
     - safe-coloured-text
     - safe-coloured-text-terminfo
+
 - github: NorfairKing/sydtest
   commit: aac96e2e520a4fca97bccd3403721dc0036b026f
   subdirs:
