@@ -66,7 +66,7 @@ data Codec context input output where
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
     -- | Name of the @bool@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
     JSONCodec Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
@@ -74,7 +74,7 @@ data Codec context input output where
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
     -- | Name of the @string@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
     JSONCodec Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
@@ -85,7 +85,7 @@ data Codec context input output where
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
     -- | Name of the @number@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Maybe NumberBounds ->
     -- |
@@ -111,17 +111,17 @@ data Codec context input output where
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
-    (ValueCodec input output) ->
+    ValueCodec input output ->
     -- |
     ValueCodec (Vector input) (Vector output)
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
-    (ObjectCodec input output) ->
+    ObjectCodec input output ->
     -- |
     ValueCodec input output
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
@@ -144,7 +144,7 @@ data Codec context input output where
     -- |
     (newInput -> oldInput) ->
     -- |
-    (Codec context oldInput oldOutput) ->
+    Codec context oldInput oldOutput ->
     Codec context newInput newOutput
   -- | Encode/Decode an 'Either' value
   --
@@ -163,9 +163,9 @@ data Codec context input output where
     -- | What type of union we encode and decode
     !Union ->
     -- | Codec for the 'Left' side
-    (Codec context input1 output1) ->
+    Codec context input1 output1 ->
     -- | Codec for the 'Right' side
-    (Codec context input2 output2) ->
+    Codec context input2 output2 ->
     -- |
     Codec context (Either input1 input2) (Either output1 output2)
   -- | A comment codec

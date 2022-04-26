@@ -1,4 +1,4 @@
-resolver: nightly-2021-05-10
+resolver: lts-19.3
 packages:
 - autodocodec
 - autodocodec-api-usage
@@ -9,7 +9,7 @@ packages:
 extra-deps:
 
 - github: NorfairKing/validity
-  commit: bafcaf3799fa76edd5968923f6efde25085815f9
+  commit: 11126dd085148f4bf420417ca0a122d120d06ea0
   subdirs:
     - validity
     - validity-aeson
@@ -24,12 +24,12 @@ extra-deps:
     - genvalidity-text
 
 - github: NorfairKing/safe-coloured-text
-  commit: 7f157485e55528648a95edf3508a122b2e55779e
+  commit: f30fe0e4d2a0fa036967ffe17538b60e5f9861f5
   subdirs:
     - safe-coloured-text
     - safe-coloured-text-terminfo
 - github: NorfairKing/sydtest
-  commit: e75c55b920936e344b779093b2a0318fb35d1770
+  commit: aac96e2e520a4fca97bccd3403721dc0036b026f
   subdirs:
     - sydtest
     - sydtest-aeson
