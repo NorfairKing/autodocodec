@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -5,11 +6,15 @@
 
 module Autodocodec.Aeson.Encode where
 
+import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (KeyMap)
+#endif
 import qualified Data.Aeson.Encoding as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Map (Map)
@@ -38,6 +43,9 @@ toJSONVia = flip go
       ObjectOfCodec _ oc -> JSON.Object (goObject a oc)
       HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
       MapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
+#if MIN_VERSION_aeson(2,0,0)
+      KeyMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: KeyMap _)
+#endif
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
@@ -49,10 +57,10 @@ toJSONVia = flip go
 
     goObject :: a -> ObjectCodec a void -> JSON.Object
     goObject a = \case
-      RequiredKeyCodec k c _ -> k JSON..= go a c
+      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= go a c
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty
-        Just b -> k JSON..= go b c
+        Just b -> Compat.toKey k JSON..= go b c
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue
@@ -83,6 +91,9 @@ toEncodingVia = flip go
       ObjectOfCodec _ oc -> JSON.pairs (goObject a oc)
       HashMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
       MapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
+#if MIN_VERSION_aeson(2,0,0)
+      KeyMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: KeyMap _)
+#endif
       ValueCodec -> JSON.value (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
@@ -93,10 +104,10 @@ toEncodingVia = flip go
       ReferenceCodec _ c -> go a c
     goObject :: a -> ObjectCodec a void -> JSON.Series
     goObject a = \case
-      RequiredKeyCodec k c _ -> JSON.pair k (go a c)
+      RequiredKeyCodec k c _ -> JSON.pair (Compat.toKey k) (go a c)
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty :: JSON.Series
-        Just b -> JSON.pair k (go b c)
+        Just b -> JSON.pair (Compat.toKey k) (go b c)
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue

@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
@@ -15,6 +16,9 @@ module Autodocodec.Codec where
 import Control.Monad.State
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (KeyMap)
+#endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
@@ -34,6 +38,7 @@ import GHC.Generics (Generic)
 
 -- $setup
 -- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia, parseJSONViaCodec)
+-- >>> import qualified Autodocodec.Aeson.Compat as Compat
 -- >>> import Autodocodec.Class (HasCodec(codec), requiredField)
 -- >>> import qualified Data.Aeson as JSON
 -- >>> import qualified Data.HashMap.Strict as HM
@@ -104,6 +109,14 @@ data Codec context input output where
     JSONCodec v ->
     -- |
     JSONCodec (Map k v)
+#if MIN_VERSION_aeson(2,0,0)
+  -- | Encode a 'KeyMap', and decode any 'KeyMap'.
+  KeyMapCodec ::
+    -- |
+    JSONCodec v ->
+    -- |
+    JSONCodec (KeyMap v)
+#endif
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
     -- |
@@ -328,6 +341,9 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ValueCodec -> pure $ showString "ValueCodec"
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
+#if MIN_VERSION_aeson(2,0,0)
+      KeyMapCodec c -> (\s -> showParen (d > 10) $ showString "KeyMapCodec" . s) <$> go 11 c
+#endif
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
@@ -540,7 +556,7 @@ eitherCodec = possiblyJointEitherCodec
 -- Object (fromList [("domain",String "Stars"),("name",String "Varda")])
 -- >>> toJSONViaCodec (Maiar "Sauron")
 -- Object (fromList [("name",String "Sauron")])
--- >>> JSON.parseMaybe parseJSONViaCodec (Object (HM.fromList [("name",String "Olorin")])) :: Maybe Ainur
+-- >>> JSON.parseMaybe parseJSONViaCodec (Object (Compat.fromList [("name",String "Olorin")])) :: Maybe Ainur
 -- Just (Maiar "Olorin")
 --
 -- === WARNING
