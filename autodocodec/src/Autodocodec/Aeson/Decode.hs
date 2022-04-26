@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -13,9 +12,6 @@ import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import Control.Monad
 import Data.Aeson as JSON
-#if MIN_VERSION_aeson(2,0,0)
-import Data.Aeson.KeyMap (KeyMap)
-#endif
 import Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Map (Map)
@@ -81,9 +77,6 @@ parseJSONContextVia codec_ context_ =
           (\object_ -> (`go` c) (object_ :: JSON.Object))
       HashMapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _)
       MapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _)
-#if MIN_VERSION_aeson(2,0,0)
-      KeyMapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (KeyMap _)
-#endif
       ValueCodec -> pure (value :: JSON.Value)
       EqCodec expected c -> do
         actual <- go value c

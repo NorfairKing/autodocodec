@@ -42,3 +42,19 @@ fromList = KM.fromList
 fromList :: [(Text, v)] -> HM.HashMap Text v
 fromList = HM.fromList
 #endif
+
+#if MIN_VERSION_aeson(2,0,0)
+toList ::  KM.KeyMap v -> [(Key, v)]
+toList = KM.toList
+#else
+toList ::HM.HashMap Text v -> [(Text, v)]
+toList = HM.toList
+#endif
+
+#if MIN_VERSION_aeson(2,0,0)
+map ::  (v1 -> v2) -> KM.KeyMap v1 -> KM.KeyMap v2
+map = KM.map
+#else
+map ::  (v1 -> v2) -> HM.HashMap Text v1 -> HM.HashMap Text v2
+map = HM.map
+#endif

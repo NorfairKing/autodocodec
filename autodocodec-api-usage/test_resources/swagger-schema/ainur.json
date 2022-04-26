@@ -1,25 +1,26 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "Ainur": {
+            "properties": {
+                "domain": {
+                    "description": "Domain which the Valar rules over",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name of the Valar",
+                    "type": "string"
+                }
+            },
             "required": [
                 "name"
             ],
-            "type": "object",
-            "properties": {
-                "domain": {
-                    "type": "string",
-                    "description": "Domain which the Valar rules over"
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Name of the Valar"
-                }
-            }
+            "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

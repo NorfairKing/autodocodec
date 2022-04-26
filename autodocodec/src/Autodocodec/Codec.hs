@@ -18,6 +18,7 @@ import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
+import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
@@ -109,14 +110,6 @@ data Codec context input output where
     JSONCodec v ->
     -- |
     JSONCodec (Map k v)
-#if MIN_VERSION_aeson(2,0,0)
-  -- | Encode a 'KeyMap', and decode any 'KeyMap'.
-  KeyMapCodec ::
-    -- |
-    JSONCodec v ->
-    -- |
-    JSONCodec (KeyMap v)
-#endif
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
     -- |
@@ -342,7 +335,6 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
 #if MIN_VERSION_aeson(2,0,0)
-      KeyMapCodec c -> (\s -> showParen (d > 10) $ showString "KeyMapCodec" . s) <$> go 11 c
 #endif
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
@@ -947,6 +939,48 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
   [Text] ->
   ValueCodec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
+
+-- | Encode a 'HashMap', and decode any 'HashMap'.
+--
+-- Forward-compatible version of 'HashMapCodec'
+--
+-- > hashMapCodec = HashMapCodec
+hashMapCodec ::
+  (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
+  -- |
+  JSONCodec v ->
+  -- |
+  JSONCodec (HashMap k v)
+hashMapCodec = HashMapCodec
+
+-- | Encode a 'Map', and decode any 'Map'.
+--
+-- Forward-compatible version of 'MapCodec'
+--
+-- > mapCodec = MapCodec
+mapCodec ::
+  (Ord k, FromJSONKey k, ToJSONKey k) =>
+  -- |
+  JSONCodec v ->
+  -- |
+  JSONCodec (Map k v)
+mapCodec = MapCodec
+
+#if MIN_VERSION_aeson(2,0,0)
+-- | Encode a 'KeyMap', and decode any 'KeyMap'.
+--
+-- This chooses 'hashMapCodec' or 'mapCodec' based on @ordered-keymap@ flag in aeson.
+keyMapCodec ::
+    -- |
+    JSONCodec v ->
+    -- |
+    JSONCodec (KeyMap v)
+keyMapCodec = case KM.coercionToMap of
+  -- Can coerce to Map, use
+  Just _ -> dimapCodec KM.fromMap KM.toMap . mapCodec
+  -- Cannot coerce to Map, use HashMap instead.
+  Nothing -> dimapCodec KM.fromHashMap KM.toHashMap . hashMapCodec
+#endif
 
 -- | Forward-compatible version of 'ValueCodec'
 --

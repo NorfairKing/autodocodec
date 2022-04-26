@@ -1,9 +1,4 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "(Map Text Int)": {
             "additionalProperties": {
@@ -13,5 +8,11 @@
             },
             "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

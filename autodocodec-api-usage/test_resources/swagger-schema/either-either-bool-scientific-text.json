@@ -1,15 +1,8 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "(Either (Either Bool Scientific) Text)": {
-            "type": "object",
             "properties": {
                 "Left": {
-                    "type": "object",
                     "properties": {
                         "Left": {
                             "type": "boolean"
@@ -17,12 +10,20 @@
                         "Right": {
                             "type": "number"
                         }
-                    }
+                    },
+                    "type": "object"
                 },
                 "Right": {
                     "type": "string"
                 }
-            }
+            },
+            "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

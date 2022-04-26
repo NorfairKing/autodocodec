@@ -128,7 +128,7 @@ instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec 
 
 #if MIN_VERSION_aeson(2,0,0)
 instance HasCodec v => HasCodec (KeyMap v) where
-  codec = KeyMapCodec codec
+  codec = keyMapCodec codec
 #endif
 
 -- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Time@ or @Data.Attoparsec.Time@ modules.

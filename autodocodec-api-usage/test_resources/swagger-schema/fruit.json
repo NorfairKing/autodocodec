@@ -1,9 +1,4 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "Fruit": {
             "enum": [
@@ -13,5 +8,11 @@
                 "Melon"
             ]
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

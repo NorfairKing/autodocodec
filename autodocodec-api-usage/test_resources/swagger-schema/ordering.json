@@ -1,9 +1,4 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "Ordering": {
             "enum": [
@@ -12,5 +7,11 @@
                 "GT"
             ]
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

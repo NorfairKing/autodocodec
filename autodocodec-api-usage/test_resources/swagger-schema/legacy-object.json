@@ -1,62 +1,63 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "LegacyObject": {
-            "type": "object",
             "properties": {
-                "3old": {
-                    "type": "string",
-                    "description": "text 3"
-                },
-                "old": {
-                    "type": "string",
-                    "description": "old key"
-                },
-                "newer": {
-                    "type": "string",
-                    "description": "newer key"
+                "1": {
+                    "description": "text 1",
+                    "type": "string"
                 },
                 "1old": {
-                    "type": "string",
-                    "description": "text 1"
-                },
-                "newest": {
-                    "type": "string",
-                    "description": "newest key"
-                },
-                "1": {
-                    "type": "string",
-                    "description": "text 1"
-                },
-                "new": {
-                    "type": "string",
-                    "description": "new key"
+                    "description": "text 1",
+                    "type": "string"
                 },
                 "2": {
-                    "type": "string",
-                    "description": "text 2"
-                },
-                "oldest": {
-                    "type": "string",
-                    "description": "oldest key"
+                    "description": "text 2",
+                    "type": "string"
                 },
                 "2old": {
-                    "type": "string",
-                    "description": "text 2"
-                },
-                "older": {
-                    "type": "string",
-                    "description": "older key"
+                    "description": "text 2",
+                    "type": "string"
                 },
                 "3": {
-                    "type": "string",
-                    "description": "text 3"
+                    "description": "text 3",
+                    "type": "string"
+                },
+                "3old": {
+                    "description": "text 3",
+                    "type": "string"
+                },
+                "new": {
+                    "description": "new key",
+                    "type": "string"
+                },
+                "newer": {
+                    "description": "newer key",
+                    "type": "string"
+                },
+                "newest": {
+                    "description": "newest key",
+                    "type": "string"
+                },
+                "old": {
+                    "description": "old key",
+                    "type": "string"
+                },
+                "older": {
+                    "description": "older key",
+                    "type": "string"
+                },
+                "oldest": {
+                    "description": "oldest key",
+                    "type": "string"
                 }
-            }
+            },
+            "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }
