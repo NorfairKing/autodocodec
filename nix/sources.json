@@ -72,15 +72,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "validity": {
-        "branch": "master",
+        "branch": "lts-19.3",
         "description": "Validity and validity-based testing",
         "homepage": "https://www.youtube.com/watch?v=eIs9qNh17SM",
         "owner": "NorfairKing",
         "repo": "validity",
-        "rev": "11126dd085148f4bf420417ca0a122d120d06ea0",
-        "sha256": "1ijh6lw0pmrgv6za4z741ddiypgch3079ij3wa1yh94ba8s3rafw",
+        "rev": "410702fac364bbda67fdf438024a7c82c3c9ae02",
+        "sha256": "11mvn5l4zhh3cwydfx97iji2ifbhrx94iivr15hj70v5qccn57sm",
         "type": "tarball",
-        "url": "https://github.com/NorfairKing/validity/archive/11126dd085148f4bf420417ca0a122d120d06ea0.tar.gz",
+        "url": "https://github.com/NorfairKing/validity/archive/410702fac364bbda67fdf438024a7c82c3c9ae02.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "yamlparse-applicative": {

@@ -7,9 +7,8 @@ packages:
 - autodocodec-swagger2
 - autodocodec-yaml
 extra-deps:
-
 - github: NorfairKing/validity
-  commit: 11126dd085148f4bf420417ca0a122d120d06ea0
+  commit: 410702fac364bbda67fdf438024a7c82c3c9ae02
   subdirs:
     - validity
     - validity-aeson
