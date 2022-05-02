@@ -1,5 +1,10 @@
 Error in $.fruit: 
-  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
-  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
-  Previous branch failure: Error in $: parsing Text failed, expected String, but encountered Number
-parsing Text failed, expected String, but encountered Number
+Both branches of a disjoint union failed: 
+Left:   Error in $: parsing Text failed, expected String, but encountered Number
+Right:  Error in $: Both branches of a disjoint union failed: 
+Left:   Error in $: parsing Text failed, expected String, but encountered Number
+Right:  Error in $: Both branches of a disjoint union failed: 
+Left:   Error in $: parsing Text failed, expected String, but encountered Number
+Right:  Error in $: parsing Text failed, expected String, but encountered Number
+
+

@@ -6,8 +6,7 @@
             "Orange",
             "Banana",
             "Melon"
-        ],
-        "additionalProperties": true
+        ]
     },
     "definitions": {}
 }

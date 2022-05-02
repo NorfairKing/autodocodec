@@ -46,7 +46,7 @@
         },
         "fruit": {
             "$comment": "fruit!!",
-            "anyOf": [
+            "oneOf": [
                 {
                     "const": "Apple"
                 },

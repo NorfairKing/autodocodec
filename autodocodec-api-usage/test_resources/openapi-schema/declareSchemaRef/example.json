@@ -23,7 +23,6 @@
                         "Banana",
                         "Melon"
                     ],
-                    "additionalProperties": true,
                     "description": "fruit!!"
                 },
                 "optional": {

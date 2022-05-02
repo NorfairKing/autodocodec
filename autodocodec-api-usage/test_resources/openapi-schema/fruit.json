@@ -8,8 +8,7 @@
                     "Orange",
                     "Banana",
                     "Melon"
-                ],
-                "additionalProperties": true
+                ]
             }
         }
     },

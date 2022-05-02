@@ -33,7 +33,7 @@
   ]
 [37mfruit[m: # [31mrequired[m
   # fruit!!
-  # [32many of[m
+  # [32mone of[m
   [ Apple
   , Orange
   , Banana

@@ -1293,24 +1293,6 @@ parseAlternative c cAlt = parseAlternatives c [cAlt]
 -- === WARNING
 --
 -- If you don't provide a string for one of the type's constructors, the last codec in the list will be used instead.
-enumCodecAs ::
-  forall enum context.
-  Eq enum =>
-  Union ->
-  -- |
-  NonEmpty (enum, Codec context enum enum) ->
-  -- |
-  Codec context enum enum
-enumCodecAs union = go
-  where
-    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
-    go ((e, c) :| rest) = case NE.nonEmpty rest of
-      Nothing -> c
-      Just ne -> matchChoiceCodecAs union c (go ne) $ \i ->
-        if e == i
-          then Left e
-          else Right i
-
 enumCodec ::
   forall enum context.
   Eq enum =>
@@ -1318,16 +1300,15 @@ enumCodec ::
   NonEmpty (enum, Codec context enum enum) ->
   -- |
   Codec context enum enum
-enumCodec = enumCodecAs PossiblyJointUnion
-
-disjointEnumCodec ::
-  forall enum context.
-  Eq enum =>
-  -- |
-  NonEmpty (enum, Codec context enum enum) ->
-  -- |
-  Codec context enum enum
-disjointEnumCodec = enumCodecAs DisjointUnion
+enumCodec = go
+  where
+    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
+    go ((e, c) :| rest) = case NE.nonEmpty rest of
+      Nothing -> c
+      Just ne -> disjointMatchChoiceCodec c (go ne) $ \i ->
+        if e == i
+          then Left e
+          else Right i
 
 -- | A codec for an enum that can be written as constant string values
 --
@@ -1347,23 +1328,6 @@ disjointEnumCodec = enumCodecAs DisjointUnion
 -- >>> let c = stringConstCodec [(Apple, "foo")]
 -- >>> toJSONVia c Orange
 -- String "foo"
-stringConstCodecAs ::
-  forall constant.
-  Eq constant =>
-  Union ->
-  -- |
-  NonEmpty (constant, Text) ->
-  -- |
-  JSONCodec constant
-stringConstCodecAs union =
-  enumCodecAs union
-    . NE.map
-      ( \(constant, text) ->
-          ( constant,
-            literalTextValueCodec constant text
-          )
-      )
-
 stringConstCodec ::
   forall constant.
   Eq constant =>
@@ -1371,16 +1335,14 @@ stringConstCodec ::
   NonEmpty (constant, Text) ->
   -- |
   JSONCodec constant
-stringConstCodec = stringConstCodecAs PossiblyJointUnion
-
-disjointStringConstCodec ::
-  forall constant.
-  Eq constant =>
-  -- |
-  NonEmpty (constant, Text) ->
-  -- |
-  JSONCodec constant
-disjointStringConstCodec = stringConstCodecAs DisjointUnion
+stringConstCodec =
+  enumCodec
+    . NE.map
+      ( \(constant, text) ->
+          ( constant,
+            literalTextValueCodec constant text
+          )
+      )
 
 -- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
 --
@@ -1392,31 +1354,16 @@ disjointStringConstCodec = stringConstCodecAs DisjointUnion
 -- String "Apple"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Orange") :: Maybe Fruit
 -- Just Orange
-shownBoundedEnumCodecAs ::
-  forall enum.
-  (Show enum, Eq enum, Enum enum, Bounded enum) =>
-  Union ->
-  -- |
-  JSONCodec enum
-shownBoundedEnumCodecAs union =
-  let ls = [minBound .. maxBound]
-   in case NE.nonEmpty ls of
-        Nothing -> error "0 enum values ?!"
-        Just ne -> stringConstCodecAs union (NE.map (\v -> (v, T.pack (show v))) ne)
-
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
   -- |
   JSONCodec enum
-shownBoundedEnumCodec = shownBoundedEnumCodecAs PossiblyJointUnion
-
-disjointShownBoundedEnumCodec ::
-  forall enum.
-  (Show enum, Eq enum, Enum enum, Bounded enum) =>
-  -- |
-  JSONCodec enum
-disjointShownBoundedEnumCodec = shownBoundedEnumCodecAs DisjointUnion
+shownBoundedEnumCodec =
+  let ls = [minBound .. maxBound]
+   in case NE.nonEmpty ls of
+        Nothing -> error "0 enum values ?!"
+        Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
 
 -- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
 --
