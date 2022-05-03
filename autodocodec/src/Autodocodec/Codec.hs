@@ -1514,9 +1514,9 @@ parseAlternative ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->
   -- | Alternative codecs just for parsing
-  Codec context input output ->
+  Codec context input' output ->
   Codec context input output
-parseAlternative c cAlt = parseAlternatives c [cAlt]
+parseAlternative c cAlt = matchChoiceCodec c cAlt Left
 
 -- | A codec for an enum that can be written each with their own codec.
 --

@@ -1,0 +1,3 @@
+version: 2.0.0
+value:
+- make autodocodec independent of aeson
