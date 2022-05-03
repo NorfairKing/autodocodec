@@ -1,7 +1,9 @@
 # Changelog
 
+## [0.1.0.0] - 2022-05-03
+
 ### Changed
-* Generalise type of `matchChoiceCodec`.
+* Generalise type of `matchChoiceCodec` to allow for two different input types.
 * Add disjoint versions of `matchChoiceCodec` and `matchChoicesCodec`.
 * Functions `enumCodec`, `stringConstCodec`, and `shownBoundedEnumCodec` now produce disjoint codecs.
 

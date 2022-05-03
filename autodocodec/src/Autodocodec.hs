@@ -104,7 +104,11 @@ module Autodocodec
 
     -- *** Choice
     matchChoiceCodec,
+    disjointMatchChoiceCodec,
+    matchChoiceCodecAs,
     matchChoicesCodec,
+    disjointMatchChoicesCodec,
+    matchChoicesCodecAs,
 
     -- *** Adding documentation to a codec
     (<?>),

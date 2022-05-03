@@ -1161,7 +1161,7 @@ literalTextCodec text = EqCodec text textCodec
 literalTextValueCodec :: value -> Text -> JSONCodec value
 literalTextValueCodec value text = dimapCodec (const value) (const text) (literalTextCodec text)
 
--- | A choice codec, but unlike 'eitherCodec', it's for the same type instead of different ones.
+-- | A choice codec, but unlike 'eitherCodec', it's for the same output type instead of different ones.
 --
 -- While parsing, this codec will first try the left codec, then the right if that fails.
 --
@@ -1188,6 +1188,40 @@ literalTextValueCodec value text = dimapCodec (const value) (const text) (litera
 -- Just "even"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "odd") :: Maybe Text
 -- Just "odd"
+--
+-- === API Note
+--
+-- This is a forward-compatible version of 'matchChoiceCodecAs PossiblyJointUnion':
+--
+-- > disjointMatchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
+matchChoiceCodec ::
+  -- | First codec
+  Codec context input output ->
+  -- | Second codec
+  Codec context input' output ->
+  -- | Rendering chooser
+  (newInput -> Either input input') ->
+  -- |
+  Codec context newInput output
+matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
+
+-- | Disjoint version of 'matchChoiceCodec'
+--
+-- This is a forward-compatible version of 'matchChoiceCodecAs DisjointUnion':
+--
+-- > disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
+disjointMatchChoiceCodec ::
+  -- | First codec
+  Codec context input output ->
+  -- | Second codec
+  Codec context input' output ->
+  -- | Rendering chooser
+  (newInput -> Either input input') ->
+  -- |
+  Codec context newInput output
+disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
+
+-- | An even more general version of 'matchChoiceCodec' and 'disjointMatchChoiceCodec'.
 matchChoiceCodecAs ::
   -- | Is the union DisjointUnion or PossiblyJointUnion
   Union ->
@@ -1202,28 +1236,6 @@ matchChoiceCodecAs ::
 matchChoiceCodecAs union c1 c2 renderingChooser =
   dimapCodec (either id id) renderingChooser $
     EitherCodec union c1 c2
-
-matchChoiceCodec ::
-  -- | First codec
-  Codec context input output ->
-  -- | Second codec
-  Codec context input' output ->
-  -- | Rendering chooser
-  (newInput -> Either input input') ->
-  -- |
-  Codec context newInput output
-matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
-
-disjointMatchChoiceCodec ::
-  -- | First codec
-  Codec context input output ->
-  -- | Second codec
-  Codec context input' output ->
-  -- | Rendering chooser
-  (newInput -> Either input input') ->
-  -- |
-  Codec context newInput output
-disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 
 -- | A choice codec for a list of options, each with their own rendering matcher.
 --
@@ -1255,6 +1267,36 @@ disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 -- Nothing
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "fallback") :: Maybe Text
 -- Just "fallback"
+--
+-- === API Note
+--
+-- Forward-compatible version of 'matchChoicesCodecAs DisjointUnion':
+--
+-- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
+matchChoicesCodec ::
+  -- | Codecs, each which their own rendering matcher
+  [(input -> Maybe input, Codec context input output)] ->
+  -- | Fallback codec, in case none of the matchers in the list match
+  Codec context input output ->
+  -- |
+  Codec context input output
+matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
+
+-- | Disjoint version of 'matchChoicesCodec'
+--
+-- Forward-compatible version of 'matchChoicesCodecAs DisjointUnion':
+--
+-- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
+disjointMatchChoicesCodec ::
+  -- | Codecs, each which their own rendering matcher
+  [(input -> Maybe input, Codec context input output)] ->
+  -- | Fallback codec, in case none of the matchers in the list match
+  Codec context input output ->
+  -- |
+  Codec context input output
+disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
+
+-- | An even more general version of 'matchChoicesCodec' and 'disjointMatchChoicesCodec'
 matchChoicesCodecAs ::
   Union ->
   -- | Codecs, each which their own rendering matcher
@@ -1270,24 +1312,6 @@ matchChoicesCodecAs union l fallback = go l
       ((m, c) : rest) -> matchChoiceCodecAs union c (go rest) $ \i -> case m i of
         Just j -> Left j
         Nothing -> Right i
-
-matchChoicesCodec ::
-  -- | Codecs, each which their own rendering matcher
-  [(input -> Maybe input, Codec context input output)] ->
-  -- | Fallback codec, in case none of the matchers in the list match
-  Codec context input output ->
-  -- |
-  Codec context input output
-matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
-
-disjointMatchChoicesCodec ::
-  -- | Codecs, each which their own rendering matcher
-  [(input -> Maybe input, Codec context input output)] ->
-  -- | Fallback codec, in case none of the matchers in the list match
-  Codec context input output ->
-  -- |
-  Codec context input output
-disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
 
 -- | Use one codec for the default way of parsing and rendering, but then also
 -- use a list of other codecs for potentially different parsing.
