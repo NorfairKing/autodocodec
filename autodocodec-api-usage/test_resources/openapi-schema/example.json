@@ -2,7 +2,6 @@
     "components": {
         "schemas": {
             "Example": {
-                "default": [],
                 "required": [
                     "text",
                     "bool",
@@ -28,6 +27,7 @@
                                 "type": "array"
                             }
                         ],
+                        "default": [],
                         "additionalProperties": true,
                         "description": "an optional list that can also be specified as a single element"
                     },
@@ -36,6 +36,7 @@
                         "description": "a text"
                     },
                     "optional-with-null-default": {
+                        "default": [],
                         "items": {
                             "type": "string"
                         },
@@ -43,6 +44,7 @@
                         "description": "an optional list of texts with a default empty list where the empty list would be omitted"
                     },
                     "fruit": {
+                        "additionalProperties": true,
                         "type": "string",
                         "enum": [
                             "Apple",
@@ -53,6 +55,7 @@
                         "description": "fruit!!"
                     },
                     "optional-with-default": {
+                        "default": "foobar",
                         "type": "string",
                         "description": "an optional text with a default"
                     },
