@@ -1,12 +1,13 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "NominalDiffTime": {
             "type": "number"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

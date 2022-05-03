@@ -6,6 +6,7 @@
 
 module Autodocodec.Aeson.Decode where
 
+import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
@@ -13,7 +14,6 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Text as T
 import Data.Vector (Vector)
@@ -111,16 +111,18 @@ parseJSONContextVia codec_ context_ =
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
-        valueAtKey <- (value :: JSON.Object) JSON..: k
-        go valueAtKey c JSON.<?> Key k
+        valueAtKey <- (value :: JSON.Object) JSON..: Compat.toKey k
+        go valueAtKey c JSON.<?> Key (Compat.toKey k)
       OptionalKeyCodec k c _ -> do
-        let mValueAtKey = HM.lookup k (value :: JSON.Object)
-        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
+        let key = Compat.toKey k
+            mValueAtKey = Compat.lookupKey key (value :: JSON.Object)
+        forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
       OptionalKeyWithDefaultCodec k c defaultValue _ -> do
-        let mValueAtKey = HM.lookup k (value :: JSON.Object)
+        let key = Compat.toKey k
+            mValueAtKey = Compat.lookupKey key (value :: JSON.Object)
         case mValueAtKey of
           Nothing -> pure defaultValue
-          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key k
+          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec k c defaultValue mDoc
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca

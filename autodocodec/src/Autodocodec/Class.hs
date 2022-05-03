@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
@@ -9,6 +10,9 @@ module Autodocodec.Class where
 import Autodocodec.Codec
 import Data.Aeson (FromJSONKey, ToJSONKey)
 import qualified Data.Aeson as JSON
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (KeyMap)
+#endif
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable (Hashable)
 import Data.Int
@@ -121,6 +125,11 @@ instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) w
 
 instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
   codec = HashMapCodec codec
+
+#if MIN_VERSION_aeson(2,0,0)
+instance HasCodec v => HasCodec (KeyMap v) where
+  codec = keyMapCodec codec
+#endif
 
 -- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Time@ or @Data.Attoparsec.Time@ modules.
 instance HasCodec Day where

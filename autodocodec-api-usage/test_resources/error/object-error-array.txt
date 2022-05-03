@@ -1,1 +1,1 @@
-Error in $: parsing HashMap ~Text failed, expected Object, but encountered Array
+Error in $: parsing Map ~Text failed, expected Object, but encountered Array

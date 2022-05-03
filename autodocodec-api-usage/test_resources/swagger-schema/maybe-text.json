@@ -1,12 +1,13 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "(Maybe Text)": {
             "additionalProperties": true
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

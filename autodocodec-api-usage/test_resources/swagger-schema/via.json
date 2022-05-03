@@ -1,26 +1,27 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "Via": {
+            "properties": {
+                "one": {
+                    "description": "first field",
+                    "type": "string"
+                },
+                "two": {
+                    "description": "second field",
+                    "type": "string"
+                }
+            },
             "required": [
                 "one",
                 "two"
             ],
-            "type": "object",
-            "properties": {
-                "two": {
-                    "type": "string",
-                    "description": "second field"
-                },
-                "one": {
-                    "type": "string",
-                    "description": "first field"
-                }
-            }
+            "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

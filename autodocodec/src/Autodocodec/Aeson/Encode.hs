@@ -5,6 +5,7 @@
 
 module Autodocodec.Aeson.Encode where
 
+import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
@@ -49,10 +50,10 @@ toJSONVia = flip go
 
     goObject :: a -> ObjectCodec a void -> JSON.Object
     goObject a = \case
-      RequiredKeyCodec k c _ -> k JSON..= go a c
+      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= go a c
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty
-        Just b -> k JSON..= go b c
+        Just b -> Compat.toKey k JSON..= go b c
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue
@@ -93,10 +94,10 @@ toEncodingVia = flip go
       ReferenceCodec _ c -> go a c
     goObject :: a -> ObjectCodec a void -> JSON.Series
     goObject a = \case
-      RequiredKeyCodec k c _ -> JSON.pair k (go a c)
+      RequiredKeyCodec k c _ -> JSON.pair (Compat.toKey k) (go a c)
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty :: JSON.Series
-        Just b -> JSON.pair k (go b c)
+        Just b -> JSON.pair (Compat.toKey k) (go b c)
       OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue

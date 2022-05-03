@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
@@ -15,6 +16,10 @@ module Autodocodec.Codec where
 import Control.Monad.State
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (KeyMap)
+import qualified Data.Aeson.KeyMap as KM
+#endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
@@ -34,6 +39,7 @@ import GHC.Generics (Generic)
 
 -- $setup
 -- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia, parseJSONViaCodec)
+-- >>> import qualified Autodocodec.Aeson.Compat as Compat
 -- >>> import Autodocodec.Class (HasCodec(codec), requiredField)
 -- >>> import qualified Data.Aeson as JSON
 -- >>> import qualified Data.HashMap.Strict as HM
@@ -66,7 +72,7 @@ data Codec context input output where
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
     -- | Name of the @bool@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
     JSONCodec Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
@@ -74,7 +80,7 @@ data Codec context input output where
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
     -- | Name of the @string@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
     JSONCodec Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
@@ -85,7 +91,7 @@ data Codec context input output where
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
     -- | Name of the @number@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Maybe NumberBounds ->
     -- |
@@ -111,17 +117,17 @@ data Codec context input output where
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
-    (ValueCodec input output) ->
+    ValueCodec input output ->
     -- |
     ValueCodec (Vector input) (Vector output)
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
-    (Maybe Text) ->
+    Maybe Text ->
     -- |
-    (ObjectCodec input output) ->
+    ObjectCodec input output ->
     -- |
     ValueCodec input output
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
@@ -144,7 +150,7 @@ data Codec context input output where
     -- |
     (newInput -> oldInput) ->
     -- |
-    (Codec context oldInput oldOutput) ->
+    Codec context oldInput oldOutput ->
     Codec context newInput newOutput
   -- | Encode/Decode an 'Either' value
   --
@@ -163,9 +169,9 @@ data Codec context input output where
     -- | What type of union we encode and decode
     !Union ->
     -- | Codec for the 'Left' side
-    (Codec context input1 output1) ->
+    Codec context input1 output1 ->
     -- | Codec for the 'Right' side
-    (Codec context input2 output2) ->
+    Codec context input2 output2 ->
     -- |
     Codec context (Either input1 input2) (Either output1 output2)
   -- | A comment codec
@@ -328,6 +334,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ValueCodec -> pure $ showString "ValueCodec"
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
+#if MIN_VERSION_aeson(2,0,0)
+#endif
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
@@ -540,7 +548,7 @@ eitherCodec = possiblyJointEitherCodec
 -- Object (fromList [("domain",String "Stars"),("name",String "Varda")])
 -- >>> toJSONViaCodec (Maiar "Sauron")
 -- Object (fromList [("name",String "Sauron")])
--- >>> JSON.parseMaybe parseJSONViaCodec (Object (HM.fromList [("name",String "Olorin")])) :: Maybe Ainur
+-- >>> JSON.parseMaybe parseJSONViaCodec (Object (Compat.fromList [("name",String "Olorin")])) :: Maybe Ainur
 -- Just (Maiar "Olorin")
 --
 -- === WARNING
@@ -931,6 +939,48 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
   [Text] ->
   ValueCodec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
+
+-- | Encode a 'HashMap', and decode any 'HashMap'.
+--
+-- Forward-compatible version of 'HashMapCodec'
+--
+-- > hashMapCodec = HashMapCodec
+hashMapCodec ::
+  (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
+  -- |
+  JSONCodec v ->
+  -- |
+  JSONCodec (HashMap k v)
+hashMapCodec = HashMapCodec
+
+-- | Encode a 'Map', and decode any 'Map'.
+--
+-- Forward-compatible version of 'MapCodec'
+--
+-- > mapCodec = MapCodec
+mapCodec ::
+  (Ord k, FromJSONKey k, ToJSONKey k) =>
+  -- |
+  JSONCodec v ->
+  -- |
+  JSONCodec (Map k v)
+mapCodec = MapCodec
+
+#if MIN_VERSION_aeson(2,0,0)
+-- | Encode a 'KeyMap', and decode any 'KeyMap'.
+--
+-- This chooses 'hashMapCodec' or 'mapCodec' based on @ordered-keymap@ flag in aeson.
+keyMapCodec ::
+    -- |
+    JSONCodec v ->
+    -- |
+    JSONCodec (KeyMap v)
+keyMapCodec = case KM.coercionToMap of
+  -- Can coerce to Map, use
+  Just _ -> dimapCodec KM.fromMap KM.toMap . mapCodec
+  -- Cannot coerce to Map, use HashMap instead.
+  Nothing -> dimapCodec KM.fromHashMap KM.toHashMap . hashMapCodec
+#endif
 
 -- | Forward-compatible version of 'ValueCodec'
 --

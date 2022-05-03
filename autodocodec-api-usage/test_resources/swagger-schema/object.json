@@ -1,15 +1,16 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
-        "(HashMap Text Value)": {
+        "(KeyMap Value)": {
             "additionalProperties": {
                 "additionalProperties": true
             },
             "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

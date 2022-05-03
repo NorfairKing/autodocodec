@@ -1,14 +1,15 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "Int8": {
             "maximum": 127,
             "minimum": -128,
             "type": "number"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

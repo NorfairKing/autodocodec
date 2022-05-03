@@ -1,1 +1,1 @@
-HashMapCodecValueCodec
+BimapCodec _ _ (MapCodecValueCodec)

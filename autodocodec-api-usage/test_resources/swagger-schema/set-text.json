@@ -1,9 +1,4 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "(Set Text)": {
             "items": {
@@ -11,5 +6,11 @@
             },
             "type": "array"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }

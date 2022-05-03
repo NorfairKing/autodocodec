@@ -1,12 +1,6 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "version": "",
-        "title": ""
-    },
     "definitions": {
         "(Either Bool Text)": {
-            "type": "object",
             "properties": {
                 "Left": {
                     "type": "boolean"
@@ -14,7 +8,14 @@
                 "Right": {
                     "type": "string"
                 }
-            }
+            },
+            "type": "object"
         }
-    }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
 }
