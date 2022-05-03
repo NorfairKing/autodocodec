@@ -431,13 +431,27 @@ dimapCodec ::
   Codec context newInput newOutput
 dimapCodec f g = bimapCodec (Right . f) g
 
--- | Forward-compatible version of 'PureCodec'
+-- | Produce a value without parsing any part of an 'Object'.
+--
+-- This function exists to implement @Applicative (ObjectCodec input)@.
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'PureCodec'.
 --
 -- > pureCodec = PureCodec
 pureCodec :: output -> ObjectCodec input output
 pureCodec = PureCodec
 
--- | Forward-compatible version of 'ApCodec'
+-- | Sequentially apply two codecs that parse part of an 'Object'.
+--
+-- This function exists to implement @Applicative (ObjectCodec input)@.
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'ApCodec'.
 --
 -- > apCodec = ApCodec
 apCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
@@ -447,7 +461,9 @@ instance Applicative (ObjectCodec input) where
   pure = pureCodec
   (<*>) = apCodec
 
--- | Also allow @null@ during decoding of a 'Maybe' value.
+-- | Maybe codec
+--
+-- This can be used to also allow @null@ during decoding of a 'Maybe' value.
 --
 -- During decoding, also accept a @null@ value as 'Nothing'.
 -- During encoding, encode as usual.
@@ -473,9 +489,10 @@ maybeCodec =
       Nothing -> Left ()
       Just r -> Right r
 
--- | Forward-compatible version of 'EitherCodec'
+-- | Either codec
 --
--- > eitherCodec = EitherCodec PossiblyJointUnion
+-- During encoding, parse a value according to either codec.
+-- During encoding, use the corresponding codec to encode either value.
 --
 -- === 'HasCodec' instance for sum types
 --
@@ -488,6 +505,7 @@ maybeCodec =
 --
 -- @No  ->@ use 'disjointEitherCodec'.
 --
+--
 -- === Example usage
 --
 -- >>> let c = eitherCodec codec codec :: JSONCodec (Either Int String)
@@ -497,6 +515,13 @@ maybeCodec =
 -- String "hello"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "world") :: Maybe (Either Int String)
 -- Just (Right "world")
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'possiblyJointEitherCodec'.
+--
+-- > eitherCodec = possiblyJointEitherCodec
 eitherCodec ::
   -- |
   Codec context input1 output1 ->
@@ -506,9 +531,91 @@ eitherCodec ::
   Codec context (Either input1 input2) (Either output1 output2)
 eitherCodec = possiblyJointEitherCodec
 
--- | Forward-compatible version of 'EitherCodec PossiblyJointUnion'
+-- | Possibly joint either codec
 --
--- > possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+-- During encoding, parse a value according to either codec.
+-- During encoding, use the corresponding codec to encode either value.
+--
+-- This codec is for the case in which parsing must be disjoint.
+--
+-- === 'HasCodec' instance for sum types with an encoding that is definitely disjoint.
+--
+-- The 'eitherCodec' can be used to implement 'HasCodec' instances sum types
+-- for which the encoding is definitely disjoint.
+--
+-- >>> data War = WorldWar Word8 | OtherWar Text deriving (Show, Eq)
+-- >>> :{
+--   instance HasCodec War where
+--    codec =
+--      dimapCodec f g $
+--        disjointEitherCodec
+--          (codec :: JSONCodec Word8)
+--          (codec :: JSONCodec Text)
+--      where
+--        f = \case
+--          Left w -> WorldWar w
+--          Right t -> OtherWar t
+--        g = \case
+--          WorldWar w -> Left w
+--          OtherWar t -> Right t
+-- :}
+--
+-- Note that this incoding is indeed disjoint because an encoded 'String' can
+-- never be parsed as an 'Word8' and vice versa.
+--
+-- >>> toJSONViaCodec (WorldWar 2)
+-- Number 2.0
+-- >>> toJSONViaCodec (OtherWar "OnDrugs")
+-- String "OnDrugs"
+-- >>> JSON.parseMaybe parseJSONViaCodec (String "of the roses") :: Maybe War
+-- Just (OtherWar "of the roses")
+--
+--
+-- === WARNING
+--
+-- If it turns out that the encoding of a value is not disjoint, decoding may
+-- fail and documentation may be wrong.
+--
+-- >>> let c = disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec Int)
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5) :: Maybe (Either Int Int)
+-- Nothing
+--
+-- Encoding still works as expected, however:
+--
+-- >>> toJSONVia c (Left 5)
+-- Number 5.0
+-- >>> toJSONVia c (Right 6)
+-- Number 6.0
+--
+--
+-- === Example usage
+--
+-- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Left 5)
+-- Number 5.0
+-- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
+-- String "hello"
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'EitherCodec DisjointUnion'.
+--
+-- > disjointEitherCodec = EitherCodec DisjointUnion
+disjointEitherCodec ::
+  -- |
+  Codec context input1 output1 ->
+  -- |
+  Codec context input2 output2 ->
+  -- |
+  Codec context (Either input1 input2) (Either output1 output2)
+disjointEitherCodec = EitherCodec DisjointUnion
+
+-- | Possibly joint either codec
+--
+-- During encoding, parse a value according to either codec.
+-- During encoding, use the corresponding codec to encode either value.
+--
+-- This codec is for the case in which parsing may not be disjoint.
 --
 -- === 'HasCodec' instance for sum types with an encoding that is not disjoint.
 --
@@ -551,6 +658,7 @@ eitherCodec = possiblyJointEitherCodec
 -- >>> JSON.parseMaybe parseJSONViaCodec (Object (Compat.fromList [("name",String "Olorin")])) :: Maybe Ainur
 -- Just (Maiar "Olorin")
 --
+--
 -- === WARNING
 --
 -- The order of the codecs in a 'possiblyJointEitherCodec' matters.
@@ -558,6 +666,13 @@ eitherCodec = possiblyJointEitherCodec
 -- In the above example, decoding works as expected because the @Valar@ case is parsed first.
 -- If the @Maiar@ case were first in the 'possiblyJointEitherCodec', then
 -- @Valar@ could never be parsed.
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'EitherCodec PossiblyJointUnion'.
+--
+-- > possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
 possiblyJointEitherCodec ::
   -- |
   Codec context input1 output1 ->
@@ -567,73 +682,6 @@ possiblyJointEitherCodec ::
   Codec context (Either input1 input2) (Either output1 output2)
 possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
 
--- | Forward-compatible version of 'EitherCodec DisjointUnion'
---
--- > disjointEitherCodec = EitherCodec DisjointUnion
---
--- === 'HasCodec' instance for sum types with an encoding that is definitely disjoint.
---
--- The 'eitherCodec' can be used to implement 'HasCodec' instances sum types
--- for which the encoding is definitely disjoint.
---
--- >>> data War = WorldWar Word8 | OtherWar Text deriving (Show, Eq)
--- >>> :{
---   instance HasCodec War where
---    codec =
---      dimapCodec f g $
---        disjointEitherCodec
---          (codec :: JSONCodec Word8)
---          (codec :: JSONCodec Text)
---      where
---        f = \case
---          Left w -> WorldWar w
---          Right t -> OtherWar t
---        g = \case
---          WorldWar w -> Left w
---          OtherWar t -> Right t
--- :}
---
--- Note that this incoding is indeed disjoint because an encoded 'String' can
--- never be parsed as an 'Word8' and vice versa.
---
--- >>> toJSONViaCodec (WorldWar 2)
--- Number 2.0
--- >>> toJSONViaCodec (OtherWar "OnDrugs")
--- String "OnDrugs"
--- >>> JSON.parseMaybe parseJSONViaCodec (String "of the roses") :: Maybe War
--- Just (OtherWar "of the roses")
---
--- === WARNING
---
--- If it turns out that the encoding of a value is not disjoint, decoding may
--- fail and documentation may be wrong.
---
--- >>> let c = disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec Int)
--- >>> JSON.parseMaybe (parseJSONVia c) (Number 5) :: Maybe (Either Int Int)
--- Nothing
---
--- Encoding still works as expected, however:
---
--- >>> toJSONVia c (Left 5)
--- Number 5.0
--- >>> toJSONVia c (Right 6)
--- Number 6.0
---
--- === Example usage
---
--- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Left 5)
--- Number 5.0
--- >>> toJSONVia (disjointEitherCodec (codec :: JSONCodec Int) (codec :: JSONCodec String)) (Right "hello")
--- String "hello"
-disjointEitherCodec ::
-  -- |
-  Codec context input1 output1 ->
-  -- |
-  Codec context input2 output2 ->
-  -- |
-  Codec context (Either input1 input2) (Either output1 output2)
-disjointEitherCodec = EitherCodec DisjointUnion
-
 -- | Map a codec's input and output types.
 --
 -- This function allows you to have the parsing fail in a new way.
@@ -641,6 +689,7 @@ disjointEitherCodec = EitherCodec DisjointUnion
 -- If you use this function, then you will most likely want to add documentation about how not every value that the schema specifies will be accepted.
 --
 -- This function is like 'BimapCodec' except it also combines one level of a nested 'BimapCodec's.
+--
 --
 -- === Example usage
 --
@@ -651,36 +700,61 @@ bimapCodec ::
   (newInput -> oldInput) ->
   Codec context oldInput oldOutput ->
   Codec context newInput newOutput
-bimapCodec f g = \case
-  BimapCodec f' g' c -> BimapCodec (f' >=> f) (g' . g) c
-  c -> BimapCodec f g c
+bimapCodec f g =
+  -- We distinguish between a 'BimapCodec' and a non-'BimapCodec' just so that
+  -- we don't introduce additional layers that we can already combine anyway.
+  \case
+    BimapCodec f' g' c -> BimapCodec (f' >=> f) (g' . g) c
+    c -> BimapCodec f g c
 
--- | Forward-compatible version of 'ArrayOfCodec' without a name
+-- | Vector codec
 --
--- > vectorCodec = ArrayOfCodec Nothing
+-- Build a codec for vectors of values from a codec for a single value.
+--
 --
 -- === Example usage
 --
 -- >>> toJSONVia (vectorCodec codec) (Vector.fromList ['a','b'])
 -- Array [String "a",String "b"]
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'ArrayOfCodec' without a name.
+--
+-- > vectorCodec = ArrayOfCodec Nothing
 vectorCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
 vectorCodec = ArrayOfCodec Nothing
 
--- | Build a codec for lists of values from a codec for a single value.
+-- | List codec
+--
+-- Build a codec for lists of values from a codec for a single value.
+--
 --
 -- === Example usage
 --
 -- >>> toJSONVia (listCodec codec) ['a','b']
 -- Array [String "a",String "b"]
+--
+--
+-- ==== API Note
+--
+-- This is the list version of 'vectorCodec'.
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
 listCodec = dimapCodec V.toList V.fromList . vectorCodec
 
 -- | Build a codec for nonempty lists of values from a codec for a single value.
 --
+--
 -- === Example usage
 --
 -- >>> toJSONVia (nonEmptyCodec codec) ('a' :| ['b'])
 -- Array [String "a",String "b"]
+--
+--
+-- ==== API Note
+--
+-- This is the non-empty list version of 'vectorCodec'.
 nonEmptyCodec :: ValueCodec input output -> ValueCodec (NonEmpty input) (NonEmpty output)
 nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
   where
@@ -688,10 +762,14 @@ nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
       Nothing -> Left "Expected a nonempty list, but got an empty list."
       Just ne -> Right ne
 
--- | Like 'listCodec', except the values may also be simplified as a single value.
+-- | Single or list codec
+--
+-- This codec behaves like 'listCodec', except the values may also be
+-- simplified as a single value.
 --
 -- During parsing, a single element may be parsed as the list of just that element.
 -- During rendering, a list with only one element will be rendered as just that element.
+--
 --
 -- === Example usage
 --
@@ -704,6 +782,7 @@ nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
 -- Just [5]
 -- >>> JSON.parseMaybe (parseJSONVia c) (Array [Number 5, Number 6]) :: Maybe [Int]
 -- Just [5,6]
+--
 --
 -- === WARNING
 --
@@ -719,10 +798,14 @@ singleOrListCodec c = dimapCodec f g $ eitherCodec c $ listCodec c
       [v] -> Left v
       vs -> Right vs
 
--- | Like 'nonEmptyCodec', except the values may also be simplified as a single value.
+-- | Single or nonempty list codec
+--
+-- This codec behaves like 'nonEmptyCodec', except the values may also be
+-- simplified as a single value.
 --
 -- During parsing, a single element may be parsed as the list of just that element.
 -- During rendering, a list with only one element will be rendered as just that element.
+--
 --
 -- === Example usage
 --
@@ -736,10 +819,15 @@ singleOrListCodec c = dimapCodec f g $ eitherCodec c $ listCodec c
 -- >>> JSON.parseMaybe (parseJSONVia c) (Array [Number 5, Number 6]) :: Maybe (NonEmpty Int)
 -- Just (5 :| [6])
 --
+--
 -- === WARNING
 --
 -- If you use nested lists, for example when the given value codec is also a
 -- 'nonEmptyCodec', you may get in trouble with ambiguities during parsing.
+--
+-- ==== API Note
+--
+-- This is a nonempty version of 'singleOrListCodec'.
 singleOrNonEmptyCodec :: ValueCodec input output -> ValueCodec (NonEmpty input) (NonEmpty output)
 singleOrNonEmptyCodec c = dimapCodec f g $ eitherCodec c $ nonEmptyCodec c
   where
@@ -860,6 +948,8 @@ optionalFieldWithOmittedDefaultWith' ::
   ObjectCodec output output
 optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmittedDefaultCodec key c defaultValue Nothing
 
+-- | Like 'optionalFieldWithOmittedDefaultWith', but the value may also be
+-- @null@ and that will be interpreted as the default value.
 optionalFieldOrNullWithOmittedDefaultWith ::
   Eq output =>
   -- | Key
@@ -878,6 +968,8 @@ optionalFieldOrNullWithOmittedDefaultWith key c defaultValue doc = dimapCodec f 
       Nothing -> defaultValue
     g v = if v == defaultValue then Nothing else Just v
 
+-- | Like 'optionalFieldWithOmittedDefaultWith'', but the value may also be
+-- @null@ and that will be interpreted as the default value.
 optionalFieldOrNullWithOmittedDefaultWith' ::
   Eq output =>
   -- | Key
@@ -942,7 +1034,10 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
 
 -- | Encode a 'HashMap', and decode any 'HashMap'.
 --
--- Forward-compatible version of 'HashMapCodec'
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'HashMapCodec'.
 --
 -- > hashMapCodec = HashMapCodec
 hashMapCodec ::
@@ -955,7 +1050,10 @@ hashMapCodec = HashMapCodec
 
 -- | Encode a 'Map', and decode any 'Map'.
 --
--- Forward-compatible version of 'MapCodec'
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'MapCodec'.
 --
 -- > mapCodec = MapCodec
 mapCodec ::
@@ -982,20 +1080,23 @@ keyMapCodec = case KM.coercionToMap of
   Nothing -> dimapCodec KM.fromHashMap KM.toHashMap . hashMapCodec
 #endif
 
--- | Forward-compatible version of 'ValueCodec'
---
--- > valueCodec = ValueCodec
+-- | Codec for a 'JSON.Value'
 --
 -- This is essentially your escape-hatch for when you would normally need a monad instance for 'Codec'.
 -- You can build monad parsing by using 'valueCodec' together with 'bimapCodec' and supplying your own parsing function.
 --
 -- Note that this _does_ mean that the documentation will just say that you are parsing and rendering a value, so you may want to document the extra parsing further using '<?>'.
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'ValueCodec'.
+--
+-- > valueCodec = ValueCodec
 valueCodec :: JSONCodec JSON.Value
 valueCodec = ValueCodec
 
--- | Forward-compatible version of 'NullCodec'
+-- | Codec for @null@
 --
--- > nullCodec = NullCodec
 --
 -- === Example usage
 --
@@ -1005,37 +1106,58 @@ valueCodec = ValueCodec
 -- Just ()
 -- >>> JSON.parseMaybe (parseJSONVia nullCodec) (Number 5)
 -- Nothing
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'NullCodec'.
+--
+-- > nullCodec = NullCodec
 nullCodec :: JSONCodec ()
 nullCodec = NullCodec
 
--- | Forward-compatible version of 'BoolCodec' without a name
+-- | Codec for boolean values
 --
--- > boolCodec = BoolCodec Nothing
 --
 -- === Example usage
 --
 -- >>> toJSONVia boolCodec True
 -- Bool True
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'BoolCodec' without a name.
+--
+-- > boolCodec = BoolCodec Nothing
 boolCodec :: JSONCodec Bool
 boolCodec = BoolCodec Nothing
 
--- | Forward-compatible version of 'StringCodec' without a name
+-- | Codec for text values
 --
--- > textCodec = StringCodec Nothing
 --
 -- === Example usage
 --
 -- >>> toJSONVia textCodec "hello"
 -- String "hello"
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'StringCodec' without a name.
+--
+-- > textCodec = StringCodec Nothing
 textCodec :: JSONCodec Text
 textCodec = StringCodec Nothing
 
--- | A 'String' version of 'textCodec'.
+-- | Codec for 'String' values
+--
 --
 -- === Example usage
 --
 -- >>> toJSONVia stringCodec "hello"
 -- String "hello"
+--
 --
 -- === WARNING
 --
@@ -1043,10 +1165,16 @@ textCodec = StringCodec Nothing
 --
 -- >>> toJSONVia stringCodec "\55296"
 -- String "\65533"
+--
+--
+-- ==== API Note
+--
+-- This is a 'String' version of 'textCodec'.
 stringCodec :: JSONCodec String
 stringCodec = dimapCodec T.unpack T.pack textCodec
 
--- | Forward-compatible version of 'NumberCodec' without a name
+-- | Codec for 'Scientific' values
+--
 --
 -- === Example usage
 --
@@ -1054,6 +1182,7 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- >>> toJSONVia scientificCodec 5
 -- Number 5.0
+--
 --
 -- === WARNING
 --
@@ -1065,12 +1194,18 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 -- λ> (1 / 3) :: Scientific
 -- *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
 -- @
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'NumberCodec' without a name.
+--
+-- > scientificCodec = NumberCodec Nothing Nothing
 scientificCodec :: JSONCodec Scientific
 scientificCodec = NumberCodec Nothing Nothing
 
 -- | An object codec with a given name
 --
--- > object name = ObjectOfCodec (Just name)
 --
 -- === Example usage
 --
@@ -1085,6 +1220,13 @@ scientificCodec = NumberCodec Nothing Nothing
 -- >       Example
 -- >         <$> requiredField "text" "a text" .= exampleText
 -- >         <*> requiredField "bool" "a bool" .= exampleBool
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version 'ObjectOfCodec' with a name.
+--
+-- > object name = ObjectOfCodec (Just name)
 object :: Text -> ObjectCodec input output -> ValueCodec input output
 object name = ObjectOfCodec (Just name)
 
@@ -1127,6 +1269,7 @@ boundedIntegralNumberBounds =
 --
 -- During rendering, the given 'Text' is always output.
 --
+--
 -- === Example usage
 --
 -- >>> let c = literalTextCodec "hello"
@@ -1146,6 +1289,7 @@ literalTextCodec text = EqCodec text textCodec
 -- During parsing, only the given 'Text' is accepted.
 --
 -- During rendering, the given @value@ is always output.
+--
 --
 -- === Example usage
 --
@@ -1170,6 +1314,7 @@ literalTextValueCodec value text = dimapCodec (const value) (const text) (litera
 -- Note: The reason this is less primitive than the 'eitherCodec' is that 'Either' makes it clear which codec you want to use for rendering.
 -- In this case, we need to provide our own function for choosing which codec we want to use for rendering.
 --
+--
 -- === Example usage
 --
 -- >>> :{
@@ -1189,7 +1334,8 @@ literalTextValueCodec value text = dimapCodec (const value) (const text) (litera
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "odd") :: Maybe Text
 -- Just "odd"
 --
--- === API Note
+--
+-- ==== API Note
 --
 -- This is a forward-compatible version of 'matchChoiceCodecAs PossiblyJointUnion':
 --
@@ -1206,6 +1352,9 @@ matchChoiceCodec ::
 matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
 
 -- | Disjoint version of 'matchChoiceCodec'
+--
+--
+-- ==== API Note
 --
 -- This is a forward-compatible version of 'matchChoiceCodecAs DisjointUnion':
 --
@@ -1243,6 +1392,7 @@ matchChoiceCodecAs union c1 c2 renderingChooser =
 --
 -- During rendering, each matching function is tried until either one succeeds and the corresponding codec is used, or none succeed and the fallback codec is used.
 --
+--
 -- === Example usage
 --
 -- >>> :{
@@ -1268,9 +1418,10 @@ matchChoiceCodecAs union c1 c2 renderingChooser =
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "fallback") :: Maybe Text
 -- Just "fallback"
 --
--- === API Note
 --
--- Forward-compatible version of 'matchChoicesCodecAs DisjointUnion':
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'matchChoicesCodecAs DisjointUnion'.
 --
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 matchChoicesCodec ::
@@ -1284,7 +1435,10 @@ matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
 
 -- | Disjoint version of 'matchChoicesCodec'
 --
--- Forward-compatible version of 'matchChoicesCodecAs DisjointUnion':
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'matchChoicesCodecAs DisjointUnion'.
 --
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 disjointMatchChoicesCodec ::
@@ -1318,6 +1472,7 @@ matchChoicesCodecAs union l fallback = go l
 --
 -- You can use this for keeping old ways of parsing intact while already rendering in the new way.
 --
+--
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
@@ -1344,6 +1499,7 @@ parseAlternatives c rest = go (c :| rest)
 
 -- | Like 'parseAlternatives', but with only one alternative codec
 --
+--
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
@@ -1363,6 +1519,7 @@ parseAlternative ::
 parseAlternative c cAlt = parseAlternatives c [cAlt]
 
 -- | A codec for an enum that can be written each with their own codec.
+--
 --
 -- === WARNING
 --
@@ -1386,6 +1543,7 @@ enumCodec = go
 
 -- | A codec for an enum that can be written as constant string values
 --
+--
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq)
@@ -1394,6 +1552,7 @@ enumCodec = go
 -- String "bar"
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "foo") :: Maybe Fruit
 -- Just Apple
+--
 --
 -- === WARNING
 --
@@ -1419,6 +1578,7 @@ stringConstCodec =
       )
 
 -- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
+--
 --
 -- === Example usage
 --
@@ -1462,7 +1622,10 @@ orNullHelper = dimapCodec f g
 -- This is used to allow for references to the codec, and that's necessary
 -- to produce finite documentation for recursive codecs.
 --
--- Forward-compatible version of 'ReferenceCodec'
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'ReferenceCodec'.
 --
 -- > named = ReferenceCodec
 named :: Text -> ValueCodec input output -> ValueCodec input output
@@ -1475,6 +1638,7 @@ named = ReferenceCodec
 --
 -- Note that this will not have good documentation because, at a codec level,
 -- it's just parsing and rendering a 'JSON.Value'.
+--
 --
 -- === Example usage
 --
