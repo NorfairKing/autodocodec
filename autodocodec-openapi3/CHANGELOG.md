@@ -2,8 +2,6 @@
 
 ### Changed
 * When combining alternative enum schemas, combine the enum values into one enum if they have the same type (#17)
-* Generalise type of `matchChoiceCodec`
-* Add disjoint versions of `matchChoiceCodec`, `matchChoicesCodec`, `enumCodec`, `stringConstCodec`, and `shownBoundedEnumCodec`
 
 ## [0.2.0.0] - 2022-04-05
 

@@ -1,5 +1,10 @@
 # Changelog
 
+### Changed
+* Generalise type of `matchChoiceCodec`.
+* Add disjoint versions of `matchChoiceCodec` and `matchChoicesCodec`.
+* Functions `enumCodec`, `stringConstCodec`, and `shownBoundedEnumCodec` now produce disjoint codecs.
+
 ## [0.0.1.0] - 2021-12-23
 
 ### Changed
