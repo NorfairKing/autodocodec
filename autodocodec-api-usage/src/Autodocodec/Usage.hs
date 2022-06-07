@@ -185,7 +185,7 @@ instance GenValid Recursive where
     _ ->
       oneof
         [ Base <$> genValid,
-          Recurse <$> resize (n -1) genValid
+          Recurse <$> resize (n - 1) genValid
         ]
 
 instance ToJSON Recursive where

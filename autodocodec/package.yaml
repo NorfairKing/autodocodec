@@ -32,6 +32,15 @@ library:
 
 tests:
   autodocodec-doctest:
+    # Turn off doctests until this issue is fixed:
+    # https://github.com/sol/doctest/issues/327
+    when:
+      - condition: impl(GHC < 9.0)
+        then:
+          buildable: true
+        else:
+          buildable: false
+
     main: DocTest.hs
     source-dirs: doctest/
     ghc-options:

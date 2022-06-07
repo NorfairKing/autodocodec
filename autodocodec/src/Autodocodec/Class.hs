@@ -166,7 +166,6 @@ requiredField ::
   Text ->
   -- | Documentation
   Text ->
-  -- |
   ObjectCodec output output
 requiredField key = requiredFieldWith key codec
 
@@ -175,7 +174,6 @@ requiredField' ::
   HasCodec output =>
   -- | Key
   Text ->
-  -- |
   ObjectCodec output output
 requiredField' key = requiredFieldWith' key codec
 
@@ -192,7 +190,6 @@ optionalField ::
   Text ->
   -- | Documentation
   Text ->
-  -- |
   ObjectCodec (Maybe output) (Maybe output)
 optionalField key = optionalFieldWith key codec
 
@@ -201,7 +198,6 @@ optionalField' ::
   HasCodec output =>
   -- | Key
   Text ->
-  -- |
   ObjectCodec (Maybe output) (Maybe output)
 optionalField' key = optionalFieldWith' key codec
 
@@ -220,7 +216,6 @@ optionalFieldWithDefault ::
   output ->
   -- | Documentation
   Text ->
-  -- |
   ObjectCodec output output
 optionalFieldWithDefault key defaultValue doc = optionalFieldWithDefaultWith key codec defaultValue doc
 
@@ -231,7 +226,6 @@ optionalFieldWithDefault' ::
   Text ->
   -- | Default value
   output ->
-  -- |
   ObjectCodec output output
 optionalFieldWithDefault' key defaultValue = optionalFieldWithDefaultWith' key codec defaultValue
 

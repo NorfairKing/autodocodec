@@ -136,12 +136,12 @@ instance GenValid JSONSchema where
       else
         oneof
           [ NumberSchema <$> genValid,
-            ArraySchema <$> resize (n -1) genValid,
-            MapSchema <$> resize (n -1) genValid,
-            (ObjectSchema <$> resize (n -1) genValid) `suchThat` isValid,
+            ArraySchema <$> resize (n - 1) genValid,
+            MapSchema <$> resize (n - 1) genValid,
+            (ObjectSchema <$> resize (n - 1) genValid) `suchThat` isValid,
             ValueSchema <$> genValid,
             do
-              (a, b, c) <- genSplit3 (n -1)
+              (a, b, c) <- genSplit3 (n - 1)
               choice1 <- resize a genValid
               choice2 <- resize b genValid
               rest <- resize c genValid
@@ -149,7 +149,7 @@ instance GenValid JSONSchema where
                 AnyOfSchema $
                   choice1 :| (choice2 : rest),
             do
-              (a, b, c) <- genSplit3 (n -1)
+              (a, b, c) <- genSplit3 (n - 1)
               choice1 <- resize a genValid
               choice2 <- resize b genValid
               rest <- resize c genValid
@@ -157,11 +157,11 @@ instance GenValid JSONSchema where
                 OneOfSchema $
                   choice1 :| (choice2 : rest),
             do
-              (a, b) <- genSplit (n -1)
+              (a, b) <- genSplit (n - 1)
               (CommentSchema <$> resize a genValid <*> resize b genValid) `suchThat` isValid,
             RefSchema <$> genValid,
             do
-              (a, b) <- genSplit (n -1)
+              (a, b) <- genSplit (n - 1)
               WithDefSchema <$> resize a genValid <*> resize b genValid
           ]
 

@@ -64,4 +64,8 @@ test-suite autodocodec-doctest
   build-depends:
       base >=4.7 && <5
     , doctest
+  if impl(GHC < 9.0)
+    buildable: True
+  else
+    buildable: False
   default-language: Haskell2010

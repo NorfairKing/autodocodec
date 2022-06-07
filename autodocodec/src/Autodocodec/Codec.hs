@@ -67,13 +67,11 @@ import GHC.Generics (Generic)
 data Codec context input output where
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
-    -- |
     ValueCodec () ()
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
     -- | Name of the @bool@, for error messages and documentation.
     Maybe Text ->
-    -- |
     JSONCodec Bool
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
@@ -81,7 +79,6 @@ data Codec context input output where
   StringCodec ::
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
-    -- |
     JSONCodec Text
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
@@ -94,41 +91,31 @@ data Codec context input output where
     Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Maybe NumberBounds ->
-    -- |
     JSONCodec Scientific
   -- | Encode a 'HashMap', and decode any 'HashMap'.
   HashMapCodec ::
     (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
-    -- |
     JSONCodec v ->
-    -- |
     JSONCodec (HashMap k v)
   -- | Encode a 'Map', and decode any 'Map'.
   MapCodec ::
     (Ord k, FromJSONKey k, ToJSONKey k) =>
-    -- |
     JSONCodec v ->
-    -- |
     JSONCodec (Map k v)
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
-    -- |
     JSONCodec JSON.Value
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
     Maybe Text ->
-    -- |
     ValueCodec input output ->
-    -- |
     ValueCodec (Vector input) (Vector output)
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
     Maybe Text ->
-    -- |
     ObjectCodec input output ->
-    -- |
     ValueCodec input output
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
@@ -137,7 +124,6 @@ data Codec context input output where
     value ->
     -- | Codec for the value
     JSONCodec value ->
-    -- |
     JSONCodec value
   -- | Map a codec in both directions.
   --
@@ -145,11 +131,8 @@ data Codec context input output where
   -- but we can implement dimap using this function by using a decoding function that does not fail.
   -- Otherwise we would have to have another constructor here.
   BimapCodec ::
-    -- |
     (oldOutput -> Either String newOutput) ->
-    -- |
     (newInput -> oldInput) ->
-    -- |
     Codec context oldInput oldOutput ->
     Codec context newInput newOutput
   -- | Encode/Decode an 'Either' value
@@ -172,7 +155,6 @@ data Codec context input output where
     Codec context input1 output1 ->
     -- | Codec for the 'Right' side
     Codec context input2 output2 ->
-    -- |
     Codec context (Either input1 input2) (Either output1 output2)
   -- | A comment codec
   --
@@ -180,9 +162,7 @@ data Codec context input output where
   CommentCodec ::
     -- | Comment
     Text ->
-    -- |
     ValueCodec input output ->
-    -- |
     ValueCodec input output
   -- | A reference codec
   --
@@ -203,7 +183,6 @@ data Codec context input output where
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
-    -- |
     ObjectCodec input output
   OptionalKeyCodec ::
     -- | Key
@@ -212,7 +191,6 @@ data Codec context input output where
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
-    -- |
     ObjectCodec (Maybe input) (Maybe output)
   OptionalKeyWithDefaultCodec ::
     -- | Key
@@ -223,7 +201,6 @@ data Codec context input output where
     value ->
     -- | Documentation
     Maybe Text ->
-    -- |
     ObjectCodec value value
   OptionalKeyWithOmittedDefaultCodec ::
     Eq value =>
@@ -235,13 +212,11 @@ data Codec context input output where
     value ->
     -- | Documentation
     Maybe Text ->
-    -- |
     ObjectCodec value value
   -- | To implement 'pure' from 'Applicative'.
   --
   -- Pure is not available for non-object codecs because there is no 'mempty' for 'JSON.Value', which we would need during encoding.
   PureCodec ::
-    -- |
     output ->
     -- |
     --
@@ -251,11 +226,8 @@ data Codec context input output where
   --
   -- Ap is not available for non-object codecs because we cannot combine ('mappend') two encoded 'JSON.Value's
   ApCodec ::
-    -- |
     ObjectCodec input (output -> newOutput) ->
-    -- |
     ObjectCodec input output ->
-    -- |
     ObjectCodec input newOutput
 
 data NumberBounds = NumberBounds
@@ -334,8 +306,6 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ValueCodec -> pure $ showString "ValueCodec"
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
-#if MIN_VERSION_aeson(2,0,0)
-#endif
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
@@ -523,11 +493,8 @@ maybeCodec =
 --
 -- > eitherCodec = possiblyJointEitherCodec
 eitherCodec ::
-  -- |
   Codec context input1 output1 ->
-  -- |
   Codec context input2 output2 ->
-  -- |
   Codec context (Either input1 input2) (Either output1 output2)
 eitherCodec = possiblyJointEitherCodec
 
@@ -602,11 +569,8 @@ eitherCodec = possiblyJointEitherCodec
 --
 -- > disjointEitherCodec = EitherCodec DisjointUnion
 disjointEitherCodec ::
-  -- |
   Codec context input1 output1 ->
-  -- |
   Codec context input2 output2 ->
-  -- |
   Codec context (Either input1 input2) (Either output1 output2)
 disjointEitherCodec = EitherCodec DisjointUnion
 
@@ -674,11 +638,8 @@ disjointEitherCodec = EitherCodec DisjointUnion
 --
 -- > possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
 possiblyJointEitherCodec ::
-  -- |
   Codec context input1 output1 ->
-  -- |
   Codec context input2 output2 ->
-  -- |
   Codec context (Either input1 input2) (Either output1 output2)
 possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
 
@@ -1042,9 +1003,7 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
 -- > hashMapCodec = HashMapCodec
 hashMapCodec ::
   (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
-  -- |
   JSONCodec v ->
-  -- |
   JSONCodec (HashMap k v)
 hashMapCodec = HashMapCodec
 
@@ -1058,9 +1017,7 @@ hashMapCodec = HashMapCodec
 -- > mapCodec = MapCodec
 mapCodec ::
   (Ord k, FromJSONKey k, ToJSONKey k) =>
-  -- |
   JSONCodec v ->
-  -- |
   JSONCodec (Map k v)
 mapCodec = MapCodec
 
@@ -1347,7 +1304,6 @@ matchChoiceCodec ::
   Codec context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  -- |
   Codec context newInput output
 matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
 
@@ -1366,7 +1322,6 @@ disjointMatchChoiceCodec ::
   Codec context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  -- |
   Codec context newInput output
 disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 
@@ -1380,7 +1335,6 @@ matchChoiceCodecAs ::
   Codec context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  -- |
   Codec context newInput output
 matchChoiceCodecAs union c1 c2 renderingChooser =
   dimapCodec (either id id) renderingChooser $
@@ -1429,7 +1383,6 @@ matchChoicesCodec ::
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
-  -- |
   Codec context input output
 matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
 
@@ -1446,7 +1399,6 @@ disjointMatchChoicesCodec ::
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
-  -- |
   Codec context input output
 disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
 
@@ -1457,7 +1409,6 @@ matchChoicesCodecAs ::
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
-  -- |
   Codec context input output
 matchChoicesCodecAs union l fallback = go l
   where
@@ -1527,9 +1478,7 @@ parseAlternative c cAlt = matchChoiceCodec c cAlt Left
 enumCodec ::
   forall enum context.
   Eq enum =>
-  -- |
   NonEmpty (enum, Codec context enum enum) ->
-  -- |
   Codec context enum enum
 enumCodec = go
   where
@@ -1564,9 +1513,7 @@ enumCodec = go
 stringConstCodec ::
   forall constant.
   Eq constant =>
-  -- |
   NonEmpty (constant, Text) ->
-  -- |
   JSONCodec constant
 stringConstCodec =
   enumCodec
@@ -1591,7 +1538,6 @@ stringConstCodec =
 shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
-  -- |
   JSONCodec enum
 shownBoundedEnumCodec =
   let ls = [minBound .. maxBound]
