@@ -3,6 +3,7 @@
 ### Changed
 * When combining alternative enum schemas, combine the enum values into one enum if they have the same type. (#17)
 * Set default value on the property level instead of object level to fix generation of invalid schemas caused by the default value not matching the type of the object schema
+* The generated schema for Maps and HashMaps now has a `type`` of `"object"` as well as `additionalProperties`
 
 ## [0.2.0.0] - 2022-04-05
 
