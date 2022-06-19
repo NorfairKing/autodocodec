@@ -1,9 +1,9 @@
 { sources ? import ./sources.nix
-, pkgsf ? sources.nixpkgs
+, nixpkgs ? sources.nixpkgs
 }:
 let
   pkgs =
-    import pkgsf {
+    import nixpkgs {
       overlays = [
         (import (sources.validity + "/nix/overlay.nix"))
         (import (sources.safe-coloured-text + "/nix/overlay.nix"))

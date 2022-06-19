@@ -2,17 +2,15 @@ let
   sources = import ./nix/sources.nix;
 
   versions = {
-    "nixos-21.05" = sources.nixpkgs-21_05;
-    "nixos-21.11" = sources.nixpkgs-21_11;
+    "nixos-22_05" = sources.nixpkgs-22_05;
   };
 
-  mkReleaseForVersion = version: rev:
+  mkReleaseForVersion = version: nixpkgs:
     let
-      pkgsf = builtins.fetchGit {
-        url = "https://github.com/NixOS/nixpkgs";
-        inherit rev;
+      p = import ./nix/pkgs.nix {
+        inherit sources nixpkgs;
       };
-      p = import ./nix/pkgs.nix { inherit sources; inherit pkgsf; };
+
     in
     p.autodocodecRelease.overrideAttrs (old: { name = "autodocodec-release-${version}"; });
 in

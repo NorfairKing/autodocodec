@@ -29,22 +29,22 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d9794b04bffb468b886c553557489977ae5f4c65",
-        "sha256": "1l41dhs1cmwx7q7s38d9dr9zyijfm6bhmv41zr7rsg94yplbr0f1",
+        "rev": "d17a56d90ecbd1b8fc908d49598fb854ef188461",
+        "sha256": "04a9ry0kk4qzy622mk3izh4azdp7plf1847mfp3zkn9gk0innswg",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/d9794b04bffb468b886c553557489977ae5f4c65.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d17a56d90ecbd1b8fc908d49598fb854ef188461.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "nixpkgs-21_11": {
-        "branch": "nixos-21.11",
+    "nixpkgs-22_05": {
+        "branch": "nixos-22.05",
         "description": "Nix Packages collection",
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "5986ddf62ab2f61490f6adddecd0c68e746cc93e",
-        "sha256": "037s925g0wgyzff4m266rmzpspclpsq8hp0nmn7gj9pqf8p79qm0",
+        "rev": "d17a56d90ecbd1b8fc908d49598fb854ef188461",
+        "sha256": "04a9ry0kk4qzy622mk3izh4azdp7plf1847mfp3zkn9gk0innswg",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/5986ddf62ab2f61490f6adddecd0c68e746cc93e.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d17a56d90ecbd1b8fc908d49598fb854ef188461.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks": {
