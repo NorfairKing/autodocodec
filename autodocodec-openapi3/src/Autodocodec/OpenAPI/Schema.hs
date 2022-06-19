@@ -67,7 +67,8 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         pure $
           NamedSchema Nothing $
             mempty
-              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
+              { _schemaType = Just OpenApiObject,
+                _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
               }
       MapCodec c -> do
         itemsSchema <- go c
@@ -75,7 +76,8 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         pure $
           NamedSchema Nothing $
             mempty
-              { _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
+              { _schemaType = Just OpenApiObject,
+                _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
               }
       ValueCodec ->
         pure $
