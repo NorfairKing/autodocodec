@@ -1135,10 +1135,10 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- === Example usage
 --
--- > scientificCodec = NumberCodec Nothing Nothing
---
 -- >>> toJSONVia scientificCodec 5
 -- Number 5.0
+-- >>> JSON.parseMaybe scientificCodec (Number 3)
+-- Just 3
 --
 --
 -- === WARNING
@@ -1160,6 +1160,42 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 -- > scientificCodec = NumberCodec Nothing Nothing
 scientificCodec :: JSONCodec Scientific
 scientificCodec = NumberCodec Nothing Nothing
+
+-- | Codec for 'Scientific' values with bounds
+--
+--
+-- === Example usage
+--
+-- >>> let c = scientificWithBoundsCodec NumberBounds {numberBoundsLower = 2, numberBoundsUpper = 4}
+-- >>> toJSONVia c 3
+-- Number 3.0
+-- >>> toJSONVia c 5
+-- Number 5.0
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 3)
+-- Just 3
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5)
+-- Nothing
+--
+--
+-- === WARNING
+--
+-- 'Scientific' is a type that is only for JSON parsing and rendering.
+-- Do not use it for any calculations.
+-- Instead, convert to another number type before doing any calculations.
+--
+-- @
+-- λ> (1 / 3) :: Scientific
+-- *** Exception: fromRational has been applied to a repeating decimal which can't be represented as a Scientific! It's better to avoid performing fractional operations on Scientifics and convert them to other fractional types like Double as early as possible.
+-- @
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'NumberCodec' without a name.
+--
+-- > scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
+scientificWithBoundsCodec :: NumberBounds -> JSONCodec Scientific
+scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
 
 -- | An object codec with a given name
 --
@@ -1200,11 +1236,7 @@ object name = ObjectOfCodec (Just name)
 -- Nothing
 boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
 boundedIntegralCodec =
-  bimapCodec go fromIntegral $
-    NumberCodec
-      Nothing
-      ( Just (boundedIntegralNumberBounds @i)
-      )
+  bimapCodec go fromIntegral $ scientificWithBoundsCodec (boundedIntegralNumberBounds @i)
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number did not fit into bounded integer: " <> show s

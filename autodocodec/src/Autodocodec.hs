@@ -64,6 +64,7 @@ module Autodocodec
     textCodec,
     stringCodec,
     scientificCodec,
+    scientificWithBoundsCodec,
     valueCodec,
 
     -- *** Integral codecs

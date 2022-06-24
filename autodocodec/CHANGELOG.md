@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0.2] - 2022-06-24
+
+### Added
+
+* `scientificWithBoundsCodec` for a `NumberCodec` with bounds but without a name.
+
 ## [0.1.0.1] - 2022-05-03
 
 ### Changed
