@@ -1137,8 +1137,8 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- >>> toJSONVia scientificCodec 5
 -- Number 5.0
--- >>> JSON.parseMaybe scientificCodec (Number 3)
--- Just 3
+-- >>> JSON.parseMaybe (parseJSONVia scientificCodec) (Number 3)
+-- Just 3.0
 --
 --
 -- === WARNING
@@ -1172,7 +1172,7 @@ scientificCodec = NumberCodec Nothing Nothing
 -- >>> toJSONVia c 5
 -- Number 5.0
 -- >>> JSON.parseMaybe (parseJSONVia c) (Number 3)
--- Just 3
+-- Just 3.0
 -- >>> JSON.parseMaybe (parseJSONVia c) (Number 5)
 -- Nothing
 --
