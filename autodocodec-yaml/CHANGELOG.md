@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.1] - 2022-04-28
+
+### Changed
+
+* Changed `renderPlainSchemaVia`, `renderPlainSchemaViaCodec`, `renderColouredSchemaVia` and `renderColouredSchemaViaCodec` to output `Text` instead of `ByteString`.
+
 ## [0.1.0.1] - 2022-04-26
 
 ### Added

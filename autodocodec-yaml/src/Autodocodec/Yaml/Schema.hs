@@ -9,7 +9,6 @@ module Autodocodec.Yaml.Schema where
 
 import Autodocodec
 import Autodocodec.Schema
-import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
@@ -22,20 +21,20 @@ import Data.Yaml as Yaml
 import Text.Colour
 
 -- | Render a human-readable schema for a type's 'codec', in colour.
-renderColouredSchemaViaCodec :: forall a. HasCodec a => ByteString
+renderColouredSchemaViaCodec :: forall a. HasCodec a => Text
 renderColouredSchemaViaCodec = renderColouredSchemaVia (codec @a)
 
 -- | Render a human-readable schema for a given codec, in colour.
-renderColouredSchemaVia :: ValueCodec input output -> ByteString
-renderColouredSchemaVia = renderChunksBS With24BitColours . schemaChunksVia
+renderColouredSchemaVia :: ValueCodec input output -> Text
+renderColouredSchemaVia = renderChunksText With24BitColours . schemaChunksVia
 
 -- | Render a human-readable schema for a type's 'codec', without colour.
-renderPlainSchemaViaCodec :: forall a. HasCodec a => ByteString
+renderPlainSchemaViaCodec :: forall a. HasCodec a => Text
 renderPlainSchemaViaCodec = renderPlainSchemaVia (codec @a)
 
 -- | Render a human-readable schema for a given codec, without colour.
-renderPlainSchemaVia :: ValueCodec input output -> ByteString
-renderPlainSchemaVia = renderChunksBS WithoutColours . schemaChunksVia
+renderPlainSchemaVia :: ValueCodec input output -> Text
+renderPlainSchemaVia = renderChunksText WithoutColours . schemaChunksVia
 
 -- | Produce potentially-coloured 'Chunk's for a human-readable schema for a type's 'codec'.
 schemaChunksViaCodec :: forall a. HasCodec a => [Chunk]

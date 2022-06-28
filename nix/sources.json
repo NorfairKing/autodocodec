@@ -29,10 +29,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d17a56d90ecbd1b8fc908d49598fb854ef188461",
-        "sha256": "04a9ry0kk4qzy622mk3izh4azdp7plf1847mfp3zkn9gk0innswg",
+        "rev": "cd90e773eae83ba7733d2377b6cdf84d45558780",
+        "sha256": "1b2wn1ncx9x4651vfcgyqrm93pd7ghnrgqjbkf6ckkpidah69m03",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/d17a56d90ecbd1b8fc908d49598fb854ef188461.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/cd90e773eae83ba7733d2377b6cdf84d45558780.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs-22_05": {
@@ -41,10 +41,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d17a56d90ecbd1b8fc908d49598fb854ef188461",
-        "sha256": "04a9ry0kk4qzy622mk3izh4azdp7plf1847mfp3zkn9gk0innswg",
+        "rev": "cd90e773eae83ba7733d2377b6cdf84d45558780",
+        "sha256": "1b2wn1ncx9x4651vfcgyqrm93pd7ghnrgqjbkf6ckkpidah69m03",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/d17a56d90ecbd1b8fc908d49598fb854ef188461.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/cd90e773eae83ba7733d2377b6cdf84d45558780.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks": {
@@ -53,10 +53,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "521a524771a8e93caddaa0ac1d67d03766a8b0b3",
-        "sha256": "16qfrylk41r7gc7g4352hxz7b3vk9w7bc6893apmmr6yy08ra0m9",
+        "rev": "db3bd555d3a3ceab208bed48f983ccaa6a71a25e",
+        "sha256": "1jq33qaayi253xvpa1clh5ib83zh2dfgcxmp6d3ya894x9md3l6b",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/521a524771a8e93caddaa0ac1d67d03766a8b0b3.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/db3bd555d3a3ceab208bed48f983ccaa6a71a25e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "safe-coloured-text": {
@@ -65,22 +65,22 @@
         "homepage": "https://cs-syd.eu/posts/2021-03-07-safe-coloured-text",
         "owner": "NorfairKing",
         "repo": "safe-coloured-text",
-        "rev": "71c5940a3b84eeb498304d8e584e7638f875d51b",
-        "sha256": "05lw5xxwzikricmkpbxf04rk2ikak05wwbihqy6dql7mckavfyda",
+        "rev": "d3fb43703a4b927362b7b83d8f2313173ad091a5",
+        "sha256": "0vva5qlqzgmbj7vslxqvm2h91kq49c0gqbvsrdnszbbnmbgjh545",
         "type": "tarball",
-        "url": "https://github.com/NorfairKing/safe-coloured-text/archive/71c5940a3b84eeb498304d8e584e7638f875d51b.tar.gz",
+        "url": "https://github.com/NorfairKing/safe-coloured-text/archive/d3fb43703a4b927362b7b83d8f2313173ad091a5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sydtest": {
-        "branch": "master",
+        "branch": "development",
         "description": "A modern testing framework for Haskell with good defaults and advanced testing features.",
         "homepage": "",
         "owner": "NorfairKing",
         "repo": "sydtest",
-        "rev": "263745786c277fab6d82ff6f48b6d745ade7a314",
-        "sha256": "0r6xh7ajz15m7bgcsnrbk529hnkfahmfv1ay1lyb98850lh3v7xk",
+        "rev": "934bbf9cef011ea16ee0e8d8144e221d4a7cf2fb",
+        "sha256": "001s7z0s6rb0ahbw0crdzzqvsm25mpz1lzgh9kmxdbqnv8zl1cyc",
         "type": "tarball",
-        "url": "https://github.com/NorfairKing/sydtest/archive/263745786c277fab6d82ff6f48b6d745ade7a314.tar.gz",
+        "url": "https://github.com/NorfairKing/sydtest/archive/934bbf9cef011ea16ee0e8d8144e221d4a7cf2fb.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "validity": {
@@ -89,10 +89,10 @@
         "homepage": "https://www.youtube.com/watch?v=eIs9qNh17SM",
         "owner": "NorfairKing",
         "repo": "validity",
-        "rev": "160e846cc5de8e92e6758172da341f5d81fe0374",
-        "sha256": "03a4s2gq1mjjd452xbhs0h1iycjpdidxprpvjiwy55hx0lzqfpli",
+        "rev": "d88be911a7e2a84f6c089e9269aaed8d10a74acd",
+        "sha256": "088zl9vp7579qj1gqh1j8kb0035zjjp41k1yiww58x57pym200g7",
         "type": "tarball",
-        "url": "https://github.com/NorfairKing/validity/archive/160e846cc5de8e92e6758172da341f5d81fe0374.tar.gz",
+        "url": "https://github.com/NorfairKing/validity/archive/d88be911a7e2a84f6c089e9269aaed8d10a74acd.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "yamlparse-applicative": {

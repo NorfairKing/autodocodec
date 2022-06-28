@@ -8,8 +8,6 @@ import Autodocodec
 import Autodocodec.Yaml.Schema
 import qualified Data.ByteString as SB
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Encoding.Error as TE
 import qualified Data.Yaml as Yaml
 import Path
 import Path.IO
@@ -50,7 +48,7 @@ readFirstYamlConfigFile files = go files
                         fs -> "While parsing files:" : map (("* " <>) . toFilePath) fs
                       referenceMsgs =
                         [ "Reference: ",
-                          T.unpack $ TE.decodeUtf8With TE.lenientDecode (renderColouredSchemaViaCodec @a)
+                          T.unpack $ renderColouredSchemaViaCodec @a
                         ]
                   die $
                     unlines $

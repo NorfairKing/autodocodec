@@ -8,7 +8,7 @@ packages:
 - autodocodec-yaml
 extra-deps:
 - github: NorfairKing/validity
-  commit: 160e846cc5de8e92e6758172da341f5d81fe0374
+  commit: d88be911a7e2a84f6c089e9269aaed8d10a74acd
   subdirs:
     - validity
     - validity-aeson
@@ -23,13 +23,13 @@ extra-deps:
     - genvalidity-text
 
 - github: NorfairKing/safe-coloured-text
-  commit: 71c5940a3b84eeb498304d8e584e7638f875d51b
+  commit: d3fb43703a4b927362b7b83d8f2313173ad091a5
   subdirs:
     - safe-coloured-text
     - safe-coloured-text-terminfo
 
 - github: NorfairKing/sydtest
-  commit: 263745786c277fab6d82ff6f48b6d745ade7a314
+  commit: 934bbf9cef011ea16ee0e8d8144e221d4a7cf2fb
   subdirs:
     - sydtest
     - sydtest-aeson
