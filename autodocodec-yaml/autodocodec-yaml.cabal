@@ -41,7 +41,7 @@ library
     , containers
     , path
     , path-io
-    , safe-coloured-text
+    , safe-coloured-text >=0.2.0.0
     , scientific
     , text
     , unordered-containers

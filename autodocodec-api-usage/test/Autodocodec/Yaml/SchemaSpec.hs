@@ -80,4 +80,4 @@ yamlSchemaSpec ::
   Spec
 yamlSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenByteStringFile ("test_resources/yaml-schema/" <> filePath <> ".txt") (renderChunksBS With24BitColours $ schemaChunksViaCodec @a)
+    pureGoldenTextFile ("test_resources/yaml-schema/" <> filePath <> ".txt") (renderChunksText With24BitColours $ schemaChunksViaCodec @a)
