@@ -5,7 +5,7 @@ with final.haskell.lib;
   autodocodecPackages =
     let
       autodocodecPkg = name:
-        buildStrictly (
+        buildFromSdist (
           overrideCabal (final.haskellPackages.callCabal2nixWithOptions name (final.gitignoreSource (../. + "/${name}")) "--no-hpack" { })
             (old: {
               doBenchmark = true;
