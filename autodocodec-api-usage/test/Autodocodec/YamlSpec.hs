@@ -77,7 +77,16 @@ spec = do
   yamlCodecSpec @Ainur
   yamlCodecSpec @War
 
-yamlCodecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, FromJSON a, HasCodec a) => Spec
+yamlCodecSpec ::
+  forall a.
+  ( Show a,
+    Eq a,
+    Typeable a,
+    GenValid a,
+    FromJSON a,
+    HasCodec a
+  ) =>
+  Spec
 yamlCodecSpec = describe (nameOf @a) $ do
   it "roundtrips through yaml" $
     forAllValid $ \(a :: a) ->

@@ -96,7 +96,12 @@ spec = do
   aesonCodecSpec @Ainur
   aesonCodecSpec @War
 
-aesonCodecErrorSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> LB.ByteString -> Spec
+aesonCodecErrorSpec ::
+  forall a.
+  (HasCodec a) =>
+  FilePath ->
+  LB.ByteString ->
+  Spec
 aesonCodecErrorSpec filePath encoded =
   it "shows the same error as before" $
     goldenStringFile ("test_resources/error/" <> filePath <> ".txt") $ do
@@ -132,7 +137,15 @@ aesonCodecSpec =
               decodedWithAutodocodec `shouldBe` decodedWithAeson
     codecSpec @a
 
-codecSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, ToJSON a, HasCodec a) => Spec
+codecSpec ::
+  forall a.
+  ( Show a,
+    Eq a,
+    GenValid a,
+    ToJSON a,
+    HasCodec a
+  ) =>
+  Spec
 codecSpec = do
   it "roundtrips through json" $
     forAllValid $ \(a :: a) ->

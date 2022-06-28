@@ -135,7 +135,11 @@ openAPISchemaSpec filePath =
                         show errors
                       ]
 
-openAPISchemaSpecViaDeclareSchemaRef :: forall a. (Show a, Typeable a, OpenAPI.ToSchema a, GenValid a, HasCodec a) => FilePath -> Spec
+openAPISchemaSpecViaDeclareSchemaRef ::
+  forall a.
+  (OpenAPI.ToSchema a) =>
+  FilePath ->
+  Spec
 openAPISchemaSpecViaDeclareSchemaRef filePath =
   describe ("openAPISchemaSpecViaDeclareSchemaRef @" <> nameOf @a) $ do
     it "outputs the same schema as before" $

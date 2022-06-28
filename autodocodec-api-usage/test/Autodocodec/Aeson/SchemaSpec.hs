@@ -190,7 +190,15 @@ instance GenValid KeyRequirement where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
-jsonSchemaSpec :: forall a. (Show a, Eq a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+jsonSchemaSpec ::
+  forall a.
+  ( Show a,
+    Typeable a,
+    GenValid a,
+    HasCodec a
+  ) =>
+  FilePath ->
+  Spec
 jsonSchemaSpec filePath =
   describe ("jsonSchemaSpec @" <> nameOf @a) $ do
     it "outputs the same schema as before" $

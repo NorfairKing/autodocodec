@@ -1,8 +1,8 @@
-let
-  sources = import ./nix/sources.nix;
-  pkgs = import ./nix/pkgs.nix { inherit sources; };
-  pre-commit = import ./nix/pre-commit.nix { inherit sources; };
-in
+{ sources ? import ./nix/sources.nix
+, nixpkgs ? sources.nixpkgs
+, pkgs ? import ./nix/pkgs.nix { inherit nixpkgs sources; }
+, pre-commit ? import ./nix/pre-commit.nix { inherit sources; }
+}:
 pkgs.haskell.lib.buildStackProject {
   name = "autodocodec-shell";
   buildInputs = with pkgs; [

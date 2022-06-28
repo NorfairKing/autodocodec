@@ -9,12 +9,6 @@ import Autodocodec
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
-import Data.GenValidity
-import Data.GenValidity.Aeson ()
-import Data.GenValidity.Containers ()
-import Data.GenValidity.Scientific ()
-import Data.GenValidity.Text ()
-import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -72,7 +66,13 @@ spec = do
   showCodecSpec @Ainur "ainur"
   showCodecSpec @War "war"
 
-showCodecSpec :: forall a. (Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+showCodecSpec ::
+  forall a.
+  ( Typeable a,
+    HasCodec a
+  ) =>
+  FilePath ->
+  Spec
 showCodecSpec filePath =
   describe ("showCodecSpec " <> nameOf @a) $
     it "outputs the same shown codec information as before" $
