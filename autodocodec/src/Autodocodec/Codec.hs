@@ -21,6 +21,8 @@ import Data.Aeson.KeyMap (KeyMap)
 import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
+import Data.Functor.Const
+import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
@@ -156,6 +158,13 @@ data Codec context input output where
     -- | Codec for the 'Right' side
     Codec context input2 output2 ->
     Codec context (Either input1 input2) (Either output1 output2)
+  -- | Discriminated union
+  DiscriminatedUnionCodec ::
+    -- | propertyName
+    Text ->
+    (a -> (Discriminator, TypeAlternative Identity a)) ->
+    HashMap Discriminator (TypeAlternative (Const ()) a) ->
+    ObjectCodec a a
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
@@ -258,6 +267,17 @@ data Union
 
 instance Validity Union
 
+type Discriminator = Text
+
+data TypeAlternative f a where
+  TypeAlternative ::
+    f b ->
+    JSONObjectCodec b ->
+    -- | Name of the object type
+    Text ->
+    (b -> a) ->
+    TypeAlternative f a
+
 -- | A codec within the 'JSON.Value' context.
 --
 -- An 'ValueCodec' can be used to turn a Haskell value into a 'JSON.Value' or to parse a 'JSON.Value' into a haskell value.
@@ -309,6 +329,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      DiscriminatedUnionCodec propertyName _ _ -> pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName -- TODO: show the mapping
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)

@@ -182,6 +182,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             u
             (NamedSchema Nothing (combineObjectSchemas s1s))
             (NamedSchema Nothing (combineObjectSchemas s2s))
+      DiscriminatedUnionCodec propertyName _ mapping -> _
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2

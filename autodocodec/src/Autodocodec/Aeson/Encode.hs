@@ -12,6 +12,7 @@ import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encoding as JSON
+import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Map (Map)
 import Data.Scientific
@@ -64,6 +65,10 @@ toJSONVia = flip go
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName mapping _ ->
+        case mapping a of
+          (discriminatorValue, TypeAlternative (Identity b) objectCodec _ _) ->
+            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ goObject b objectCodec
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
@@ -108,6 +113,10 @@ toEncodingVia = flip go
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName mapping _ ->
+        case mapping a of
+          (discriminatorValue, TypeAlternative (Identity b) objectCodec _ _) ->
+            JSON.pair (Compat.toKey propertyName) (JSON.toEncoding discriminatorValue) <> goObject b objectCodec
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 instance HasCodec a => JSON.ToJSON (Autodocodec a) where
