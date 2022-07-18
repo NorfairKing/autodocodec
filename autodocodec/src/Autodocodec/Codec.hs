@@ -22,7 +22,9 @@ import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import Data.Hashable
+import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
@@ -35,6 +37,7 @@ import Data.Validity
 import Data.Validity.Scientific ()
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Void
 import GHC.Generics (Generic)
 
 -- $setup
@@ -156,6 +159,31 @@ data Codec context input output where
     -- | Codec for the 'Right' side
     Codec context input2 output2 ->
     Codec context (Either input1 input2) (Either output1 output2)
+  -- | Encode/decode a discriminated union of objects
+  --
+  -- The type of object being encoded/decoded is discriminated by
+  -- a designated "discriminator" property on the object which takes a string value.
+  --
+  -- When encoding, the provided function is applied to the input to obtain a new encoder
+  -- for the input. The function 'mapToEncoder' is provided to assist with building these
+  -- encoders.
+  --
+  -- When decoding, the value of the discriminator property is looked up in the `HashMap`
+  -- to obtain a decoder for the output. The function `mapToDecoder' is provided
+  -- to assist with building these decoders. See examples in 'Usage.hs'.
+  --
+  -- The 'HashMap' is also used to generate schemas for the type.
+  -- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
+  -- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+  DiscriminatedUnionCodec ::
+    -- | propertyName to use for discrimination
+    Text ->
+    -- | how to encode the input
+    (input -> (Discriminator, ObjectCodec input ())) ->
+    -- | how to decode the output
+    -- The 'Text' field is the name to use for the object schema.
+    HashMap Discriminator (Text, ObjectCodec Void output) ->
+    ObjectCodec input output
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
@@ -309,6 +337,10 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      DiscriminatedUnionCodec propertyName _ mapping -> do
+        cs <- traverse (\(n, (_, c)) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
+        let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
+        pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
@@ -642,6 +674,60 @@ possiblyJointEitherCodec ::
   Codec context input2 output2 ->
   Codec context (Either input1 input2) (Either output1 output2)
 possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+
+-- | Discriminator value used in 'DiscriminatedUnionCodec'
+type Discriminator = Text
+
+-- | Wrap up a value of type 'b' with its codec to produce
+-- and encoder for 'a's that ignores its input and instead encodes
+-- the value 'b'.
+-- This is useful for building 'discriminatedUnionCodec's.
+mapToEncoder :: b -> Codec context b any -> Codec context a ()
+mapToEncoder b = dimapCodec (const ()) (const b)
+
+-- | Map a codec for decoding 'b's into a decoder for 'a's.
+-- This is useful for building 'discriminatedUnionCodec's.
+mapToDecoder :: (b -> a) -> Codec context any b -> Codec context Void a
+mapToDecoder f = dimapCodec f absurd
+
+-- | Encode/decode a discriminated union of objects
+--
+-- The type of object being encoded/decoded is discriminated by
+-- a designated "discriminator" property on the object which takes a string value.
+--
+-- When encoding, the provided function is applied to the input to obtain a new encoder
+-- for the input. The function 'mapToEncoder' is provided to assist with building these
+-- encoders. See examples in 'Usage.hs'.
+--
+-- When decoding, the value of the discriminator property is looked up in the `HashMap`
+-- to obtain a decoder for the output. The function `mapToDecoder' is provided
+-- to assist with building these decoders. See examples in 'Usage.hs'.
+--
+-- The 'HashMap' is also used to generate schemas for the type.
+-- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
+-- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'DiscriminatedUnionCodec'.
+--
+-- > discriminatedUnionCodec = 'DiscriminatedUnionCodec'
+discriminatedUnionCodec ::
+  -- | propertyName
+  Text ->
+  -- | how to encode the input
+  --
+  -- Use 'mapToEncoder' to produce the 'ObjectCodec's.
+  (input -> (Discriminator, ObjectCodec input ())) ->
+  -- | how to decode the output
+  --
+  -- The 'Text' field is the name to use for the object schema.
+  --
+  -- Use 'mapToDecoder' to produce the 'ObjectCodec's.
+  HashMap Discriminator (Text, ObjectCodec Void output) ->
+  ObjectCodec input output
+discriminatedUnionCodec = DiscriminatedUnionCodec
 
 -- | Map a codec's input and output types.
 --

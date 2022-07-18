@@ -1,0 +1,90 @@
+{
+    "definitions": {
+        "Both": {
+            "properties": {
+                "int": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "number"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "both"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "text",
+                "int",
+                "type"
+            ],
+            "type": "object"
+        },
+        "That": {
+            "properties": {
+                "int": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "number"
+                },
+                "type": {
+                    "enum": [
+                        "that"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "int",
+                "type"
+            ],
+            "type": "object"
+        },
+        "These": {
+            "discriminator": {
+                "mapping": {
+                    "both": "Both",
+                    "that": "That",
+                    "this": "This"
+                },
+                "propertyName": "type"
+            },
+            "oneOf": [
+                {
+                    "$ref": "#/components/schemas/This"
+                },
+                {
+                    "$ref": "#/components/schemas/Both"
+                },
+                {
+                    "$ref": "#/components/schemas/That"
+                }
+            ]
+        },
+        "This": {
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "this"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "text",
+                "type"
+            ],
+            "type": "object"
+        }
+    },
+    "reference": {
+        "$ref": "#/components/schemas/These"
+    }
+}

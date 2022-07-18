@@ -1,0 +1,97 @@
+{
+    "components": {
+        "schemas": {
+            "Expression": {
+                "discriminator": {
+                    "mapping": {
+                        "literal": "LiteralExpression",
+                        "product": "ProductExpression",
+                        "sum": "SumExpression"
+                    },
+                    "propertyName": "type"
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ProductExpression"
+                    },
+                    {
+                        "$ref": "#/components/schemas/LiteralExpression"
+                    },
+                    {
+                        "$ref": "#/components/schemas/SumExpression"
+                    }
+                ]
+            },
+            "LiteralExpression": {
+                "properties": {
+                    "type": {
+                        "enum": [
+                            "literal"
+                        ],
+                        "type": "string"
+                    },
+                    "value": {
+                        "maximum": 9223372036854775807,
+                        "minimum": -9223372036854775808,
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "value",
+                    "type"
+                ],
+                "type": "object"
+            },
+            "ProductExpression": {
+                "properties": {
+                    "left": {
+                        "$ref": "#/components/schemas/Expression"
+                    },
+                    "right": {
+                        "$ref": "#/components/schemas/Expression"
+                    },
+                    "type": {
+                        "enum": [
+                            "product"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "left",
+                    "right",
+                    "type"
+                ],
+                "type": "object"
+            },
+            "SumExpression": {
+                "properties": {
+                    "left": {
+                        "$ref": "#/components/schemas/Expression"
+                    },
+                    "right": {
+                        "$ref": "#/components/schemas/Expression"
+                    },
+                    "type": {
+                        "enum": [
+                            "sum"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "left",
+                    "right",
+                    "type"
+                ],
+                "type": "object"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

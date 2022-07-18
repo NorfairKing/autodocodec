@@ -24,6 +24,7 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import qualified Data.HashMap.Strict as HashMap
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -493,3 +494,91 @@ instance HasCodec MultilineDefault where
     object "MultilineDefault" $
       MultilineDefault
         <$> optionalFieldWithDefault "value" (Via "foo" "bar") "a field with a multi-line default value" .= multilineDefaultValue
+
+data These
+  = This Text
+  | That Int
+  | Both Text Int
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec These)
+
+instance Validity These
+
+instance NFData These
+
+instance GenValid These where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec These where
+  codec =
+    object "These" $
+      discriminatedUnionCodec "type" enc dec
+    where
+      textFieldCodec = requiredField' "text"
+      intFieldCodec = requiredField' "int"
+      bothFieldsCodec = (,) <$> textFieldCodec .= fst <*> intFieldCodec .= snd
+      enc = \case
+        This s -> ("this", mapToEncoder s textFieldCodec)
+        That n -> ("that", mapToEncoder n intFieldCodec)
+        Both s n -> ("both", mapToEncoder (s, n) bothFieldsCodec)
+      dec =
+        HashMap.fromList
+          [ ("this", ("This", mapToDecoder This textFieldCodec)),
+            ("that", ("That", mapToDecoder That intFieldCodec)),
+            ("both", ("Both", mapToDecoder (uncurry Both) bothFieldsCodec))
+          ]
+
+data Expression
+  = LiteralExpression Int
+  | SumExpression Expression Expression
+  | ProductExpression Expression Expression
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec Expression)
+
+instance Validity Expression
+
+instance NFData Expression
+
+instance GenValid Expression where
+  genValid = sized $ \size ->
+    if size > 0
+      then
+        oneof
+          [ LiteralExpression <$> genValid,
+            genSplit (pred size) >>= \(size0, size1) ->
+              SumExpression <$> resize size0 genValid <*> resize size1 genValid,
+            genSplit (pred size) >>= \(size0, size1) ->
+              ProductExpression <$> resize size0 genValid <*> resize size1 genValid
+          ]
+      else LiteralExpression <$> genValid
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Expression where
+  codec =
+    named "Expression" $ object "Expression" $ discriminatedUnionCodec "type" enc dec
+    where
+      valueFieldCodec = requiredField' "value"
+      lrFieldsCodec = (,) <$> requiredField' "left" .= fst <*> requiredField' "right" .= snd
+      enc = \case
+        LiteralExpression n -> ("literal", mapToEncoder n valueFieldCodec)
+        SumExpression l r -> ("sum", mapToEncoder (l, r) lrFieldsCodec)
+        ProductExpression l r -> ("product", mapToEncoder (l, r) lrFieldsCodec)
+      dec =
+        HashMap.fromList
+          [ ("literal", ("LiteralExpression", mapToDecoder LiteralExpression valueFieldCodec)),
+            ("sum", ("SumExpression", mapToDecoder (uncurry SumExpression) lrFieldsCodec)),
+            ("product", ("ProductExpression", mapToDecoder (uncurry ProductExpression) lrFieldsCodec))
+          ]

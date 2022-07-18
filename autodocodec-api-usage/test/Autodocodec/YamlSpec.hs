@@ -76,6 +76,8 @@ spec = do
   yamlCodecSpec @LegacyObject
   yamlCodecSpec @Ainur
   yamlCodecSpec @War
+  yamlCodecSpec @These
+  yamlCodecSpec @Expression
 
 yamlCodecSpec ::
   forall a.

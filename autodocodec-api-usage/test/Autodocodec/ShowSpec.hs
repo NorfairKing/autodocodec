@@ -65,6 +65,8 @@ spec = do
   showCodecSpec @LegacyObject "legacy-object"
   showCodecSpec @Ainur "ainur"
   showCodecSpec @War "war"
+  showCodecSpec @These "these"
+  showCodecSpec @Expression "expression"
 
 showCodecSpec ::
   forall a.

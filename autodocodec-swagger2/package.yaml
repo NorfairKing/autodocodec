@@ -1,5 +1,5 @@
 name: autodocodec-swagger2
-version: 0.0.1.0
+version: 0.0.1.1
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -18,8 +18,9 @@ library:
   source-dirs: src
   dependencies:
   - aeson
-  - autodocodec >=0.0.1.0
+  - autodocodec >=0.2.0.0
   - insert-ordered-containers
   - scientific
   - swagger2
   - text
+  - unordered-containers

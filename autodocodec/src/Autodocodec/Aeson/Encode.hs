@@ -64,6 +64,10 @@ toJSONVia = flip go
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName mapping _ ->
+        case mapping a of
+          (discriminatorValue, c) ->
+            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ goObject a c
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
@@ -108,6 +112,10 @@ toEncodingVia = flip go
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName mapping _ ->
+        case mapping a of
+          (discriminatorValue, c) ->
+            JSON.pair (Compat.toKey propertyName) (JSON.toEncoding discriminatorValue) <> goObject a c
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
 instance HasCodec a => JSON.ToJSON (Autodocodec a) where

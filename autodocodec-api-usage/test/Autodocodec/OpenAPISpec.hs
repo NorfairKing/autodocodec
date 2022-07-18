@@ -94,6 +94,10 @@ spec = do
   openAPISchemaSpecViaDeclareSchemaRef @Ainur "ainur"
   openAPISchemaSpec @War "war"
   openAPISchemaSpecViaDeclareSchemaRef @War "war"
+  openAPISchemaSpec @These "these"
+  openAPISchemaSpecViaDeclareSchemaRef @These "these"
+  openAPISchemaSpec @Expression "expression"
+  openAPISchemaSpecViaDeclareSchemaRef @Expression "expression"
 
 openAPISchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =

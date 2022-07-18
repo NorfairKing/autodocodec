@@ -69,6 +69,8 @@ spec = do
   yamlSchemaSpec @LegacyObject "legacy-object"
   yamlSchemaSpec @Ainur "ainur"
   yamlSchemaSpec @War "war"
+  yamlSchemaSpec @These "these"
+  yamlSchemaSpec @Expression "expression"
   yamlSchemaSpec @MultilineDefault "multiline-default"
 
 yamlSchemaSpec ::

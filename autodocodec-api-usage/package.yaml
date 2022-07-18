@@ -4,7 +4,7 @@ github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2021 Tom Sydney Kerckhove"
+copyright: "2021-2022 Tom Sydney Kerckhove"
 synopsis: Autodocodec api usage tests
 
 extra-source-files:
@@ -19,7 +19,7 @@ library:
   dependencies:
   - QuickCheck
   - aeson
-  - autodocodec
+  - autodocodec >=0.2.0.0
   - autodocodec-openapi3
   - autodocodec-schema
   - autodocodec-swagger2

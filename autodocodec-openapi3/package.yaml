@@ -1,10 +1,10 @@
 name: autodocodec-openapi3
-version: 0.2.1.0
+version: 0.2.1.1
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2021 Tom Sydney Kerckhove"
+copyright: "2021-2022 Tom Sydney Kerckhove"
 synopsis: Autodocodec interpreters for openapi3
 
 extra-source-files:
@@ -18,7 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
-  - autodocodec
+  - autodocodec >= 0.2.0.0
   - unordered-containers
   - insert-ordered-containers
   - lens

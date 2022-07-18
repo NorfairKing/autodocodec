@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.2] - 2022-07-21
+
+### Added
+
+* Support for the `discriminatedUnionCodec` for discriminated unions in `autodocodec-0.2.0.0`
+
 ## [0.2.0.1] - 2022-04-28
 
 ### Changed

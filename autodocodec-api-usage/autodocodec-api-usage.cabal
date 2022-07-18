@@ -11,7 +11,7 @@ homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
 author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
-copyright:      2021 Tom Sydney Kerckhove
+copyright:      2021-2022 Tom Sydney Kerckhove
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
@@ -44,6 +44,7 @@ extra-source-files:
     test_resources/json-schema/either-bool-text.json
     test_resources/json-schema/either-either-bool-scientific-text.json
     test_resources/json-schema/example.json
+    test_resources/json-schema/expression.json
     test_resources/json-schema/fruit.json
     test_resources/json-schema/int.json
     test_resources/json-schema/int16.json
@@ -68,6 +69,7 @@ extra-source-files:
     test_resources/json-schema/set-text.json
     test_resources/json-schema/string.json
     test_resources/json-schema/text.json
+    test_resources/json-schema/these.json
     test_resources/json-schema/time-of-day.json
     test_resources/json-schema/utc-time.json
     test_resources/json-schema/value.json
@@ -85,12 +87,14 @@ extra-source-files:
     test_resources/openapi-schema/day.json
     test_resources/openapi-schema/declareSchemaRef/ainur.json
     test_resources/openapi-schema/declareSchemaRef/example.json
+    test_resources/openapi-schema/declareSchemaRef/expression.json
     test_resources/openapi-schema/declareSchemaRef/fruit.json
     test_resources/openapi-schema/declareSchemaRef/legacy-object.json
     test_resources/openapi-schema/declareSchemaRef/legacy-value.json
     test_resources/openapi-schema/declareSchemaRef/mutually-recursive.json
     test_resources/openapi-schema/declareSchemaRef/null.json
     test_resources/openapi-schema/declareSchemaRef/recursive.json
+    test_resources/openapi-schema/declareSchemaRef/these.json
     test_resources/openapi-schema/declareSchemaRef/very-comment.json
     test_resources/openapi-schema/declareSchemaRef/via.json
     test_resources/openapi-schema/declareSchemaRef/war.json
@@ -98,6 +102,7 @@ extra-source-files:
     test_resources/openapi-schema/either-bool-text.json
     test_resources/openapi-schema/either-either-bool-scientific-text.json
     test_resources/openapi-schema/example.json
+    test_resources/openapi-schema/expression.json
     test_resources/openapi-schema/fruit.json
     test_resources/openapi-schema/int.json
     test_resources/openapi-schema/int16.json
@@ -122,6 +127,7 @@ extra-source-files:
     test_resources/openapi-schema/set-text.json
     test_resources/openapi-schema/string.json
     test_resources/openapi-schema/text.json
+    test_resources/openapi-schema/these.json
     test_resources/openapi-schema/time-of-day.json
     test_resources/openapi-schema/utc-time.json
     test_resources/openapi-schema/value.json
@@ -140,6 +146,7 @@ extra-source-files:
     test_resources/show-codec/either-bool-text.txt
     test_resources/show-codec/either-either-bool-scientific-text.txt
     test_resources/show-codec/example.txt
+    test_resources/show-codec/expression.txt
     test_resources/show-codec/fruit.txt
     test_resources/show-codec/int.txt
     test_resources/show-codec/int16.txt
@@ -163,6 +170,7 @@ extra-source-files:
     test_resources/show-codec/set-text.txt
     test_resources/show-codec/string.txt
     test_resources/show-codec/text.txt
+    test_resources/show-codec/these.txt
     test_resources/show-codec/time-of-day.txt
     test_resources/show-codec/utc-time.txt
     test_resources/show-codec/value.txt
@@ -183,6 +191,7 @@ extra-source-files:
     test_resources/swagger-schema/either-bool-text.json
     test_resources/swagger-schema/either-either-bool-scientific-text.json
     test_resources/swagger-schema/example.json
+    test_resources/swagger-schema/expression.json
     test_resources/swagger-schema/fruit.json
     test_resources/swagger-schema/int.json
     test_resources/swagger-schema/int16.json
@@ -207,6 +216,7 @@ extra-source-files:
     test_resources/swagger-schema/set-text.json
     test_resources/swagger-schema/string.json
     test_resources/swagger-schema/text.json
+    test_resources/swagger-schema/these.json
     test_resources/swagger-schema/time-of-day.json
     test_resources/swagger-schema/utc-time.json
     test_resources/swagger-schema/value.json
@@ -226,6 +236,7 @@ extra-source-files:
     test_resources/yaml-schema/either-bool-text.txt
     test_resources/yaml-schema/either-either-bool-scientific-text.txt
     test_resources/yaml-schema/example.txt
+    test_resources/yaml-schema/expression.txt
     test_resources/yaml-schema/fruit.txt
     test_resources/yaml-schema/int.txt
     test_resources/yaml-schema/int16.txt
@@ -251,6 +262,7 @@ extra-source-files:
     test_resources/yaml-schema/set-text.txt
     test_resources/yaml-schema/string.txt
     test_resources/yaml-schema/text.txt
+    test_resources/yaml-schema/these.txt
     test_resources/yaml-schema/time-of-day.txt
     test_resources/yaml-schema/utc-time.txt
     test_resources/yaml-schema/value.txt
@@ -278,7 +290,7 @@ library
   build-depends:
       QuickCheck
     , aeson
-    , autodocodec
+    , autodocodec >=0.2.0.0
     , autodocodec-openapi3
     , autodocodec-schema
     , autodocodec-swagger2

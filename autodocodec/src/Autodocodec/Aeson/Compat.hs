@@ -36,6 +36,14 @@ lookupKey = HM.lookup
 #endif
 
 #if MIN_VERSION_aeson(2,0,0)
+insert :: Key -> v -> KM.KeyMap v -> KM.KeyMap v
+insert = KM.insert
+#else
+insert :: Text -> v -> HM.HashMap Text v -> HM.HashMap Text v
+insert = HM.insert
+#endif
+
+#if MIN_VERSION_aeson(2,0,0)
 fromList :: [(Key, v)] -> KM.KeyMap v
 fromList = KM.fromList
 #else

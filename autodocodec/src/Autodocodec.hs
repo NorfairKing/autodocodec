@@ -85,6 +85,11 @@ module Autodocodec
     disjointEitherCodec,
     possiblyJointEitherCodec,
 
+    -- **** Discriminated unions
+    mapToEncoder,
+    mapToDecoder,
+    discriminatedUnionCodec,
+
     -- *** Mapping
     dimapCodec,
     bimapCodec,
