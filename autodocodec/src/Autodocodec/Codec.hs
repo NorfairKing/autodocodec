@@ -21,8 +21,6 @@ import Data.Aeson.KeyMap (KeyMap)
 import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
-import Data.Functor.Const
-import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
@@ -162,8 +160,8 @@ data Codec context input output where
   DiscriminatedUnionCodec ::
     -- | propertyName
     Text ->
-    (a -> (Discriminator, TypeAlternative Identity a)) ->
-    HashMap Discriminator (TypeAlternative (Const ()) a) ->
+    (a -> (Discriminator, SomeValueCodec)) ->
+    HashMap Discriminator (SomeTypeCodec a) ->
     ObjectCodec a a
   -- | A comment codec
   --
@@ -269,14 +267,19 @@ instance Validity Union
 
 type Discriminator = Text
 
-data TypeAlternative f a where
-  TypeAlternative ::
-    f b ->
+data SomeValueCodec where
+  SomeValueCodec ::
+    b ->
+    JSONObjectCodec b ->
+    SomeValueCodec
+
+data SomeTypeCodec a where
+  SomeTypeCodec ::
     JSONObjectCodec b ->
     -- | Name of the object type
     Text ->
     (b -> a) ->
-    TypeAlternative f a
+    SomeTypeCodec a
 
 -- | A codec within the 'JSON.Value' context.
 --
