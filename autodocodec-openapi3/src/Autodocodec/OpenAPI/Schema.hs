@@ -17,6 +17,7 @@ import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
 import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
 import qualified Data.Aeson as Aeson
+import qualified Data.Foldable as Foldable
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
@@ -182,7 +183,22 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             u
             (NamedSchema Nothing (combineObjectSchemas s1s))
             (NamedSchema Nothing (combineObjectSchemas s2s))
-      DiscriminatedUnionCodec propertyName _ mapping -> _
+      DiscriminatedUnionCodec pn _ m -> do
+        let d =
+              Discriminator
+                { _discriminatorPropertyName = pn,
+                  _discriminatorMapping = fmap (\(SomeDecodable _ refName _) -> refName) m
+                }
+            mkSchema dName (SomeDecodable oc refName _) = do
+              s <- goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
+              declareSpecificSchemaRef (Just refName) $ combineObjectSchemas s
+        ss <- InsOrdHashMap.traverseWithKey mkSchema m
+        pure
+          [ mempty
+              { _schemaDiscriminator = Just d,
+                _schemaOneOf = Just $ Foldable.toList ss
+              }
+          ]
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
@@ -224,9 +240,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
           -- If both schemas are enums with the same type then combine their values
           (Just s1enums, Just s2enums)
             | s1 ^. type_ == s2 ^. type_ ->
-                prototype
-                  & enum_ ?~ (s1enums ++ s2enums)
-                  & type_ .~ s1 ^. type_
+              prototype
+                & enum_ ?~ (s1enums ++ s2enums)
+                & type_ .~ s1 ^. type_
           _ ->
             case (s1 ^. orLens, s2 ^. orLens) of
               (Just s1s, Just s2s) -> prototype & orLens ?~ (s1s ++ s2s)

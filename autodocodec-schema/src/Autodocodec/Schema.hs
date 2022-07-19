@@ -17,6 +17,7 @@ import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import Data.Foldable
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
@@ -384,6 +385,13 @@ jsonSchemaVia = (`evalState` S.empty) . go
         pure $ case u of
           DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
           PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
+      DiscriminatedUnionCodec pn _ m -> do
+        let mkSchema dName (SomeDecodable oc _ _) =
+              goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
+        ss <- InsOrdHashMap.traverseWithKey mkSchema m
+        pure $ case NE.nonEmpty $ toList ss of
+              Nothing -> ObjectAnySchema
+              Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
       PureCodec _ -> pure ObjectAnySchema
       ApCodec oc1 oc2 -> do
         os1 <- goObject oc1

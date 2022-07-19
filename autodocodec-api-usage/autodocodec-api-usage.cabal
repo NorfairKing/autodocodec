@@ -290,6 +290,7 @@ library
     , genvalidity-aeson
     , genvalidity-scientific
     , genvalidity-text
+    , insert-ordered-containers
     , openapi3
     , scientific
     , swagger2

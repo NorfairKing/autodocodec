@@ -24,7 +24,7 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -519,7 +519,7 @@ instance HasCodec Expression where
         SumExpression p -> ("sum", someEncodable p)
         ProductExpression p -> ("product", someEncodable p)
       g =
-        HashMap.fromList
+        InsOrdHashMap.fromList
           [ ("literal", SomeDecodable valueFieldCodec "LiteralExpression" LiteralExpression),
             ("sum", someDecodable "SumExpression" SumExpression),
             ("product", someDecodable "ProductExpression" ProductExpression)

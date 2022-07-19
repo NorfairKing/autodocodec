@@ -11,6 +11,7 @@ module Autodocodec.Swagger.Schema where
 
 import Autodocodec
 import Control.Monad
+import Data.Foldable (toList)
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 import Data.List
 import Data.Proxy
@@ -164,6 +165,18 @@ declareNamedSchemaVia c' Proxy = go c'
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure [combineSchemaOr u (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
+      DiscriminatedUnionCodec pn _ m -> do
+        let mkSchema dName (SomeDecodable oc _ _) =
+              fmap combineObjectSchemas $ goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
+        ss <- InsOrdHashMap.traverseWithKey mkSchema m
+        let combined = case toList ss of
+              [] -> mempty
+              (s : ss') -> foldr (combineSchemaOr DisjointUnion) s ss'
+        pure
+          [ combined
+              { _schemaDiscriminator = Just pn
+              }
+          ]
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2

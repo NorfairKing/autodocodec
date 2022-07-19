@@ -35,6 +35,7 @@ library
     , autodocodec >=0.0.1.0
     , base >=4.7 && <5
     , containers
+    , insert-ordered-containers
     , mtl
     , text
     , unordered-containers

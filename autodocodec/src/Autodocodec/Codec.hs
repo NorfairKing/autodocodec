@@ -22,6 +22,7 @@ import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
@@ -161,7 +162,7 @@ data Codec context input output where
     -- | propertyName
     Text ->
     (a -> (Discriminator, SomeEncodable)) ->
-    HashMap Discriminator (SomeDecodable a) ->
+    InsOrdHashMap Discriminator (SomeDecodable a) ->
     ObjectCodec a a
   -- | A comment codec
   --

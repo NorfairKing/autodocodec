@@ -64,6 +64,10 @@ toYamlVia = flip go
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName m _ ->
+        case m a of
+          (discriminatorValue, SomeEncodable b c) ->
+            (propertyName, Yaml.string discriminatorValue) : goObject b c
       PureCodec _ -> []
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
