@@ -495,7 +495,20 @@ instance HasCodec MultilineDefault where
       MultilineDefault
         <$> optionalFieldWithDefault "value" (Via "foo" "bar") "a field with a multi-line default value" .= multilineDefaultValue
 
-data ExpressionPair = ExpressionPair {leftExpression :: Expression, rightExpression :: Expression}
+data ExpressionPair = ExpressionPair
+  { leftExpression :: Expression,
+    rightExpression :: Expression
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance Validity ExpressionPair
+
+instance NFData ExpressionPair
+
+instance GenValid ExpressionPair where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 
 instance HasObjectCodec ExpressionPair where
   objectCodec =
@@ -507,9 +520,26 @@ data Expression
   = LiteralExpression Int
   | SumExpression ExpressionPair
   | ProductExpression ExpressionPair
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec Expression)
+
+instance Validity Expression
+
+instance NFData Expression
+
+instance GenValid Expression where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec Expression where
   codec =
+    named "Expression" $
     object "Expression" $
       DiscriminatedUnionCodec "type" f g
     where

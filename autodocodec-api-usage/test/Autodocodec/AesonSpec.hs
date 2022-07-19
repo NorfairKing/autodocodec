@@ -95,6 +95,7 @@ spec = do
   aesonCodecSpec @LegacyObject
   aesonCodecSpec @Ainur
   aesonCodecSpec @War
+  aesonCodecSpec @Expression
 
 aesonCodecErrorSpec ::
   forall a.
