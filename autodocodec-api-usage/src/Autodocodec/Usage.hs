@@ -24,6 +24,7 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
+import qualified Data.HashMap.Strict as HashMap
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -493,3 +494,32 @@ instance HasCodec MultilineDefault where
     object "MultilineDefault" $
       MultilineDefault
         <$> optionalFieldWithDefault "value" (Via "foo" "bar") "a field with a multi-line default value" .= multilineDefaultValue
+
+data ExpressionPair = ExpressionPair {leftExpression :: Expression, rightExpression :: Expression}
+
+expressionPairCodec :: JSONObjectCodec ExpressionPair
+expressionPairCodec =
+  ExpressionPair
+    <$> requiredField' "left" .= leftExpression
+    <*> requiredField' "right" .= rightExpression
+
+data Expression
+  = LiteralExpression Int
+  | SumExpression ExpressionPair
+  | ProductExpression ExpressionPair
+
+instance HasCodec Expression where
+  codec =
+    object "Expression" $
+      DiscriminatedUnionCodec "type" f g
+    where
+      f = \case
+        LiteralExpression n -> ("literal", SomeValueCodec n $ requiredField' "value")
+        SumExpression p -> ("sum", SomeValueCodec p expressionPairCodec)
+        ProductExpression p -> ("product", SomeValueCodec p expressionPairCodec)
+      g =
+        HashMap.fromList
+          [ ("literal", SomeTypeCodec (requiredField' "value") "LiteralValue" LiteralExpression),
+            ("sum", SomeTypeCodec expressionPairCodec "ExpressionPair" SumExpression),
+            ("product", SomeTypeCodec expressionPairCodec "ExpressionPair" ProductExpression)
+          ]
