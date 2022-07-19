@@ -497,11 +497,11 @@ instance HasCodec MultilineDefault where
 
 data ExpressionPair = ExpressionPair {leftExpression :: Expression, rightExpression :: Expression}
 
-expressionPairCodec :: JSONObjectCodec ExpressionPair
-expressionPairCodec =
-  ExpressionPair
-    <$> requiredField' "left" .= leftExpression
-    <*> requiredField' "right" .= rightExpression
+instance HasObjectCodec ExpressionPair where
+  objectCodec =
+    ExpressionPair
+      <$> requiredField' "left" .= leftExpression
+      <*> requiredField' "right" .= rightExpression
 
 data Expression
   = LiteralExpression Int
@@ -513,13 +513,14 @@ instance HasCodec Expression where
     object "Expression" $
       DiscriminatedUnionCodec "type" f g
     where
+      valueFieldCodec = requiredField' "value"
       f = \case
-        LiteralExpression n -> ("literal", SomeValueCodec n $ requiredField' "value")
-        SumExpression p -> ("sum", SomeValueCodec p expressionPairCodec)
-        ProductExpression p -> ("product", SomeValueCodec p expressionPairCodec)
+        LiteralExpression n -> ("literal", SomeEncodable n valueFieldCodec)
+        SumExpression p -> ("sum", someEncodable p)
+        ProductExpression p -> ("product", someEncodable p)
       g =
         HashMap.fromList
-          [ ("literal", SomeTypeCodec (requiredField' "value") "LiteralValue" LiteralExpression),
-            ("sum", SomeTypeCodec expressionPairCodec "ExpressionPair" SumExpression),
-            ("product", SomeTypeCodec expressionPairCodec "ExpressionPair" ProductExpression)
+          [ ("literal", SomeDecodable valueFieldCodec "LiteralExpression" LiteralExpression),
+            ("sum", someDecodable "SumExpression" SumExpression),
+            ("product", someDecodable "ProductExpression" ProductExpression)
           ]

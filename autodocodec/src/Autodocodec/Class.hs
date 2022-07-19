@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Autodocodec.Class where
 
@@ -293,3 +294,15 @@ optionalFieldOrNullWithOmittedDefault' ::
   output ->
   ObjectCodec output output
 optionalFieldOrNullWithOmittedDefault' key defaultValue = optionalFieldOrNullWithOmittedDefaultWith' key codec defaultValue
+
+class HasObjectCodec a where
+  objectCodec :: JSONObjectCodec a
+
+instance (HasObjectCodec a, HasObjectCodec b) => HasObjectCodec (a, b) where
+  objectCodec = (,) <$> (objectCodec @a) .= fst <*> (objectCodec @b) .= snd
+
+someEncodable :: HasObjectCodec b => b -> SomeEncodable
+someEncodable b = SomeEncodable b objectCodec
+
+someDecodable :: HasObjectCodec b => Text -> (b -> a) -> SomeDecodable a
+someDecodable name f = SomeDecodable objectCodec name f

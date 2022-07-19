@@ -160,8 +160,8 @@ data Codec context input output where
   DiscriminatedUnionCodec ::
     -- | propertyName
     Text ->
-    (a -> (Discriminator, SomeValueCodec)) ->
-    HashMap Discriminator (SomeTypeCodec a) ->
+    (a -> (Discriminator, SomeEncodable)) ->
+    HashMap Discriminator (SomeDecodable a) ->
     ObjectCodec a a
   -- | A comment codec
   --
@@ -267,19 +267,19 @@ instance Validity Union
 
 type Discriminator = Text
 
-data SomeValueCodec where
-  SomeValueCodec ::
+data SomeEncodable where
+  SomeEncodable ::
     b ->
-    JSONObjectCodec b ->
-    SomeValueCodec
+    ObjectCodec b any ->
+    SomeEncodable
 
-data SomeTypeCodec a where
-  SomeTypeCodec ::
-    JSONObjectCodec b ->
+data SomeDecodable a where
+  SomeDecodable ::
+    ObjectCodec any b ->
     -- | Name of the object type
     Text ->
     (b -> a) ->
-    SomeTypeCodec a
+    SomeDecodable a
 
 -- | A codec within the 'JSON.Value' context.
 --
