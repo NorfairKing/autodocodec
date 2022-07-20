@@ -77,8 +77,7 @@ spec = do
   yamlCodecSpec @Ainur
   yamlCodecSpec @War
   yamlCodecSpec @These
-
--- yamlCodecSpec @Expression -- Too slow
+  yamlCodecSpec @Expression
 
 yamlCodecSpec ::
   forall a.

@@ -79,7 +79,7 @@ spec = do
   jsonSchemaSpec @Ainur "ainur"
   jsonSchemaSpec @War "war"
   jsonSchemaSpec @These "these"
-  -- jsonSchemaSpec @Expression "expression" -- Too slow
+  jsonSchemaSpec @Expression "expression"
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     xdescribe "does not hold because this property does not hold for Scientific values like -7.85483897507979979e17" $

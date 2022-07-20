@@ -548,12 +548,22 @@ data Expression
     )
     via (Autodocodec Expression)
 
-instance Validity Expression
+instance Validity Expression where
+  validate = trivialValidation
 
 instance NFData Expression
 
 instance GenValid Expression where
-  genValid = genValidStructurallyWithoutExtraChecking
+  genValid = sized $ \size -> do
+    if size > 0
+      then
+        oneof
+          [ LiteralExpression <$> genValid,
+            SumExpression <$> scale (`div` 2) genValid <*> scale (`div` 2) genValid,
+            ProductExpression <$> scale (`div` 2) genValid <*> scale (`div` 2) genValid
+          ]
+      else
+        LiteralExpression <$> genValid
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec Expression where
