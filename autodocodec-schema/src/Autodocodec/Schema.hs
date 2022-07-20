@@ -390,8 +390,8 @@ jsonSchemaVia = (`evalState` S.empty) . go
               goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
         ss <- InsOrdHashMap.traverseWithKey mkSchema m
         pure $ case NE.nonEmpty $ toList ss of
-              Nothing -> ObjectAnySchema
-              Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
+          Nothing -> ObjectAnySchema
+          Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
       PureCodec _ -> pure ObjectAnySchema
       ApCodec oc1 oc2 -> do
         os1 <- goObject oc1
