@@ -22,7 +22,9 @@ import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import Data.Hashable
+import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
@@ -357,7 +359,10 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
-      DiscriminatedUnionCodec propertyName _ _ -> pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName -- TODO: show the mapping
+      DiscriminatedUnionCodec propertyName _ mapping -> do
+        cs <- traverse (\(n, SomeDecodable c _ _) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
+        let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
+        pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
