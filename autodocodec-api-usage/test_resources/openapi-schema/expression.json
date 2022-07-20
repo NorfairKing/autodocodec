@@ -12,13 +12,13 @@
                 },
                 "oneOf": [
                     {
+                        "$ref": "#/components/schemas/ProductExpression"
+                    },
+                    {
                         "$ref": "#/components/schemas/LiteralExpression"
                     },
                     {
                         "$ref": "#/components/schemas/SumExpression"
-                    },
-                    {
-                        "$ref": "#/components/schemas/ProductExpression"
                     }
                 ]
             },

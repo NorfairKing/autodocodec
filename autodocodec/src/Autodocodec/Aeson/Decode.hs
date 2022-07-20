@@ -14,7 +14,7 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import qualified Data.HashMap.Strict as HashMap
 import Data.Map (Map)
 import qualified Data.Text as T
 import Data.Vector (Vector)
@@ -111,7 +111,7 @@ parseJSONContextVia codec_ context_ =
                         ]
       DiscriminatedUnionCodec propertyName _ m -> do
         discriminatorValue <- (value :: JSON.Object) JSON..: Compat.toKey propertyName
-        case InsOrdHashMap.lookup discriminatorValue m of
+        case HashMap.lookup discriminatorValue m of
           Nothing -> fail $ "Unexpected discriminator value: " <> T.unpack discriminatorValue
           Just (SomeDecodable c _ mkValue) ->
             mkValue <$> go value c

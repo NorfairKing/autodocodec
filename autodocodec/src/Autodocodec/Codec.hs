@@ -22,7 +22,6 @@ import qualified Data.Aeson.KeyMap as KM
 #endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
-import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
@@ -166,11 +165,11 @@ data Codec context input output where
   -- discriminator value and a value of an existentially-quantified type 'SomeEncodable'
   -- which is used to encode the object.
   --
-  -- When decoding, the value of the discriminator property is looked up in the `InsOrdHashMap`
+  -- When decoding, the value of the discriminator property is looked up in the `HashMap`
   -- to obtain a value of an existentially-quantified type 'SomeDecodeable output' which
   -- can be used to decode the output.
   --
-  -- The 'InsOrdHashMap' is also used to generate schemas for the type.
+  -- The 'HashMap' is also used to generate schemas for the type.
   -- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
   -- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
   DiscriminatedUnionCodec ::
@@ -179,7 +178,7 @@ data Codec context input output where
     -- | how to encode the input
     (input -> (Discriminator, SomeEncodable)) ->
     -- | how to decode the output
-    InsOrdHashMap Discriminator (SomeDecodable output) ->
+    HashMap Discriminator (SomeDecodable output) ->
     ObjectCodec input output
   -- | A comment codec
   --
@@ -702,11 +701,11 @@ possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
 -- discriminator value and a value of an existentially-quantified type 'SomeEncodable'
 -- which is used to encode the object.
 --
--- When decoding, the value of the discriminator property is looked up in the `InsOrdHashMap`
+-- When decoding, the value of the discriminator property is looked up in the `HashMap`
 -- to obtain a value of an existentially-quantified type 'SomeDecodeable output' which
 -- can be used to decode the output.
 --
--- The 'InsOrdHashMap' is also used to generate schemas for the type.
+-- The 'HashMap' is also used to generate schemas for the type.
 -- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
 -- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
 --
@@ -717,7 +716,7 @@ discriminatedUnionCodec ::
   -- | how to encode the input
   (input -> (Discriminator, SomeEncodable)) ->
   -- | how to decode the output
-  InsOrdHashMap Discriminator (SomeDecodable output) ->
+  HashMap Discriminator (SomeDecodable output) ->
   ObjectCodec input output
 discriminatedUnionCodec = DiscriminatedUnionCodec
 

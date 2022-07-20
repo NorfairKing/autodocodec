@@ -4,14 +4,14 @@
     [33m<string>[m
   [37mtype[m: # [31mrequired[m
     this
-, [37mint[m: # [31mrequired[m
-    [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
-  [37mtype[m: # [31mrequired[m
-    that
 , [37mtext[m: # [31mrequired[m
     [33m<string>[m
   [37mint[m: # [31mrequired[m
     [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
   [37mtype[m: # [31mrequired[m
     both
+, [37mint[m: # [31mrequired[m
+    [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
+  [37mtype[m: # [31mrequired[m
+    that
 ]

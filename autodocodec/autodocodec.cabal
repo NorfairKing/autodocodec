@@ -43,7 +43,6 @@ library
     , bytestring
     , containers
     , hashable
-    , insert-ordered-containers
     , mtl
     , scientific
     , text

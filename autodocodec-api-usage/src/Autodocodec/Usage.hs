@@ -24,7 +24,7 @@ import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
-import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import qualified Data.HashMap.Strict as HashMap
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -529,7 +529,7 @@ instance HasCodec These where
         That n -> ("that", SomeEncodable n intFieldCodec)
         Both s n -> ("both", SomeEncodable (s, n) bothFieldsCodec)
       dec =
-        InsOrdHashMap.fromList
+        HashMap.fromList
           [ ("this", SomeDecodable textFieldCodec "This" This),
             ("that", SomeDecodable intFieldCodec "That" That),
             ("both", SomeDecodable bothFieldsCodec "Both" (uncurry Both))
@@ -567,7 +567,7 @@ instance HasCodec Expression where
         SumExpression l r -> ("sum", SomeEncodable (l, r) lrFieldsCodec)
         ProductExpression l r -> ("product", SomeEncodable (l, r) lrFieldsCodec)
       dec =
-        InsOrdHashMap.fromList
+        HashMap.fromList
           [ ("literal", SomeDecodable valueFieldCodec "LiteralExpression" LiteralExpression),
             ("sum", SomeDecodable lrFieldsCodec "SumExpression" (uncurry SumExpression)),
             ("product", SomeDecodable lrFieldsCodec "ProductExpression" (uncurry ProductExpression))

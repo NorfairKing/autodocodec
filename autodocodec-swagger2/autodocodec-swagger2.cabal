@@ -40,4 +40,5 @@ library
     , scientific
     , swagger2
     , text
+    , unordered-containers
   default-language: Haskell2010
