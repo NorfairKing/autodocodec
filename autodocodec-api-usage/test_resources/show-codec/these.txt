@@ -1,0 +1,1 @@
+ObjectOfCodec (Just "These") (DiscriminatedUnionCodec "type")

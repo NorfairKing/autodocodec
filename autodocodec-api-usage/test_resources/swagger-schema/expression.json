@@ -1,0 +1,32 @@
+{
+    "definitions": {
+        "Expression": {
+            "properties": {
+                "left": {
+                    "$ref": "#/definitions/Expression"
+                },
+                "right": {
+                    "$ref": "#/definitions/Expression"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "number"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

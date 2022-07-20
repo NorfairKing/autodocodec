@@ -495,31 +495,50 @@ instance HasCodec MultilineDefault where
       MultilineDefault
         <$> optionalFieldWithDefault "value" (Via "foo" "bar") "a field with a multi-line default value" .= multilineDefaultValue
 
-data ExpressionPair = ExpressionPair
-  { leftExpression :: Expression,
-    rightExpression :: Expression
-  }
+data These
+  = This Text
+  | That Int
+  | Both Text Int
   deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON,
+      Swagger.ToSchema,
+      OpenAPI.ToSchema
+    )
+    via (Autodocodec These)
 
-instance Validity ExpressionPair
+instance Validity These
 
-instance NFData ExpressionPair
+instance NFData These
 
-instance GenValid ExpressionPair where
+instance GenValid These where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
-
-instance HasObjectCodec ExpressionPair where
-  objectCodec =
-    ExpressionPair
-      <$> requiredField' "left" .= leftExpression
-      <*> requiredField' "right" .= rightExpression
+instance HasCodec These where
+  codec =
+    object "These" $
+      DiscriminatedUnionCodec "type" enc dec
+    where
+      textFieldCodec = requiredField' "text"
+      intFieldCodec = requiredField' "int"
+      bothFieldsCodec = (,) <$> textFieldCodec .= fst <*> intFieldCodec .= snd
+      enc = \case
+        This s -> ("this", SomeEncodable s textFieldCodec)
+        That n -> ("that", SomeEncodable n intFieldCodec)
+        Both s n -> ("both", SomeEncodable (s, n) bothFieldsCodec)
+      dec =
+        InsOrdHashMap.fromList
+          [ ("this", SomeDecodable textFieldCodec "This" This),
+            ("that", SomeDecodable intFieldCodec "That" That),
+            ("both", SomeDecodable bothFieldsCodec "Both" (uncurry Both))
+          ]
 
 data Expression
   = LiteralExpression Int
-  | SumExpression ExpressionPair
-  | ProductExpression ExpressionPair
+  | SumExpression Expression Expression
+  | ProductExpression Expression Expression
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
@@ -539,18 +558,17 @@ instance GenValid Expression where
 
 instance HasCodec Expression where
   codec =
-    named "Expression" $
-    object "Expression" $
-      DiscriminatedUnionCodec "type" f g
+    named "Expression" $ object "Expression" $ DiscriminatedUnionCodec "type" enc dec
     where
       valueFieldCodec = requiredField' "value"
-      f = \case
+      lrFieldsCodec = (,) <$> requiredField' "left" .= fst <*> requiredField' "right" .= snd
+      enc = \case
         LiteralExpression n -> ("literal", SomeEncodable n valueFieldCodec)
-        SumExpression p -> ("sum", someEncodable p)
-        ProductExpression p -> ("product", someEncodable p)
-      g =
+        SumExpression l r -> ("sum", SomeEncodable (l, r) lrFieldsCodec)
+        ProductExpression l r -> ("product", SomeEncodable (l, r) lrFieldsCodec)
+      dec =
         InsOrdHashMap.fromList
           [ ("literal", SomeDecodable valueFieldCodec "LiteralExpression" LiteralExpression),
-            ("sum", someDecodable "SumExpression" SumExpression),
-            ("product", someDecodable "ProductExpression" ProductExpression)
+            ("sum", SomeDecodable lrFieldsCodec "SumExpression" (uncurry SumExpression)),
+            ("product", SomeDecodable lrFieldsCodec "ProductExpression" (uncurry ProductExpression))
           ]

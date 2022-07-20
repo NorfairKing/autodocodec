@@ -1,0 +1,66 @@
+{
+    "$defs": {
+        "Expression": {
+            "$comment": "Expression",
+            "oneOf": [
+                {
+                    "properties": {
+                        "type": {
+                            "const": "literal"
+                        },
+                        "value": {
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "value"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "left": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "right": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "type": {
+                            "const": "sum"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "right",
+                        "left"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "left": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "right": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "type": {
+                            "const": "product"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "right",
+                        "left"
+                    ],
+                    "type": "object"
+                }
+            ],
+            "type": "object"
+        }
+    },
+    "$ref": "#/$defs/Expression"
+}

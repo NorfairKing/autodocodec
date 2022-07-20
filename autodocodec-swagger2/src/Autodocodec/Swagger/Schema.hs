@@ -167,16 +167,12 @@ declareNamedSchemaVia c' Proxy = go c'
         pure [combineSchemaOr u (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
       DiscriminatedUnionCodec pn _ m -> do
         let mkSchema dName (SomeDecodable oc _ _) =
-              fmap combineObjectSchemas $ goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
+              fmap combineObjectSchemas $ goObject $ oc *> (requiredFieldWith' pn textCodec .= const dName)
         ss <- InsOrdHashMap.traverseWithKey mkSchema m
         let combined = case toList ss of
               [] -> mempty
               (s : ss') -> foldr (combineSchemaOr DisjointUnion) s ss'
-        pure
-          [ combined
-              { _schemaDiscriminator = Just pn
-              }
-          ]
+        pure [combined]
       ApCodec oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2

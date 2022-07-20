@@ -1,0 +1,20 @@
+[36mdef: Expression[m
+# Expression
+# [32mone of[m
+[ [37mvalue[m: # [31mrequired[m
+    [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
+  [37mtype[m: # [31mrequired[m
+    literal
+, [37mleft[m: # [31mrequired[m
+    [36mref: Expression[m
+  [37mright[m: # [31mrequired[m
+    [36mref: Expression[m
+  [37mtype[m: # [31mrequired[m
+    sum
+, [37mleft[m: # [31mrequired[m
+    [36mref: Expression[m
+  [37mright[m: # [31mrequired[m
+    [36mref: Expression[m
+  [37mtype[m: # [31mrequired[m
+    product
+]
