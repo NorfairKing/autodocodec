@@ -157,13 +157,30 @@ data Codec context input output where
     -- | Codec for the 'Right' side
     Codec context input2 output2 ->
     Codec context (Either input1 input2) (Either output1 output2)
-  -- | Discriminated union
+  -- | Encode/decode a discriminated union of objects
+  --
+  -- Type type of object being encoded/decoded is discriminated by
+  -- a designated "discriminator" property on the object which takes a string value.
+  --
+  -- When encoding, the input the provided function is applied to obtain the
+  -- discriminator value and a value of an existentially-quantified type 'SomeEncodable'
+  -- which is used to encode the object.
+  --
+  -- When decoding, the value of the discriminator property is looked up in the `InsOrdHashMap`
+  -- to obtain a value of an existentially-quantified type 'SomeDecodeable output' which
+  -- can be used to decode the output.
+  --
+  -- The 'InsOrdHashMap' is also used to generate schemas for the type.
+  -- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
+  -- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
   DiscriminatedUnionCodec ::
-    -- | propertyName
+    -- | propertyName to use for discrimination
     Text ->
-    (a -> (Discriminator, SomeEncodable)) ->
-    InsOrdHashMap Discriminator (SomeDecodable a) ->
-    ObjectCodec a a
+    -- | how to encode the input
+    (input -> (Discriminator, SomeEncodable)) ->
+    -- | how to decode the output
+    InsOrdHashMap Discriminator (SomeDecodable output) ->
+    ObjectCodec input output
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
@@ -266,14 +283,22 @@ data Union
 
 instance Validity Union
 
+-- | Discriminator value used in 'DiscriminatedUnionCodec'
 type Discriminator = Text
 
+-- | Takes a value and and 'ObjectCodec' for encoding that value
+-- and wraps it in an existential type wrapper.
+-- Used for constructing input encoders for 'DiscriminatedUnionCodec'
 data SomeEncodable where
   SomeEncodable ::
     b ->
     ObjectCodec b any ->
     SomeEncodable
 
+-- | Takes a 'ObjectCodec' for decoding some value of type 'b',
+-- a name for a new type and a function for converting 'b' to 'a',
+-- and wraps it in an existential type wrapper.
+-- Used for constructing output decoders for 'DiscriminatedUnionCodec'.
 data SomeDecodable a where
   SomeDecodable ::
     ObjectCodec any b ->
@@ -667,6 +692,34 @@ possiblyJointEitherCodec ::
   Codec context input2 output2 ->
   Codec context (Either input1 input2) (Either output1 output2)
 possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+
+-- Encode/decode a discriminated union of objects
+--
+-- Type type of object being encoded/decoded is discriminated by
+-- a designated "discriminator" property on the object which takes a string value.
+--
+-- When encoding, the input the provided function is applied to obtain the
+-- discriminator value and a value of an existentially-quantified type 'SomeEncodable'
+-- which is used to encode the object.
+--
+-- When decoding, the value of the discriminator property is looked up in the `InsOrdHashMap`
+-- to obtain a value of an existentially-quantified type 'SomeDecodeable output' which
+-- can be used to decode the output.
+--
+-- The 'InsOrdHashMap' is also used to generate schemas for the type.
+-- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
+-- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+--
+-- This is a forward-compatible version of 'DiscriminatedUnionCodec'.
+discriminatedUnionCodec ::
+  -- | propertyName
+  Text ->
+  -- | how to encode the input
+  (input -> (Discriminator, SomeEncodable)) ->
+  -- | how to decode the output
+  InsOrdHashMap Discriminator (SomeDecodable output) ->
+  ObjectCodec input output
+discriminatedUnionCodec = DiscriminatedUnionCodec
 
 -- | Map a codec's input and output types.
 --

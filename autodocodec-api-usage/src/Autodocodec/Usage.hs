@@ -519,7 +519,7 @@ instance GenValid These where
 instance HasCodec These where
   codec =
     object "These" $
-      DiscriminatedUnionCodec "type" enc dec
+      discriminatedUnionCodec "type" enc dec
     where
       textFieldCodec = requiredField' "text"
       intFieldCodec = requiredField' "int"
@@ -558,7 +558,7 @@ instance GenValid Expression where
 
 instance HasCodec Expression where
   codec =
-    named "Expression" $ object "Expression" $ DiscriminatedUnionCodec "type" enc dec
+    named "Expression" $ object "Expression" $ discriminatedUnionCodec "type" enc dec
     where
       valueFieldCodec = requiredField' "value"
       lrFieldsCodec = (,) <$> requiredField' "left" .= fst <*> requiredField' "right" .= snd
