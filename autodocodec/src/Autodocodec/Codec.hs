@@ -181,6 +181,7 @@ data Codec context input output where
     -- | how to encode the input
     (input -> (Discriminator, ObjectCodec input ())) ->
     -- | how to decode the output
+    -- The 'Text' field is the name to use for the object schema.
     HashMap Discriminator (Text, ObjectCodec Void output) ->
     ObjectCodec input output
   -- | A comment codec
@@ -716,6 +717,7 @@ discriminatedUnionCodec ::
   -- | how to encode the input
   (input -> (Discriminator, ObjectCodec input ())) ->
   -- | how to decode the output
+  -- The 'Text' field is the name to use for the object schema.
   HashMap Discriminator (Text, ObjectCodec Void output) ->
   ObjectCodec input output
 discriminatedUnionCodec = DiscriminatedUnionCodec
