@@ -556,12 +556,13 @@ instance NFData Expression
 instance GenValid Expression where
   genValid = sized $ \size ->
     if size > 0
-      then do
-        (size0, size1, size2, size3) <- genSplit4 size
+      then
         oneof
           [ LiteralExpression <$> genValid,
-            SumExpression <$> resize size0 genValid <*> resize size1 genValid,
-            ProductExpression <$> resize size2 genValid <*> resize size3 genValid
+            genSplit size >>= \(size0, size1) ->
+              SumExpression <$> resize size0 genValid <*> resize size1 genValid,
+            genSplit size >>= \(size0, size1) ->
+              ProductExpression <$> resize size0 genValid <*> resize size1 genValid
           ]
       else LiteralExpression <$> genValid
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
