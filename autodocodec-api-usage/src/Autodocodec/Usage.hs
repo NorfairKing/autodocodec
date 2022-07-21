@@ -525,9 +525,9 @@ instance HasCodec These where
       intFieldCodec = requiredField' "int"
       bothFieldsCodec = (,) <$> textFieldCodec .= fst <*> intFieldCodec .= snd
       enc = \case
-        This s -> ("this", SomeEncodable s textFieldCodec)
-        That n -> ("that", SomeEncodable n intFieldCodec)
-        Both s n -> ("both", SomeEncodable (s, n) bothFieldsCodec)
+        This s -> ("this", mapToEncoder s textFieldCodec)
+        That n -> ("that", mapToEncoder n intFieldCodec)
+        Both s n -> ("both", mapToEncoder (s, n) bothFieldsCodec)
       dec =
         HashMap.fromList
           [ ("this", ("This", mapToDecoder This textFieldCodec)),
@@ -573,9 +573,9 @@ instance HasCodec Expression where
       valueFieldCodec = requiredField' "value"
       lrFieldsCodec = (,) <$> requiredField' "left" .= fst <*> requiredField' "right" .= snd
       enc = \case
-        LiteralExpression n -> ("literal", SomeEncodable n valueFieldCodec)
-        SumExpression l r -> ("sum", SomeEncodable (l, r) lrFieldsCodec)
-        ProductExpression l r -> ("product", SomeEncodable (l, r) lrFieldsCodec)
+        LiteralExpression n -> ("literal", mapToEncoder n valueFieldCodec)
+        SumExpression l r -> ("sum", mapToEncoder (l, r) lrFieldsCodec)
+        ProductExpression l r -> ("product", mapToEncoder (l, r) lrFieldsCodec)
       dec =
         HashMap.fromList
           [ ("literal", ("LiteralExpression",  mapToDecoder LiteralExpression valueFieldCodec)),

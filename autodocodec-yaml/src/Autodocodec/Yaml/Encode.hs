@@ -66,8 +66,8 @@ toYamlVia = flip go
         Right a2 -> goObject a2 c2
       DiscriminatedUnionCodec propertyName m _ ->
         case m a of
-          (discriminatorValue, SomeEncodable b c) ->
-            (propertyName, Yaml.string discriminatorValue) : goObject b c
+          (discriminatorValue, c) ->
+            (propertyName, Yaml.string discriminatorValue) : goObject a c
       PureCodec _ -> []
       ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
