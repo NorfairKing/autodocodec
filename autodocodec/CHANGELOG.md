@@ -1,5 +1,9 @@
 # Changelog
 
+### Added
+
+* `discriminatedUnionCodec` for discriminated unions
+
 ## [0.1.0.2] - 2022-06-24
 
 ### Added
