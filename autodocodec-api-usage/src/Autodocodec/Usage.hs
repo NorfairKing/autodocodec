@@ -562,8 +562,7 @@ instance GenValid Expression where
             SumExpression <$> scale (`div` 2) genValid <*> scale (`div` 2) genValid,
             ProductExpression <$> scale (`div` 2) genValid <*> scale (`div` 2) genValid
           ]
-      else
-        LiteralExpression <$> genValid
+      else LiteralExpression <$> genValid
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec Expression where
@@ -578,7 +577,7 @@ instance HasCodec Expression where
         ProductExpression l r -> ("product", mapToEncoder (l, r) lrFieldsCodec)
       dec =
         HashMap.fromList
-          [ ("literal", ("LiteralExpression",  mapToDecoder LiteralExpression valueFieldCodec)),
+          [ ("literal", ("LiteralExpression", mapToDecoder LiteralExpression valueFieldCodec)),
             ("sum", ("SumExpression", mapToDecoder (uncurry SumExpression) lrFieldsCodec)),
             ("product", ("ProductExpression", mapToDecoder (uncurry ProductExpression) lrFieldsCodec))
           ]
