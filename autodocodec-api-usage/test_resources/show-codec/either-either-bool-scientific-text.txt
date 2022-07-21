@@ -1,1 +1,17 @@
-EitherCodec DisjointUnion (ObjectOfCodec Nothing (RequiredKeyCodec "Left" Nothing (EitherCodec DisjointUnion (ObjectOfCodec Nothing (RequiredKeyCodec "Left" Nothing (BoolCodec Nothing))) (ObjectOfCodec Nothing (RequiredKeyCodec "Right" Nothing (NumberCodec Nothing Nothing)))))) (ObjectOfCodec Nothing (RequiredKeyCodec "Right" Nothing (StringCodec Nothing)))
+EitherCodec
+  DisjointUnion
+  (ObjectOfCodec
+     Nothing
+     (RequiredKeyCodec
+        "Left"
+        Nothing
+        (EitherCodec
+           DisjointUnion
+           (ObjectOfCodec
+              Nothing (RequiredKeyCodec "Left" Nothing (BoolCodec Nothing)))
+           (ObjectOfCodec
+              Nothing
+              (RequiredKeyCodec
+                 "Right" Nothing (NumberCodec Nothing Nothing))))))
+  (ObjectOfCodec
+     Nothing (RequiredKeyCodec "Right" Nothing (StringCodec Nothing)))

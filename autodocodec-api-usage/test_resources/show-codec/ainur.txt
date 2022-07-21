@@ -1,1 +1,24 @@
-BimapCodec _ _ (EitherCodec PossiblyJointUnion (ObjectOfCodec (Just "Valar") (ApCodec (BimapCodec _ _ (RequiredKeyCodec "domain" (Just "Domain which the Valar rules over") (StringCodec Nothing))) (BimapCodec _ _ (RequiredKeyCodec "name" (Just "Name of the Valar") (StringCodec Nothing))))) (ObjectOfCodec (Just "Maiar") (RequiredKeyCodec "name" (Just "Name of the Maiar") (StringCodec Nothing))))
+BimapCodec
+  _
+  _
+  (EitherCodec
+     PossiblyJointUnion
+     (ObjectOfCodec
+        (Just "Valar")
+        (ApCodec
+           (BimapCodec
+              _
+              _
+              (RequiredKeyCodec
+                 "domain"
+                 (Just "Domain which the Valar rules over")
+                 (StringCodec Nothing)))
+           (BimapCodec
+              _
+              _
+              (RequiredKeyCodec
+                 "name" (Just "Name of the Valar") (StringCodec Nothing)))))
+     (ObjectOfCodec
+        (Just "Maiar")
+        (RequiredKeyCodec
+           "name" (Just "Name of the Maiar") (StringCodec Nothing))))

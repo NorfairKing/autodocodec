@@ -1,1 +1,4 @@
-BimapCodec _ _ (EitherCodec PossiblyJointUnion NullCodec (StringCodec Nothing))
+BimapCodec
+  _
+  _
+  (EitherCodec PossiblyJointUnion NullCodec (StringCodec Nothing))

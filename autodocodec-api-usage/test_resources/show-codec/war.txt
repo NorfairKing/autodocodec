@@ -1,1 +1,14 @@
-BimapCodec _ _ (EitherCodec DisjointUnion (BimapCodec _ _ (NumberCodec Nothing (Just (NumberBounds {numberBoundsLower = 0.0, numberBoundsUpper = 255.0})))) (StringCodec Nothing))
+BimapCodec
+  _
+  _
+  (EitherCodec
+     DisjointUnion
+     (BimapCodec
+        _
+        _
+        (NumberCodec
+           Nothing
+           (Just
+              NumberBounds
+                { numberBoundsLower = 0.0 , numberBoundsUpper = 255.0 })))
+     (StringCodec Nothing))

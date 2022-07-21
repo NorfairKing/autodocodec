@@ -348,6 +348,7 @@ test-suite autodocodec-api-usage-test
     , genvalidity-text
     , genvalidity-time
     , openapi3
+    , pretty-show
     , safe-coloured-text
     , scientific
     , swagger2

@@ -1,1 +1,60 @@
-ObjectOfCodec (Just "LegacyObject") (ApCodec (ApCodec (ApCodec (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "1" (Just "text 1") (StringCodec Nothing)) (RequiredKeyCodec "1old" (Just "text 1") (StringCodec Nothing)))) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "2" (Just "text 2") (StringCodec Nothing)) (RequiredKeyCodec "2old" (Just "text 2") (StringCodec Nothing))))) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "3" (Just "text 3") (StringCodec Nothing)) (RequiredKeyCodec "3old" (Just "text 3") (StringCodec Nothing))))) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "newest" (Just "newest key") (StringCodec Nothing)) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "newer" (Just "newer key") (StringCodec Nothing)) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "new" (Just "new key") (StringCodec Nothing)) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "old" (Just "old key") (StringCodec Nothing)) (BimapCodec _ _ (EitherCodec PossiblyJointUnion (RequiredKeyCodec "older" (Just "older key") (StringCodec Nothing)) (RequiredKeyCodec "oldest" (Just "oldest key") (StringCodec Nothing)))))))))))))
+ObjectOfCodec
+  (Just "LegacyObject")
+  (ApCodec
+     (ApCodec
+        (ApCodec
+           (BimapCodec
+              _
+              _
+              (EitherCodec
+                 PossiblyJointUnion
+                 (RequiredKeyCodec "1" (Just "text 1") (StringCodec Nothing))
+                 (RequiredKeyCodec "1old" (Just "text 1") (StringCodec Nothing))))
+           (BimapCodec
+              _
+              _
+              (EitherCodec
+                 PossiblyJointUnion
+                 (RequiredKeyCodec "2" (Just "text 2") (StringCodec Nothing))
+                 (RequiredKeyCodec "2old" (Just "text 2") (StringCodec Nothing)))))
+        (BimapCodec
+           _
+           _
+           (EitherCodec
+              PossiblyJointUnion
+              (RequiredKeyCodec "3" (Just "text 3") (StringCodec Nothing))
+              (RequiredKeyCodec "3old" (Just "text 3") (StringCodec Nothing)))))
+     (BimapCodec
+        _
+        _
+        (EitherCodec
+           PossiblyJointUnion
+           (RequiredKeyCodec
+              "newest" (Just "newest key") (StringCodec Nothing))
+           (BimapCodec
+              _
+              _
+              (EitherCodec
+                 PossiblyJointUnion
+                 (RequiredKeyCodec "newer" (Just "newer key") (StringCodec Nothing))
+                 (BimapCodec
+                    _
+                    _
+                    (EitherCodec
+                       PossiblyJointUnion
+                       (RequiredKeyCodec "new" (Just "new key") (StringCodec Nothing))
+                       (BimapCodec
+                          _
+                          _
+                          (EitherCodec
+                             PossiblyJointUnion
+                             (RequiredKeyCodec "old" (Just "old key") (StringCodec Nothing))
+                             (BimapCodec
+                                _
+                                _
+                                (EitherCodec
+                                   PossiblyJointUnion
+                                   (RequiredKeyCodec
+                                      "older" (Just "older key") (StringCodec Nothing))
+                                   (RequiredKeyCodec
+                                      "oldest" (Just "oldest key") (StringCodec Nothing)))))))))))))

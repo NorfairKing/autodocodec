@@ -1,1 +1,13 @@
-BimapCodec _ _ (EitherCodec DisjointUnion (BimapCodec _ _ (EqCodec "LT" (StringCodec Nothing))) (BimapCodec _ _ (EitherCodec DisjointUnion (BimapCodec _ _ (EqCodec "EQ" (StringCodec Nothing))) (BimapCodec _ _ (EqCodec "GT" (StringCodec Nothing))))))
+BimapCodec
+  _
+  _
+  (EitherCodec
+     DisjointUnion
+     (BimapCodec _ _ (EqCodec "LT" (StringCodec Nothing)))
+     (BimapCodec
+        _
+        _
+        (EitherCodec
+           DisjointUnion
+           (BimapCodec _ _ (EqCodec "EQ" (StringCodec Nothing)))
+           (BimapCodec _ _ (EqCodec "GT" (StringCodec Nothing))))))

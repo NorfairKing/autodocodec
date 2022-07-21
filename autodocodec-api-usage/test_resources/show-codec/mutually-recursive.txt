@@ -1,1 +1,19 @@
-ReferenceCodec "MutuallyRecursiveA" (ObjectOfCodec (Just "MutuallyRecursiveA") (BimapCodec _ _ (RequiredKeyCodec "relationshipToB" (Just "") (ObjectOfCodec (Just "MutuallyRecursiveB") (BimapCodec _ _ (OptionalKeyCodec "relationshipToA" (Just "") (ReferenceCodec "MutuallyRecursiveA")))))))
+ReferenceCodec
+  "MutuallyRecursiveA"
+  (ObjectOfCodec
+     (Just "MutuallyRecursiveA")
+     (BimapCodec
+        _
+        _
+        (RequiredKeyCodec
+           "relationshipToB"
+           (Just "")
+           (ObjectOfCodec
+              (Just "MutuallyRecursiveB")
+              (BimapCodec
+                 _
+                 _
+                 (OptionalKeyCodec
+                    "relationshipToA"
+                    (Just "")
+                    (ReferenceCodec "MutuallyRecursiveA")))))))

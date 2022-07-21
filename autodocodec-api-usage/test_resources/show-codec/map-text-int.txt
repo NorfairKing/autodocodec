@@ -1,1 +1,11 @@
-MapCodec(BimapCodec _ _ (NumberCodec Nothing (Just (NumberBounds {numberBoundsLower = -9.223372036854775808e18, numberBoundsUpper = 9.223372036854775807e18}))))
+MapCodec
+  (BimapCodec
+     _
+     _
+     (NumberCodec
+        Nothing
+        (Just
+           NumberBounds
+             { numberBoundsLower = -9.223372036854775808e18
+             , numberBoundsUpper = 9.223372036854775807e18
+             })))

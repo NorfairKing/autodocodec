@@ -1,1 +1,8 @@
-CommentCodec "This is the outermost outer comment\non multiple lines\nbecause we can.\n" (CommentCodec "This is the middle outer comment" (CommentCodec "This is the innermost outer comment" (BimapCodec _ _ (CommentCodec "This is the inner comment" NullCodec))))
+CommentCodec
+  "This is the outermost outer comment\non multiple lines\nbecause we can.\n"
+  (CommentCodec
+     "This is the middle outer comment"
+     (CommentCodec
+        "This is the innermost outer comment"
+        (BimapCodec
+           _ _ (CommentCodec "This is the inner comment" NullCodec))))

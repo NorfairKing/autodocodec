@@ -20,6 +20,7 @@ import Data.Time
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
+import Text.Show.Pretty as Pretty
 
 spec :: Spec
 spec = do
@@ -78,4 +79,8 @@ showCodecSpec ::
 showCodecSpec filePath =
   describe ("showCodecSpec " <> nameOf @a) $
     it "outputs the same shown codec information as before" $
-      pureGoldenStringFile ("test_resources/show-codec/" <> filePath <> ".txt") (showCodecABit (codec @a))
+      pureGoldenStringFile
+        ("test_resources/show-codec/" <> filePath <> ".txt")
+        $ case Pretty.parseValue (showCodecABit (codec @a)) of
+          Nothing -> "Error parsing value"
+          Just v -> Pretty.valToStr v
