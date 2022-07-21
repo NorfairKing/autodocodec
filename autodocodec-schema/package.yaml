@@ -20,7 +20,6 @@ library:
   - aeson
   - autodocodec >=0.0.1.0
   - containers
-  - insert-ordered-containers
   - mtl
   - text
   - unordered-containers
