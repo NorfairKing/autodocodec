@@ -167,7 +167,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ss2 <- goObject oc2
         pure [combineSchemaOr u (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
       DiscriminatedUnionCodec pn _ m -> do
-        let mkSchema dName (SomeDecodable oc _ _) =
+        let mkSchema dName (_, oc) =
               fmap combineObjectSchemas $ goObject $ oc *> (requiredFieldWith' pn textCodec .= const dName)
         ss <- HashMap.traverseWithKey mkSchema m
         let combined = case toList ss of

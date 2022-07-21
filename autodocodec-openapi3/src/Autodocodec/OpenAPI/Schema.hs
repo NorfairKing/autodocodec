@@ -187,9 +187,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         let d =
               Discriminator
                 { _discriminatorPropertyName = pn,
-                  _discriminatorMapping = InsOrdHashMap.fromHashMap $ fmap (\(SomeDecodable _ refName _) -> refName) m
+                  _discriminatorMapping = InsOrdHashMap.fromHashMap $ fmap fst m
                 }
-            mkSchema dName (SomeDecodable oc refName _) = do
+            mkSchema dName (refName, oc) = do
               s <- goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
               declareSpecificSchemaRef (Just refName) $ combineObjectSchemas s
         ss <- HashMap.traverseWithKey mkSchema m

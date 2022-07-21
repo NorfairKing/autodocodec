@@ -385,7 +385,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
           DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
           PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
       DiscriminatedUnionCodec pn _ m -> do
-        let mkSchema dName (SomeDecodable oc _ _) =
+        let mkSchema dName (_, oc) =
               goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
         ss <- HM.traverseWithKey mkSchema m
         pure $ case NE.nonEmpty $ toList ss of

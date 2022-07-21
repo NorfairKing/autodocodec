@@ -113,8 +113,8 @@ parseJSONContextVia codec_ context_ =
         discriminatorValue <- (value :: JSON.Object) JSON..: Compat.toKey propertyName
         case HashMap.lookup discriminatorValue m of
           Nothing -> fail $ "Unexpected discriminator value: " <> T.unpack discriminatorValue
-          Just (SomeDecodable c _ mkValue) ->
-            mkValue <$> go value c
+          Just (_, c) ->
+            go value c
       CommentCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do

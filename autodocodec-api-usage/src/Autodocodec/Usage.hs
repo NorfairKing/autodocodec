@@ -530,9 +530,9 @@ instance HasCodec These where
         Both s n -> ("both", SomeEncodable (s, n) bothFieldsCodec)
       dec =
         HashMap.fromList
-          [ ("this", SomeDecodable textFieldCodec "This" This),
-            ("that", SomeDecodable intFieldCodec "That" That),
-            ("both", SomeDecodable bothFieldsCodec "Both" (uncurry Both))
+          [ ("this", ("This", mapToDecoder This textFieldCodec)),
+            ("that", ("That", mapToDecoder That intFieldCodec)),
+            ("both", ("Both", mapToDecoder (uncurry Both) bothFieldsCodec))
           ]
 
 data Expression
@@ -578,7 +578,7 @@ instance HasCodec Expression where
         ProductExpression l r -> ("product", SomeEncodable (l, r) lrFieldsCodec)
       dec =
         HashMap.fromList
-          [ ("literal", SomeDecodable valueFieldCodec "LiteralExpression" LiteralExpression),
-            ("sum", SomeDecodable lrFieldsCodec "SumExpression" (uncurry SumExpression)),
-            ("product", SomeDecodable lrFieldsCodec "ProductExpression" (uncurry ProductExpression))
+          [ ("literal", ("LiteralExpression",  mapToDecoder LiteralExpression valueFieldCodec)),
+            ("sum", ("SumExpression", mapToDecoder (uncurry SumExpression) lrFieldsCodec)),
+            ("product", ("ProductExpression", mapToDecoder (uncurry ProductExpression) lrFieldsCodec))
           ]

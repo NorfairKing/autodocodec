@@ -37,6 +37,7 @@ import Data.Validity
 import Data.Validity.Scientific ()
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Void
 import GHC.Generics (Generic)
 
 -- $setup
@@ -180,7 +181,7 @@ data Codec context input output where
     -- | how to encode the input
     (input -> (Discriminator, SomeEncodable)) ->
     -- | how to decode the output
-    HashMap Discriminator (SomeDecodable output) ->
+    HashMap Discriminator (Text, ObjectCodec Void output) ->
     ObjectCodec input output
   -- | A comment codec
   --
@@ -296,17 +297,8 @@ data SomeEncodable where
     ObjectCodec b any ->
     SomeEncodable
 
--- | Takes a 'ObjectCodec' for decoding some value of type 'b',
--- a name for a new type and a function for converting 'b' to 'a',
--- and wraps it in an existential type wrapper.
--- Used for constructing output decoders for 'DiscriminatedUnionCodec'.
-data SomeDecodable a where
-  SomeDecodable ::
-    ObjectCodec any b ->
-    -- | Name of the object type
-    Text ->
-    (b -> a) ->
-    SomeDecodable a
+mapToDecoder :: (b -> a) -> ObjectCodec any b -> ObjectCodec Void a
+mapToDecoder f = dimapCodec f absurd
 
 -- | A codec within the 'JSON.Value' context.
 --
@@ -360,7 +352,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
       EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
       DiscriminatedUnionCodec propertyName _ mapping -> do
-        cs <- traverse (\(n, SomeDecodable c _ _) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
+        cs <- traverse (\(n, (_, c)) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
         let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
         pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
@@ -721,7 +713,7 @@ discriminatedUnionCodec ::
   -- | how to encode the input
   (input -> (Discriminator, SomeEncodable)) ->
   -- | how to decode the output
-  HashMap Discriminator (SomeDecodable output) ->
+  HashMap Discriminator (Text, ObjectCodec Void output) ->
   ObjectCodec input output
 discriminatedUnionCodec = DiscriminatedUnionCodec
 
