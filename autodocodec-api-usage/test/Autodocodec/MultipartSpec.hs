@@ -98,7 +98,7 @@ multipartCodecSpec ::
     GenValid a,
     ToMultipart Tmp a,
     FromMultipart Tmp a,
-    HasCodec a
+    HasObjectCodec a
   ) =>
   Spec
 multipartCodecSpec =
@@ -108,7 +108,7 @@ multipartCodecSpec =
         let ctx =
               unlines
                 [ "Encoded with this codec",
-                  showCodecABit (codec @a)
+                  showCodecABit (objectCodec @a)
                 ]
             encodedViaInstance = toMultipart a :: MultipartData Tmp
             encodedViaCodec = toMultipartViaCodec a :: MultipartData Tmp
@@ -121,7 +121,7 @@ multipartCodecSpec =
                 [ "Encoded to this value:",
                   ppShow encoded,
                   "with this codec",
-                  showCodecABit (codec @a)
+                  showCodecABit (objectCodec @a)
                 ]
             decodedWithAeson = fromMultipart encoded :: Either String a
             decodedWithAutodocodec = fromMultipartViaCodec encoded :: Either String a
@@ -136,7 +136,7 @@ codecSpec ::
     GenValid a,
     ToMultipart Tmp a,
     FromMultipart Tmp a,
-    HasCodec a
+    HasObjectCodec a
   ) =>
   Spec
 codecSpec = do
@@ -149,7 +149,7 @@ codecSpec = do
               [ "Encoded to this value:",
                 ppShow encoded,
                 "with this codec",
-                showCodecABit (codec @a)
+                showCodecABit (objectCodec @a)
               ]
        in context ctx $ case errOrDecoded of
             Left err -> expectationFailure err

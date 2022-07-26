@@ -112,18 +112,20 @@ instance GenValid Example where
   shrinkValid = shrinkValidStructurally
 
 instance HasCodec Example where
-  codec =
-    object "Example" $
-      Example
-        <$> requiredField "text" "a text" .= exampleText
-        <*> requiredField "bool" "a bool" .= exampleBool
-        <*> requiredField "maybe" "a maybe text" .= exampleRequiredMaybe
-        <*> optionalField "optional" "an optional text" .= exampleOptional
-        <*> optionalFieldOrNull "optional-or-null" "an optional-or-null text" .= exampleOptionalOrNull
-        <*> optionalFieldWithDefault "optional-with-default" "foobar" "an optional text with a default" .= exampleOptionalWithDefault
-        <*> optionalFieldWithOmittedDefault "optional-with-null-default" [] "an optional list of texts with a default empty list where the empty list would be omitted" .= exampleOptionalWithNullDefault
-        <*> optionalFieldWithOmittedDefaultWith "single-or-list" (singleOrListCodec codec) [] "an optional list that can also be specified as a single element" .= exampleSingleOrList
-        <*> requiredField "fruit" "fruit!!" .= exampleFruit
+  codec = object "Example" objectCodec
+
+instance HasObjectCodec Example where
+  objectCodec =
+    Example
+      <$> requiredField "text" "a text" .= exampleText
+      <*> requiredField "bool" "a bool" .= exampleBool
+      <*> requiredField "maybe" "a maybe text" .= exampleRequiredMaybe
+      <*> optionalField "optional" "an optional text" .= exampleOptional
+      <*> optionalFieldOrNull "optional-or-null" "an optional-or-null text" .= exampleOptionalOrNull
+      <*> optionalFieldWithDefault "optional-with-default" "foobar" "an optional text with a default" .= exampleOptionalWithDefault
+      <*> optionalFieldWithOmittedDefault "optional-with-null-default" [] "an optional list of texts with a default empty list where the empty list would be omitted" .= exampleOptionalWithNullDefault
+      <*> optionalFieldWithOmittedDefaultWith "single-or-list" (singleOrListCodec codec) [] "an optional list that can also be specified as a single element" .= exampleSingleOrList
+      <*> requiredField "fruit" "fruit!!" .= exampleFruit
 
 instance ToJSON Example where
   toJSON Example {..} =

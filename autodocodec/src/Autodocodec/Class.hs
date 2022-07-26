@@ -26,6 +26,9 @@ import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Word
 
+class HasObjectCodec object where
+  objectCodec :: JSONObjectCodec object
+
 -- | A class for values which have a canonical codec.
 --
 -- There are no formal laws for this class.
