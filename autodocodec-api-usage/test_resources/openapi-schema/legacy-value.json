@@ -2,55 +2,60 @@
     "components": {
         "schemas": {
             "LegacyValue": {
-                "required": [
-                    "1",
-                    "2",
-                    "3"
-                ],
-                "type": "object",
-                "properties": {
-                    "1": {
-                        "type": "string",
-                        "description": "text 1"
+                "additionalProperties": true,
+                "anyOf": [
+                    {
+                        "properties": {
+                            "1": {
+                                "description": "text 1",
+                                "type": "string"
+                            },
+                            "2": {
+                                "description": "text 2",
+                                "type": "string"
+                            },
+                            "3": {
+                                "description": "text 3",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "type": "object"
                     },
-                    "2": {
-                        "type": "string",
-                        "description": "text 2"
-                    },
-                    "3": {
-                        "type": "string",
-                        "description": "text 3"
+                    {
+                        "properties": {
+                            "1old": {
+                                "description": "text 1",
+                                "type": "string"
+                            },
+                            "2old": {
+                                "description": "text 2",
+                                "type": "string"
+                            },
+                            "3old": {
+                                "description": "text 3",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "1old",
+                            "2old",
+                            "3old"
+                        ],
+                        "type": "object"
                     }
-                }
-            },
-            "LegacyValueOld": {
-                "type": "object",
-                "properties": {
-                    "1old": {
-                        "type": "string",
-                        "description": "text 1"
-                    },
-                    "2old": {
-                        "type": "string",
-                        "description": "text 2"
-                    },
-                    "3old": {
-                        "type": "string",
-                        "description": "text 3"
-                    }
-                },
-                "required": [
-                    "1old",
-                    "2old",
-                    "3old"
                 ]
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

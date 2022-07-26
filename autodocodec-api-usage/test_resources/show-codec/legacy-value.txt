@@ -1,10 +1,10 @@
-BimapCodec
-  _
-  _
-  (EitherCodec
-     PossiblyJointUnion
-     (ObjectOfCodec
-        (Just "LegacyValue")
+ObjectOfCodec
+  (Just "LegacyValue")
+  (BimapCodec
+     _
+     _
+     (EitherCodec
+        PossiblyJointUnion
         (ApCodec
            (ApCodec
               (BimapCodec
@@ -12,9 +12,7 @@ BimapCodec
               (BimapCodec
                  _ _ (RequiredKeyCodec "2" (Just "text 2") (StringCodec Nothing))))
            (BimapCodec
-              _ _ (RequiredKeyCodec "3" (Just "text 3") (StringCodec Nothing)))))
-     (ObjectOfCodec
-        (Just "LegacyValueOld")
+              _ _ (RequiredKeyCodec "3" (Just "text 3") (StringCodec Nothing))))
         (ApCodec
            (ApCodec
               (BimapCodec

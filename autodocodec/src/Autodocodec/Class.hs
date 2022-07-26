@@ -153,6 +153,16 @@ instance HasCodec NominalDiffTime where
 instance HasCodec DiffTime where
   codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
 
+-- | A class for values which have a canonical object codec.
+--
+-- There are no formal laws for this class.
+-- If you really want a law, it should be "Whomever uses the 'codec' from your instance should not be surprised."
+class HasObjectCodec object where
+  -- | A object codec for the value
+  --
+  -- See the sections on helper functions for implementing this for plenty of examples.
+  objectCodec :: JSONObjectCodec object
+
 -- | A required field
 --
 -- During decoding, the field must be in the object.

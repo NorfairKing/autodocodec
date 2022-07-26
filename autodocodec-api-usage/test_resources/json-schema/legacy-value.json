@@ -1,13 +1,7 @@
 {
+    "$comment": "LegacyValue",
     "anyOf": [
         {
-            "$comment": "LegacyValue",
-            "required": [
-                "3",
-                "2",
-                "1"
-            ],
-            "type": "object",
             "properties": {
                 "1": {
                     "$comment": "text 1",
@@ -21,21 +15,16 @@
                     "$comment": "text 3",
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "3",
+                "2",
+                "1"
+            ],
+            "type": "object"
         },
         {
-            "$comment": "LegacyValueOld",
-            "required": [
-                "3old",
-                "2old",
-                "1old"
-            ],
-            "type": "object",
             "properties": {
-                "3old": {
-                    "$comment": "text 3",
-                    "type": "string"
-                },
                 "1old": {
                     "$comment": "text 1",
                     "type": "string"
@@ -43,8 +32,19 @@
                 "2old": {
                     "$comment": "text 2",
                     "type": "string"
+                },
+                "3old": {
+                    "$comment": "text 3",
+                    "type": "string"
                 }
-            }
+            },
+            "required": [
+                "3old",
+                "2old",
+                "1old"
+            ],
+            "type": "object"
         }
-    ]
+    ],
+    "type": "object"
 }

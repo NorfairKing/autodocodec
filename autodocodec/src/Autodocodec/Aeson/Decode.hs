@@ -112,7 +112,7 @@ parseJSONContextVia codec_ context_ =
       DiscriminatedUnionCodec propertyName _ m -> do
         discriminatorValue <- (value :: JSON.Object) JSON..: Compat.toKey propertyName
         case HashMap.lookup discriminatorValue m of
-          Nothing -> fail $ "Unexpected discriminator value: " <> T.unpack discriminatorValue
+          Nothing -> fail $ "Unexpected discriminator value: " <> show discriminatorValue
           Just (_, c) ->
             go value c
       CommentCodec _ c -> go value c

@@ -1,6 +1,6 @@
+# LegacyValue
 # [32many of[m
-[ # LegacyValue
-  [37m1[m: # [31mrequired[m
+[ [37m1[m: # [31mrequired[m
     # text 1
     [33m<string>[m
   [37m2[m: # [31mrequired[m
@@ -9,8 +9,7 @@
   [37m3[m: # [31mrequired[m
     # text 3
     [33m<string>[m
-, # LegacyValueOld
-  [37m1old[m: # [31mrequired[m
+, [37m1old[m: # [31mrequired[m
     # text 1
     [33m<string>[m
   [37m2old[m: # [31mrequired[m

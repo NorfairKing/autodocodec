@@ -1,0 +1,27 @@
+name: autodocodec-servant-multipart
+version: 0.0.0.0
+github: "NorfairKing/autodocodec"
+license: MIT
+author: "Tom Sydney Kerckhove"
+maintainer: "syd@cs-syd.eu"
+copyright: "2022 Tom Sydney Kerckhove"
+synopsis: Autodocodec interpreters for Servant Multipart
+
+extra-source-files:
+- LICENSE
+- CHANGELOG.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - aeson
+  - autodocodec
+  - bytestring
+  - servant-multipart
+  - servant-multipart-api
+  - text
+  - unordered-containers
+  - vector
