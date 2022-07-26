@@ -78,6 +78,8 @@ spec = do
   openAPISchemaSpecViaDeclareSchemaRef @Fruit "fruit"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpecViaDeclareSchemaRef @Example "example"
+  openAPISchemaSpec @ListsExample "lists-example"
+  openAPISchemaSpecViaDeclareSchemaRef @ListsExample "lists-example"
   openAPISchemaSpec @Recursive "recursive"
   openAPISchemaSpecViaDeclareSchemaRef @Recursive "recursive"
   openAPISchemaSpec @MutuallyRecursiveA "mutually-recursive"

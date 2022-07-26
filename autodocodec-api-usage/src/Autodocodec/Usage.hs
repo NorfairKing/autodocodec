@@ -28,6 +28,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import qualified Data.HashMap.Strict as HashMap
+import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -215,6 +216,57 @@ instance ToMultipart tag Example where
           ]
       )
       []
+
+data ListsExample = ListsExample
+  { listsExamplePossiblyEmptyWithOmittedDefault :: [Int],
+    listsExamplePossiblyEmptyWithDefault :: [Int],
+    listsExampleRequiredNonEmpty :: NonEmpty Text,
+    listsExampleOptionalNonEmpty :: Maybe (NonEmpty Text)
+  }
+  deriving (Show, Eq, Generic)
+  deriving
+    ( OpenAPI.ToSchema,
+      Swagger.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
+    )
+    via Autodocodec ListsExample
+
+instance Validity ListsExample
+
+instance NFData ListsExample
+
+instance GenValid ListsExample
+
+instance ToJSON ListsExample where
+  toJSON ListsExample {..} =
+    JSON.object $
+      concat
+        [ ["possibly-empty-with-omitted-default" JSON..= listsExamplePossiblyEmptyWithOmittedDefault | listsExamplePossiblyEmptyWithOmittedDefault /= []],
+          [ "possibly-empty-with-default" JSON..= listsExamplePossiblyEmptyWithDefault,
+            "required-non-empty" JSON..= listsExampleRequiredNonEmpty
+          ],
+          ["optional-non-empty" JSON..= ne | ne <- maybeToList listsExampleOptionalNonEmpty]
+        ]
+
+instance FromJSON ListsExample where
+  parseJSON = JSON.withObject "ListsExample" $ \o ->
+    ListsExample
+      <$> o JSON..:? "possibly-empty-with-omitted-default" JSON..!= []
+      <*> o JSON..:? "possibly-empty-with-default" JSON..!= []
+      <*> o JSON..: "required-non-empty"
+      <*> o JSON..:? "optional-non-empty"
+
+instance HasCodec ListsExample where
+  codec = object "ListsExample" objectCodec
+
+instance HasObjectCodec ListsExample where
+  objectCodec =
+    ListsExample
+      <$> optionalFieldWithOmittedDefault "possibly-empty-with-omitted-default" [] "possibly empty list with omitted default empty list" .= listsExamplePossiblyEmptyWithOmittedDefault
+      <*> optionalFieldWithDefault "possibly-empty-with-default" [] "possibly empty list with default empty list" .= listsExamplePossiblyEmptyWithDefault
+      <*> requiredField "required-non-empty" "required non-empty list" .= listsExampleRequiredNonEmpty
+      <*> optionalField "optional-non-empty" "optional non-empty list" .= listsExampleOptionalNonEmpty
 
 -- | A simple Recursive type
 --
