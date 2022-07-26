@@ -293,6 +293,7 @@ library
     , autodocodec >=0.2.0.0
     , autodocodec-openapi3
     , autodocodec-schema
+    , autodocodec-servant-multipart
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5
@@ -304,6 +305,8 @@ library
     , genvalidity-text
     , openapi3
     , scientific
+    , servant-multipart
+    , servant-multipart-api
     , swagger2
     , text
     , unordered-containers
@@ -316,6 +319,7 @@ test-suite autodocodec-api-usage-test
   other-modules:
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
+      Autodocodec.MultipartSpec
       Autodocodec.OpenAPISpec
       Autodocodec.ShowSpec
       Autodocodec.SwaggerSpec
@@ -334,6 +338,7 @@ test-suite autodocodec-api-usage-test
     , autodocodec-api-usage
     , autodocodec-openapi3
     , autodocodec-schema
+    , autodocodec-servant-multipart
     , autodocodec-swagger2
     , autodocodec-yaml
     , base >=4.7 && <5
@@ -351,6 +356,7 @@ test-suite autodocodec-api-usage-test
     , pretty-show
     , safe-coloured-text
     , scientific
+    , servant-multipart-api
     , swagger2
     , sydtest
     , sydtest-aeson

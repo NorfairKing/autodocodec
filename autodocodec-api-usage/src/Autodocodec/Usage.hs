@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
@@ -25,13 +27,17 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import qualified Data.HashMap.Strict as HashMap
+import Data.List (find)
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.Swagger as Swagger
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Word
 import GHC.Generics (Generic)
+import Servant.Multipart
+import Servant.Multipart.API
 import Test.QuickCheck
 
 -- | A type that's encoded as @null@.
@@ -159,6 +165,60 @@ instance FromJSON Example where
               <|> (o JSON..:? "single-or-list" JSON..!= [])
           )
       <*> o JSON..: "fruit"
+
+instance FromMultipart tag Example where
+  fromMultipart form =
+    Example
+      <$> lookupInput "text" form
+      <*> ( lookupInput "bool" form >>= \case
+              "True" -> Right True
+              "False" -> Right False
+              _ -> Left "Unknown bool"
+          )
+      <*> ( lookupInput "maybe" form >>= \case
+              "null" -> Right Nothing
+              t -> Right (Just t)
+          )
+      <*> lookupMInput "optional" form
+      <*> ( lookupMInput "optional-or-null" form >>= \case
+              Nothing -> Right Nothing
+              Just "null" -> Right Nothing
+              Just t -> Right (Just t)
+          )
+      <*> (fromMaybe "foobar" <$> lookupMInput "optional-with-default" form)
+      <*> lookupLInput "optional-with-null-default" form
+      <*> lookupLInput "single-or-list" form
+      <*> ( lookupInput "fruit" form >>= \case
+              "Apple" -> Right Apple
+              "Orange" -> Right Orange
+              "Banana" -> Right Banana
+              "Melon" -> Right Melon
+              _ -> Left "unknown fruit"
+          )
+
+lookupMInput :: Text -> MultipartData tag -> Either String (Maybe Text)
+lookupMInput iname = Right . fmap iValue . find ((== iname) . iName) . inputs
+
+lookupLInput :: Text -> MultipartData tag -> Either String [Text]
+lookupLInput iname = Right . map iValue . filter ((== iname) . iName) . inputs
+
+instance ToMultipart tag Example where
+  toMultipart Example {..} =
+    MultipartData
+      ( concat
+          [ [ Input "text" exampleText,
+              Input "bool" $ T.pack $ show exampleBool,
+              Input "maybe" $ fromMaybe "null" exampleRequiredMaybe
+            ],
+            [Input "optional" o | o <- maybeToList exampleOptional],
+            [Input "optional-or-null" o | o <- maybeToList exampleOptionalOrNull],
+            [Input "optional-with-default" exampleOptionalWithDefault],
+            (map (Input "optional-with-null-default") exampleOptionalWithNullDefault),
+            (map (Input "single-or-list") exampleSingleOrList),
+            [Input "fruit" $ T.pack $ show exampleFruit]
+          ]
+      )
+      []
 
 -- | A simple Recursive type
 --

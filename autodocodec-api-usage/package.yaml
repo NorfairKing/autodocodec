@@ -22,6 +22,7 @@ library:
   - autodocodec >=0.2.0.0
   - autodocodec-openapi3
   - autodocodec-schema
+  - autodocodec-servant-multipart
   - autodocodec-swagger2
   - autodocodec-yaml
   - bytestring
@@ -32,6 +33,8 @@ library:
   - genvalidity-text
   - openapi3
   - scientific
+  - servant-multipart
+  - servant-multipart-api
   - swagger2
   - text
   - unordered-containers
@@ -55,6 +58,7 @@ tests:
     - autodocodec-api-usage
     - autodocodec-openapi3
     - autodocodec-schema
+    - autodocodec-servant-multipart
     - autodocodec-swagger2
     - autodocodec-yaml
     - bytestring
@@ -71,6 +75,7 @@ tests:
     - pretty-show
     - safe-coloured-text
     - scientific
+    - servant-multipart-api
     - swagger2
     - sydtest
     - sydtest-aeson
