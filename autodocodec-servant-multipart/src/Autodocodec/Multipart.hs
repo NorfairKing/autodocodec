@@ -15,11 +15,12 @@ import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
+import Data.Foldable
 import qualified Data.HashMap.Strict as HashMap
-import Data.List (find)
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
+import qualified Data.Vector as V
 import Servant.Multipart as Servant
 import Servant.Multipart.API as Servant
 
@@ -46,30 +47,61 @@ toMultipartVia = flip go
               (go a c)
       RequiredKeyCodec key vc _ ->
         MultipartData
-          { inputs = [Input key (goValue a vc)],
+          { inputs = map (Input key) (goValue a vc),
             files = []
           }
       OptionalKeyCodec key vc _ ->
         MultipartData
-          { inputs = [Input key (goValue v vc) | v <- maybeToList a],
+          { inputs = do
+              a' <- maybeToList a
+              v <- goValue a' vc
+              pure $ Input key v,
             files = []
           }
       OptionalKeyWithDefaultCodec key vc _ _ ->
         MultipartData
-          { inputs = [Input key (goValue a vc)],
+          { inputs = map (Input key) (goValue a vc),
             files = []
           }
       OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ ->
         MultipartData
-          { inputs = [Input key (goValue a vc) | a /= defaultValue],
+          { inputs =
+              if a == defaultValue
+                then []
+                else map (Input key) (goValue a vc),
             files = []
           }
       PureCodec _ -> memptyMultipartData
       ApCodec oc1 oc2 -> mappendMultipartData (go a oc1) (go a oc2)
 
-    goValue :: a -> ValueCodec a void -> Text
+    goValue :: a -> ValueCodec a void -> [Text]
     goValue a = \case
-      vc -> TE.decodeUtf8 (LB.toStrict (JSON.encode (toJSONVia vc a)))
+      BimapCodec _ to vc -> goValue (to a) vc
+      EitherCodec _ c1 c2 -> case a of
+        Left a1 -> goValue a1 c1
+        Right a2 -> goValue a2 c2
+      CommentCodec _ vc -> goValue a vc
+      ArrayOfCodec _ vc -> map (`goSingleValue` vc) (toList a)
+      vc -> [goSingleValue a vc]
+
+    goSingleValue :: a -> ValueCodec a void -> Text
+    goSingleValue a = \case
+      BimapCodec _ to vc -> goSingleValue (to a) vc
+      EitherCodec _ c1 c2 -> case a of
+        Left a1 -> goSingleValue a1 c1
+        Right a2 -> goSingleValue a2 c2
+      CommentCodec _ vc -> goSingleValue a vc
+      NullCodec -> "null"
+      BoolCodec _ ->
+        case a of
+          True -> "True"
+          False -> "False"
+      StringCodec _ -> a
+      vc ->
+        let value = toJSONVia vc a
+         in case value of
+              JSON.String t -> t
+              _ -> TE.decodeUtf8 (LB.toStrict (JSON.encode value))
 
 memptyMultipartData :: MultipartData tag
 memptyMultipartData =
@@ -123,29 +155,92 @@ fromMultipartVia = flip go
           Just (_, c) -> go mpd c
       RequiredKeyCodec key vc _ -> do
         value <- lookupInput key mpd
-        goValue value vc
+        goValue [value] vc
       OptionalKeyCodec key vc _ -> do
         mValue <- lookupMInput key mpd
         forM mValue $ \value ->
-          goValue value vc
+          goValue [value] vc
       OptionalKeyWithDefaultCodec key vc defaultValue _ -> do
         mValue <- lookupMInput key mpd
         case mValue of
           Nothing -> pure defaultValue
-          Just value -> goValue value vc
+          Just value -> goValue [value] vc
       OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ -> do
         mValue <- lookupMInput key mpd
         case mValue of
           Nothing -> pure defaultValue
-          Just value -> goValue value vc
+          Just value -> goValue [value] vc
       PureCodec v -> pure v
       ApCodec ocf oca -> go mpd ocf <*> go mpd oca
 
-    goValue :: Text -> ValueCodec void a -> Either String a
-    goValue t = \case
-      vc ->
-        JSON.eitherDecode (LB.fromStrict (TE.encodeUtf8 t))
-          >>= JSON.parseEither (parseJSONVia vc)
+    goValue :: [Text] -> ValueCodec void a -> Either String a
+    goValue ts = \case
+      BimapCodec from _ c -> goValue ts c >>= from
+      EitherCodec u c1 c2 -> case u of
+        PossiblyJointUnion ->
+          case goValue ts c1 of
+            Right l -> pure (Left l)
+            Left err1 -> case goValue ts c2 of
+              Left err2 -> Left $ "  Previous branch failure: " <> err1 <> "\n" <> err2
+              Right r -> pure (Right r)
+        DisjointUnion ->
+          case (goValue ts c1, goValue ts c2) of
+            (Left _, Right r) -> pure (Right r)
+            (Right l, Left _) -> pure (Left l)
+            (Right _, Right _) -> Left "Both branches of a disjoint union succeeded."
+            (Left lErr, Left rErr) ->
+              Left $
+                unlines
+                  [ "Both branches of a disjoint union failed: ",
+                    unwords ["Left:  ", lErr],
+                    unwords ["Right: ", rErr]
+                  ]
+      ReferenceCodec _ vc -> goValue ts vc
+      CommentCodec _ c -> goValue ts c
+      ArrayOfCodec _ vc -> V.fromList <$> mapM (`goSingleValue` vc) (toList ts)
+      vc -> case ts of
+        [t] -> goSingleValue t vc
+        _ -> Left "Expected exactly one value."
+
+    goSingleValue :: Text -> ValueCodec void a -> Either String a
+    goSingleValue t = \case
+      BimapCodec from _ c -> goSingleValue t c >>= from
+      EitherCodec u c1 c2 -> case u of
+        PossiblyJointUnion ->
+          case goSingleValue t c1 of
+            Right l -> pure (Left l)
+            Left err1 -> case goSingleValue t c2 of
+              Left err2 -> Left $ "  Previous branch failure: " <> err1 <> "\n" <> err2
+              Right r -> pure (Right r)
+        DisjointUnion ->
+          case (goSingleValue t c1, goSingleValue t c2) of
+            (Left _, Right r) -> pure (Right r)
+            (Right l, Left _) -> pure (Left l)
+            (Right _, Right _) -> Left "Both branches of a disjoint union succeeded."
+            (Left lErr, Left rErr) ->
+              Left $
+                unlines
+                  [ "Both branches of a disjoint union failed: ",
+                    unwords ["Left:  ", lErr],
+                    unwords ["Right: ", rErr]
+                  ]
+      CommentCodec _ c -> goSingleValue t c
+      ReferenceCodec _ vc -> goSingleValue t vc
+      NullCodec -> case t of
+        "null" -> Right ()
+        _ -> Left $ "not 'null': " <> show t
+      BoolCodec _ -> case t of
+        "false" -> Right False
+        "False" -> Right False
+        "true" -> Right True
+        "True" -> Right True
+        _ -> Left $ "Unknown bool: " <> show t
+      StringCodec _ -> Right t
+      vc -> case JSON.parseEither (parseJSONVia vc) (JSON.String t) of
+        Right a -> Right a
+        Left _ -> do
+          value <- JSON.eitherDecode (LB.fromStrict (TE.encodeUtf8 t))
+          JSON.parseEither (parseJSONVia vc) value
 
 lookupMInput :: Text -> MultipartData tag -> Either String (Maybe Text)
 lookupMInput iname = Right . fmap iValue . find ((== iname) . iName) . inputs
