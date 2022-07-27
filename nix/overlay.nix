@@ -34,6 +34,7 @@ with final.haskell.lib;
       "autodocodec-api-usage"
       "autodocodec-openapi3"
       "autodocodec-schema"
+      "autodocodec-servant-multipart"
       "autodocodec-swagger2"
       "autodocodec-yaml"
     ]

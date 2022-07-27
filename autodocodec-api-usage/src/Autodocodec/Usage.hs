@@ -16,6 +16,7 @@ module Autodocodec.Usage where
 
 import Autodocodec
 import Autodocodec.Aeson ()
+import Autodocodec.Multipart
 import Autodocodec.OpenAPI ()
 import Autodocodec.Swagger ()
 import Control.Applicative
@@ -27,7 +28,6 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import qualified Data.HashMap.Strict as HashMap
-import Data.List (find)
 import Data.Maybe
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
@@ -37,7 +37,7 @@ import qualified Data.Text as T
 import Data.Word
 import GHC.Generics (Generic)
 import Servant.Multipart
-import Servant.Multipart.API
+import Servant.Multipart.API as Servant
 import Test.QuickCheck
 
 -- | A type that's encoded as @null@.
@@ -198,12 +198,6 @@ instance FromMultipart tag Example where
               _ -> Left "unknown fruit"
           )
 
-lookupMInput :: Text -> MultipartData tag -> Either String (Maybe Text)
-lookupMInput iname = Right . fmap iValue . find ((== iname) . iName) . inputs
-
-lookupLInput :: Text -> MultipartData tag -> Either String [Text]
-lookupLInput iname = Right . map iValue . filter ((== iname) . iName) . inputs
-
 instance ToMultipart tag Example where
   toMultipart Example {..} =
     MultipartData
@@ -215,8 +209,8 @@ instance ToMultipart tag Example where
             [Input "optional" o | o <- maybeToList exampleOptional],
             [Input "optional-or-null" o | o <- maybeToList exampleOptionalOrNull],
             [Input "optional-with-default" exampleOptionalWithDefault],
-            (map (Input "optional-with-null-default") exampleOptionalWithNullDefault),
-            (map (Input "single-or-list") exampleSingleOrList),
+            map (Input "optional-with-null-default") exampleOptionalWithNullDefault,
+            map (Input "single-or-list") exampleSingleOrList,
             [Input "fruit" $ T.pack $ show exampleFruit]
           ]
       )
@@ -333,16 +327,20 @@ data Via = Via
     ( FromJSON,
       ToJSON,
       Swagger.ToSchema,
-      OpenAPI.ToSchema
+      OpenAPI.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
     )
     via (Autodocodec Via)
 
 instance HasCodec Via where
-  codec =
-    object "Via" $
-      Via
-        <$> requiredField "one" "first field" .= viaOne
-        <*> requiredField "two" "second field" .= viaTwo
+  codec = object "Via" objectCodec
+
+instance HasObjectCodec Via where
+  objectCodec =
+    Via
+      <$> requiredField "one" "first field" .= viaOne
+      <*> requiredField "two" "second field" .= viaTwo
 
 instance Validity Via
 
@@ -391,7 +389,9 @@ data LegacyValue = LegacyValue
     ( FromJSON,
       ToJSON,
       Swagger.ToSchema,
-      OpenAPI.ToSchema
+      OpenAPI.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
     )
     via (Autodocodec LegacyValue)
 
@@ -404,20 +404,21 @@ instance GenValid LegacyValue where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec LegacyValue where
-  codec =
-    parseAlternatives
-      ( object "LegacyValue" $
-          LegacyValue
-            <$> requiredField "1" "text 1" .= legacyValueText1
-            <*> requiredField "2" "text 2" .= legacyValueText2
-            <*> requiredField "3" "text 3" .= legacyValueText3
+  codec = object "LegacyValue" objectCodec
+
+instance HasObjectCodec LegacyValue where
+  objectCodec =
+    parseAlternative
+      ( LegacyValue
+          <$> requiredField "1" "text 1" .= legacyValueText1
+          <*> requiredField "2" "text 2" .= legacyValueText2
+          <*> requiredField "3" "text 3" .= legacyValueText3
       )
-      [ object "LegacyValueOld" $
-          LegacyValue
-            <$> requiredField "1old" "text 1" .= legacyValueText1
-            <*> requiredField "2old" "text 2" .= legacyValueText2
-            <*> requiredField "3old" "text 3" .= legacyValueText3
-      ]
+      ( LegacyValue
+          <$> requiredField "1old" "text 1" .= legacyValueText1
+          <*> requiredField "2old" "text 2" .= legacyValueText2
+          <*> requiredField "3old" "text 3" .= legacyValueText3
+      )
 
 data LegacyObject = LegacyObject
   { legacyObjectText1 :: Text,
@@ -430,7 +431,9 @@ data LegacyObject = LegacyObject
     ( FromJSON,
       ToJSON,
       Swagger.ToSchema,
-      OpenAPI.ToSchema
+      OpenAPI.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
     )
     via (Autodocodec LegacyObject)
 
@@ -443,21 +446,23 @@ instance GenValid LegacyObject where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec LegacyObject where
-  codec =
-    object "LegacyObject" $
-      LegacyObject
-        <$> parseAlternative (requiredField "1" "text 1") (requiredField "1old" "text 1") .= legacyObjectText1
-        <*> parseAlternative (requiredField "2" "text 2") (requiredField "2old" "text 2") .= legacyObjectText2
-        <*> parseAlternative (requiredField "3" "text 3") (requiredField "3old" "text 3") .= legacyObjectText3
-        <*> parseAlternatives
-          (requiredField "newest" "newest key")
-          [ requiredField "newer" "newer key",
-            requiredField "new" "new key",
-            requiredField "old" "old key",
-            requiredField "older" "older key",
-            requiredField "oldest" "oldest key"
-          ]
-          .= legacyObjectWithHistory
+  codec = object "LegacyObject" objectCodec
+
+instance HasObjectCodec LegacyObject where
+  objectCodec =
+    LegacyObject
+      <$> parseAlternative (requiredField "1" "text 1") (requiredField "1old" "text 1") .= legacyObjectText1
+      <*> parseAlternative (requiredField "2" "text 2") (requiredField "2old" "text 2") .= legacyObjectText2
+      <*> parseAlternative (requiredField "3" "text 3") (requiredField "3old" "text 3") .= legacyObjectText3
+      <*> parseAlternatives
+        (requiredField "newest" "newest key")
+        [ requiredField "newer" "newer key",
+          requiredField "new" "new key",
+          requiredField "old" "old key",
+          requiredField "older" "older key",
+          requiredField "oldest" "oldest key"
+        ]
+        .= legacyObjectWithHistory
 
 data Ainur
   = Valar !Text !Text
@@ -566,7 +571,9 @@ data These
     ( FromJSON,
       ToJSON,
       Swagger.ToSchema,
-      OpenAPI.ToSchema
+      OpenAPI.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
     )
     via (Autodocodec These)
 
@@ -579,9 +586,10 @@ instance GenValid These where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec These where
-  codec =
-    object "These" $
-      discriminatedUnionCodec "type" enc dec
+  codec = object "These" objectCodec
+
+instance HasObjectCodec These where
+  objectCodec = discriminatedUnionCodec "type" enc dec
     where
       textFieldCodec = requiredField' "text"
       intFieldCodec = requiredField' "int"
@@ -606,7 +614,9 @@ data Expression
     ( FromJSON,
       ToJSON,
       Swagger.ToSchema,
-      OpenAPI.ToSchema
+      OpenAPI.ToSchema,
+      Servant.FromMultipart tag,
+      Servant.ToMultipart tag
     )
     via (Autodocodec Expression)
 
@@ -629,8 +639,10 @@ instance GenValid Expression where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance HasCodec Expression where
-  codec =
-    named "Expression" $ object "Expression" $ discriminatedUnionCodec "type" enc dec
+  codec = named "Expression" $ object "Expression" objectCodec
+
+instance HasObjectCodec Expression where
+  objectCodec = discriminatedUnionCodec "type" enc dec
     where
       valueFieldCodec = requiredField' "value"
       lrFieldsCodec = (,) <$> requiredField' "left" .= fst <*> requiredField' "right" .= snd

@@ -17,8 +17,10 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - aeson
   - autodocodec
   - bytestring
   - servant-multipart
+  - servant-multipart-api
   - text
   - unordered-containers
