@@ -58,7 +58,7 @@ import GHC.Generics (Generic)
 --
 -- also called an "Autodocodec".
 --
--- In an ideal situation, this type would have only one type paramater: 'Codec value'.
+-- In an ideal situation, this type would have only one type parameter: 'Codec value'.
 -- This does not work very well because we want to be able to implement 'Functor' and 'Applicative', which each require a kind '* -> *'.
 -- So instead we use two type parameters.
 --
@@ -539,7 +539,7 @@ eitherCodec = possiblyJointEitherCodec
 --
 -- === 'HasCodec' instance for sum types with an encoding that is definitely disjoint.
 --
--- The 'eitherCodec' can be used to implement 'HasCodec' instances sum types
+-- The 'eitherCodec' can be used to implement 'HasCodec' instances for sum types
 -- for which the encoding is definitely disjoint.
 --
 -- >>> data War = WorldWar Word8 | OtherWar Text deriving (Show, Eq)
@@ -1497,7 +1497,7 @@ matchChoiceCodecAs union c1 c2 renderingChooser =
 --
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 matchChoicesCodec ::
-  -- | Codecs, each which their own rendering matcher
+  -- | Codecs, each with their own rendering matcher
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
@@ -1513,7 +1513,7 @@ matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
 --
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 disjointMatchChoicesCodec ::
-  -- | Codecs, each which their own rendering matcher
+  -- | Codecs, each with their own rendering matcher
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
@@ -1523,7 +1523,7 @@ disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
 -- | An even more general version of 'matchChoicesCodec' and 'disjointMatchChoicesCodec'
 matchChoicesCodecAs ::
   Union ->
-  -- | Codecs, each which their own rendering matcher
+  -- | Codecs, each with their own rendering matcher
   [(input -> Maybe input, Codec context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
   Codec context input output ->
