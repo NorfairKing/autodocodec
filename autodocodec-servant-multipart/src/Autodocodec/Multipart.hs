@@ -11,7 +11,6 @@
 module Autodocodec.Multipart where
 
 import Autodocodec
-import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
@@ -154,22 +153,23 @@ fromMultipartVia = flip go
           Nothing -> Left $ "Unexpected discriminator value: " <> show discriminatorValue
           Just (_, c) -> go mpd c
       RequiredKeyCodec key vc _ -> do
-        value <- lookupInput key mpd
-        goValue [value] vc
+        values <- lookupLInput key mpd
+        goValue values vc
       OptionalKeyCodec key vc _ -> do
-        mValue <- lookupMInput key mpd
-        forM mValue $ \value ->
-          goValue [value] vc
+        values <- lookupLInput key mpd
+        case values of
+          [] -> pure Nothing
+          _ -> Just <$> goValue values vc
       OptionalKeyWithDefaultCodec key vc defaultValue _ -> do
-        mValue <- lookupMInput key mpd
-        case mValue of
-          Nothing -> pure defaultValue
-          Just value -> goValue [value] vc
+        values <- lookupLInput key mpd
+        case values of
+          [] -> pure defaultValue
+          _ -> goValue values vc
       OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ -> do
-        mValue <- lookupMInput key mpd
-        case mValue of
-          Nothing -> pure defaultValue
-          Just value -> goValue [value] vc
+        values <- lookupLInput key mpd
+        case values of
+          [] -> pure defaultValue
+          _ -> goValue values vc
       PureCodec v -> pure v
       ApCodec ocf oca -> go mpd ocf <*> go mpd oca
 
