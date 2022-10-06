@@ -39,6 +39,7 @@ spec = do
   multipartCodecSpec @LegacyObject
   multipartCodecSpec @These
   multipartCodecSpec @Expression
+  multipartCodecSpec @ListsExample
 
 multipartCodecSpec ::
   forall a.

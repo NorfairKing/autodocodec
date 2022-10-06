@@ -1,0 +1,63 @@
+ObjectOfCodec
+  (Just "ListsExample")
+  (ApCodec
+     (ApCodec
+        (ApCodec
+           (BimapCodec
+              _
+              _
+              (OptionalKeyWithOmittedDefaultCodec
+                 "possibly-empty-with-omitted-default"
+                 (BimapCodec
+                    _
+                    _
+                    (ArrayOfCodec
+                       Nothing
+                       (BimapCodec
+                          _
+                          _
+                          (NumberCodec
+                             Nothing
+                             (Just
+                                NumberBounds
+                                  { numberBoundsLower = -9.223372036854775808e18
+                                  , numberBoundsUpper = 9.223372036854775807e18
+                                  })))))
+                 _
+                 (Just "possibly empty list with omitted default empty list")))
+           (BimapCodec
+              _
+              _
+              (OptionalKeyWithDefaultCodec
+                 "possibly-empty-with-default"
+                 (BimapCodec
+                    _
+                    _
+                    (ArrayOfCodec
+                       Nothing
+                       (BimapCodec
+                          _
+                          _
+                          (NumberCodec
+                             Nothing
+                             (Just
+                                NumberBounds
+                                  { numberBoundsLower = -9.223372036854775808e18
+                                  , numberBoundsUpper = 9.223372036854775807e18
+                                  })))))
+                 _
+                 (Just "possibly empty list with default empty list"))))
+        (BimapCodec
+           _
+           _
+           (RequiredKeyCodec
+              "required-non-empty"
+              (Just "required non-empty list")
+              (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing))))))
+     (BimapCodec
+        _
+        _
+        (OptionalKeyCodec
+           "optional-non-empty"
+           (Just "optional non-empty list")
+           (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing))))))

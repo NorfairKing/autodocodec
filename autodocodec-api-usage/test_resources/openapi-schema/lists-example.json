@@ -1,0 +1,54 @@
+{
+    "components": {
+        "schemas": {
+            "ListsExample": {
+                "properties": {
+                    "optional-non-empty": {
+                        "description": "optional non-empty list",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "possibly-empty-with-default": {
+                        "default": [],
+                        "description": "possibly empty list with default empty list",
+                        "items": {
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "type": "number"
+                        },
+                        "type": "array"
+                    },
+                    "possibly-empty-with-omitted-default": {
+                        "default": [],
+                        "description": "possibly empty list with omitted default empty list",
+                        "items": {
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "type": "number"
+                        },
+                        "type": "array"
+                    },
+                    "required-non-empty": {
+                        "description": "required non-empty list",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "required-non-empty"
+                ],
+                "type": "object"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

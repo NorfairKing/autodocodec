@@ -55,6 +55,7 @@ extra-source-files:
     test_resources/json-schema/legacy-object.json
     test_resources/json-schema/legacy-value.json
     test_resources/json-schema/list-text.json
+    test_resources/json-schema/lists-example.json
     test_resources/json-schema/local-time.json
     test_resources/json-schema/map-text-ind.json
     test_resources/json-schema/maybe-text.json
@@ -91,6 +92,7 @@ extra-source-files:
     test_resources/openapi-schema/declareSchemaRef/fruit.json
     test_resources/openapi-schema/declareSchemaRef/legacy-object.json
     test_resources/openapi-schema/declareSchemaRef/legacy-value.json
+    test_resources/openapi-schema/declareSchemaRef/lists-example.json
     test_resources/openapi-schema/declareSchemaRef/mutually-recursive.json
     test_resources/openapi-schema/declareSchemaRef/null.json
     test_resources/openapi-schema/declareSchemaRef/recursive.json
@@ -113,6 +115,7 @@ extra-source-files:
     test_resources/openapi-schema/legacy-object.json
     test_resources/openapi-schema/legacy-value.json
     test_resources/openapi-schema/list-text.json
+    test_resources/openapi-schema/lists-example.json
     test_resources/openapi-schema/local-time.json
     test_resources/openapi-schema/map-text-int.json
     test_resources/openapi-schema/maybe-text.json
@@ -157,6 +160,7 @@ extra-source-files:
     test_resources/show-codec/legacy-object.txt
     test_resources/show-codec/legacy-value.txt
     test_resources/show-codec/list-text.txt
+    test_resources/show-codec/lists-example.txt
     test_resources/show-codec/local-time.txt
     test_resources/show-codec/map-text-int.txt
     test_resources/show-codec/maybe-text.txt
@@ -202,6 +206,7 @@ extra-source-files:
     test_resources/swagger-schema/legacy-object.json
     test_resources/swagger-schema/legacy-value.json
     test_resources/swagger-schema/list-text.json
+    test_resources/swagger-schema/lists-example.json
     test_resources/swagger-schema/local-time.json
     test_resources/swagger-schema/map-text-int.json
     test_resources/swagger-schema/maybe-text.json
@@ -247,6 +252,7 @@ extra-source-files:
     test_resources/yaml-schema/legacy-object.txt
     test_resources/yaml-schema/legacy-value.txt
     test_resources/yaml-schema/list-text.txt
+    test_resources/yaml-schema/lists-example.txt
     test_resources/yaml-schema/local-time.txt
     test_resources/yaml-schema/map-text-int.txt
     test_resources/yaml-schema/maybe-text.txt
