@@ -18,7 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
-  - autodocodec
+  - autodocodec >=0.2.0.1
   - bytestring
   - servant-multipart
   - servant-multipart-api

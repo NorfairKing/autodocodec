@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.1] - 2022-10-06
+
+### Added
+
+* The `HasObjectCodec` type class
+
 ## [0.2.0.0] - 2022-07-21
 
 ### Added
