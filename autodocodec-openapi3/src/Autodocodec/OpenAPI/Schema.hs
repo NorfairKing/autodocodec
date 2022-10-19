@@ -240,9 +240,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
           -- If both schemas are enums with the same type then combine their values
           (Just s1enums, Just s2enums)
             | s1 ^. type_ == s2 ^. type_ ->
-                prototype
-                  & enum_ ?~ (s1enums ++ s2enums)
-                  & type_ .~ s1 ^. type_
+              prototype
+                & enum_ ?~ (s1enums ++ s2enums)
+                & type_ .~ s1 ^. type_
           _ ->
             case (s1 ^. orLens, s2 ^. orLens) of
               (Just s1s, Just s2s) -> prototype & orLens ?~ (s1s ++ s2s)

@@ -90,8 +90,8 @@ parseJSONContextVia codec_ context_ =
           Left err -> fail err
           Right new -> pure new
       EitherCodec u c1 c2 ->
-        let leftParser = (\v -> Left <$> go v c1)
-            rightParser = (\v -> Right <$> go v c2)
+        let leftParser v = Left <$> go v c1
+            rightParser v = Right <$> go v c2
          in case u of
               PossiblyJointUnion ->
                 case parseEither leftParser value of
