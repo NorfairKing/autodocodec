@@ -11,6 +11,7 @@ module Autodocodec.Schema where
 
 import Autodocodec
 import qualified Autodocodec.Aeson.Compat as Compat
+import Control.Monad
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
