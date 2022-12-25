@@ -35,10 +35,11 @@ import Autodocodec.Yaml.IO
 import Autodocodec.Yaml.Schema
 import Data.ByteString
 import qualified Data.Yaml as Yaml
+import qualified Data.Yaml.Builder as Yaml
 
 -- | Encode a value as a Yaml 'ByteString' via its type's 'codec'.
 encodeYamlViaCodec :: HasCodec a => a -> ByteString
-encodeYamlViaCodec = Yaml.encode . Autodocodec
+encodeYamlViaCodec = Yaml.toByteString . Autodocodec
 
 -- | Parse a Yaml 'ByteString' using a type's 'codec'.
 eitherDecodeYamlViaCodec :: HasCodec a => ByteString -> Either Yaml.ParseException a
