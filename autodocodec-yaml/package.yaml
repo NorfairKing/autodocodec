@@ -1,10 +1,10 @@
 name: autodocodec-yaml
-version: 0.2.0.2
+version: 0.2.0.3
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2021 Tom Sydney Kerckhove"
+copyright: "2021-2023 Tom Sydney Kerckhove"
 synopsis: Autodocodec interpreters for yaml
 
 extra-source-files:

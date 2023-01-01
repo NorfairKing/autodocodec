@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "autodocodec-yaml";
-  version = "0.2.0.2";
+  version = "0.2.0.3";
   src = ./.;
   libraryHaskellDepends = [
     autodocodec autodocodec-schema base bytestring containers path

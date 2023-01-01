@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0.3] - 2023-01-01
+
+### Changed
+
+Use the `ToYaml` instance instead of the `ToJSON` instance when encoding to Yaml.
+This preserves the key order where `ToJSON` wouldn't.
+
 ## [0.2.0.2] - 2022-07-21
 
 ### Added
