@@ -1,48 +1,9 @@
 {
     "$comment": "Example",
-    "required": [
-        "fruit",
-        "maybe",
-        "bool",
-        "text"
-    ],
-    "type": "object",
     "properties": {
-        "maybe": {
-            "$comment": "a maybe text",
-            "anyOf": [
-                {
-                    "type": "null"
-                },
-                {
-                    "type": "string"
-                }
-            ]
-        },
-        "single-or-list": {
-            "$comment": "an optional list that can also be specified as a single element",
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            ]
-        },
-        "text": {
-            "$comment": "a text",
-            "type": "string"
-        },
-        "optional-with-null-default": {
-            "$comment": "an optional list of texts with a default empty list where the empty list would be omitted",
-            "items": {
-                "type": "string"
-            },
-            "type": "array"
+        "bool": {
+            "$comment": "a bool",
+            "type": "boolean"
         },
         "fruit": {
             "$comment": "fruit!!",
@@ -61,8 +22,19 @@
                 }
             ]
         },
-        "optional-with-default": {
-            "$comment": "an optional text with a default",
+        "maybe": {
+            "$comment": "a maybe text",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "optional": {
+            "$comment": "an optional text",
             "type": "string"
         },
         "optional-or-null": {
@@ -76,13 +48,41 @@
                 }
             ]
         },
-        "bool": {
-            "$comment": "a bool",
-            "type": "boolean"
+        "optional-with-default": {
+            "$comment": "an optional text with a default",
+            "type": "string"
         },
-        "optional": {
-            "$comment": "an optional text",
+        "optional-with-null-default": {
+            "$comment": "an optional list of texts with a default empty list where the empty list would be omitted",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "single-or-list": {
+            "$comment": "an optional list that can also be specified as a single element",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            ]
+        },
+        "text": {
+            "$comment": "a text",
             "type": "string"
         }
-    }
+    },
+    "required": [
+        "fruit",
+        "maybe",
+        "bool",
+        "text"
+    ],
+    "type": "object"
 }

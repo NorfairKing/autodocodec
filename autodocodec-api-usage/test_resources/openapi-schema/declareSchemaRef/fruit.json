@@ -1,12 +1,12 @@
 {
+    "definitions": {},
     "reference": {
-        "type": "string",
         "enum": [
             "Apple",
             "Orange",
             "Banana",
             "Melon"
-        ]
-    },
-    "definitions": {}
+        ],
+        "type": "string"
+    }
 }

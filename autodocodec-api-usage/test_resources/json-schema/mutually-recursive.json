@@ -1,24 +1,24 @@
 {
-    "$ref": "#/$defs/MutuallyRecursiveA",
     "$defs": {
         "MutuallyRecursiveA": {
-            "type": "object",
+            "$comment": "MutuallyRecursiveA",
             "properties": {
                 "relationshipToB": {
-                    "type": "object",
+                    "$comment": "\nMutuallyRecursiveB",
                     "properties": {
                         "relationshipToA": {
                             "$comment": "",
                             "$ref": "#/$defs/MutuallyRecursiveA"
                         }
                     },
-                    "$comment": "\nMutuallyRecursiveB"
+                    "type": "object"
                 }
             },
-            "$comment": "MutuallyRecursiveA",
             "required": [
                 "relationshipToB"
-            ]
+            ],
+            "type": "object"
         }
-    }
+    },
+    "$ref": "#/$defs/MutuallyRecursiveA"
 }

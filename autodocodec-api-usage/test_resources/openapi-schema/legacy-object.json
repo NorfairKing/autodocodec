@@ -2,88 +2,88 @@
     "components": {
         "schemas": {
             "LegacyObject": {
+                "additionalProperties": true,
                 "anyOf": [
                     {
+                        "properties": {
+                            "newest": {
+                                "description": "newest key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "newest"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "newest": {
-                                "type": "string",
-                                "description": "newest key"
-                            }
-                        }
+                        "type": "object"
                     },
                     {
+                        "properties": {
+                            "newer": {
+                                "description": "newer key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "newer"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "newer": {
-                                "type": "string",
-                                "description": "newer key"
-                            }
-                        }
+                        "type": "object"
                     },
                     {
+                        "properties": {
+                            "new": {
+                                "description": "new key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "new"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "new": {
-                                "type": "string",
-                                "description": "new key"
-                            }
-                        }
+                        "type": "object"
                     },
                     {
+                        "properties": {
+                            "old": {
+                                "description": "old key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "old"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "old": {
-                                "type": "string",
-                                "description": "old key"
-                            }
-                        }
+                        "type": "object"
                     },
                     {
+                        "properties": {
+                            "older": {
+                                "description": "older key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "older"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "older": {
-                                "type": "string",
-                                "description": "older key"
-                            }
-                        }
+                        "type": "object"
                     },
                     {
+                        "properties": {
+                            "oldest": {
+                                "description": "oldest key",
+                                "type": "string"
+                            }
+                        },
                         "required": [
                             "oldest"
                         ],
-                        "type": "object",
-                        "properties": {
-                            "oldest": {
-                                "type": "string",
-                                "description": "oldest key"
-                            }
-                        }
+                        "type": "object"
                     }
-                ],
-                "additionalProperties": true
+                ]
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

@@ -2,19 +2,19 @@
     "components": {
         "schemas": {
             "Ordering": {
-                "type": "string",
                 "enum": [
                     "LT",
                     "EQ",
                     "GT"
-                ]
+                ],
+                "type": "string"
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

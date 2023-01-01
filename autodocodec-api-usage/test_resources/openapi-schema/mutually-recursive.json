@@ -1,31 +1,31 @@
 {
     "components": {
         "schemas": {
-            "MutuallyRecursiveB": {
-                "type": "object",
-                "properties": {
-                    "relationshipToA": {
-                        "$ref": "#/components/schemas/MutuallyRecursiveA"
-                    }
-                }
-            },
             "MutuallyRecursiveA": {
-                "required": [
-                    "relationshipToB"
-                ],
-                "type": "object",
                 "properties": {
                     "relationshipToB": {
                         "$ref": "#/components/schemas/MutuallyRecursiveB"
                     }
-                }
+                },
+                "required": [
+                    "relationshipToB"
+                ],
+                "type": "object"
+            },
+            "MutuallyRecursiveB": {
+                "properties": {
+                    "relationshipToA": {
+                        "$ref": "#/components/schemas/MutuallyRecursiveA"
+                    }
+                },
+                "type": "object"
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

@@ -4,28 +4,28 @@
         {
             "anyOf": [
                 {
-                    "required": [
-                        "1"
-                    ],
-                    "type": "object",
                     "properties": {
                         "1": {
                             "$comment": "text 1",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "1"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "1old"
-                    ],
-                    "type": "object",
                     "properties": {
                         "1old": {
                             "$comment": "text 1",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "1old"
+                    ],
+                    "type": "object"
                 }
             ],
             "type": "object"
@@ -33,28 +33,28 @@
         {
             "anyOf": [
                 {
-                    "required": [
-                        "2"
-                    ],
-                    "type": "object",
                     "properties": {
                         "2": {
                             "$comment": "text 2",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "2"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "2old"
-                    ],
-                    "type": "object",
                     "properties": {
                         "2old": {
                             "$comment": "text 2",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "2old"
+                    ],
+                    "type": "object"
                 }
             ],
             "type": "object"
@@ -62,28 +62,28 @@
         {
             "anyOf": [
                 {
-                    "required": [
-                        "3"
-                    ],
-                    "type": "object",
                     "properties": {
                         "3": {
                             "$comment": "text 3",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "3"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "3old"
-                    ],
-                    "type": "object",
                     "properties": {
                         "3old": {
                             "$comment": "text 3",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "3old"
+                    ],
+                    "type": "object"
                 }
             ],
             "type": "object"
@@ -91,76 +91,76 @@
         {
             "anyOf": [
                 {
-                    "required": [
-                        "newest"
-                    ],
-                    "type": "object",
                     "properties": {
                         "newest": {
                             "$comment": "newest key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "newest"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "newer"
-                    ],
-                    "type": "object",
                     "properties": {
                         "newer": {
                             "$comment": "newer key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "newer"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "new"
-                    ],
-                    "type": "object",
                     "properties": {
                         "new": {
                             "$comment": "new key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "new"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "old"
-                    ],
-                    "type": "object",
                     "properties": {
                         "old": {
                             "$comment": "old key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "old"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "older"
-                    ],
-                    "type": "object",
                     "properties": {
                         "older": {
                             "$comment": "older key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "older"
+                    ],
+                    "type": "object"
                 },
                 {
-                    "required": [
-                        "oldest"
-                    ],
-                    "type": "object",
                     "properties": {
                         "oldest": {
                             "$comment": "oldest key",
                             "type": "string"
                         }
-                    }
+                    },
+                    "required": [
+                        "oldest"
+                    ],
+                    "type": "object"
                 }
             ],
             "type": "object"

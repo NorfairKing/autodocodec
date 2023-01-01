@@ -2,36 +2,36 @@
     "components": {
         "schemas": {
             "Recurse": {
-                "required": [
-                    "recurse"
-                ],
-                "type": "object",
                 "properties": {
                     "recurse": {
                         "$ref": "#/components/schemas/recursive"
                     }
-                }
+                },
+                "required": [
+                    "recurse"
+                ],
+                "type": "object"
             },
             "recursive": {
+                "additionalProperties": true,
                 "anyOf": [
                     {
+                        "description": "base case",
                         "maximum": 9223372036854775807,
                         "minimum": -9223372036854775808,
-                        "type": "number",
-                        "description": "base case"
+                        "type": "number"
                     },
                     {
                         "$ref": "#/components/schemas/Recurse"
                     }
-                ],
-                "additionalProperties": true
+                ]
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

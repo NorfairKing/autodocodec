@@ -2,20 +2,20 @@
     "components": {
         "schemas": {
             "Fruit": {
-                "type": "string",
                 "enum": [
                     "Apple",
                     "Orange",
                     "Banana",
                     "Melon"
-                ]
+                ],
+                "type": "string"
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

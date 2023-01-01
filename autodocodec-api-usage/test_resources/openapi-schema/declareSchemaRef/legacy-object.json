@@ -1,84 +1,84 @@
 {
-    "reference": {
-        "$ref": "#/components/schemas/LegacyObject"
-    },
     "definitions": {
         "LegacyObject": {
+            "additionalProperties": true,
             "anyOf": [
                 {
-                    "type": "object",
                     "properties": {
                         "newest": {
-                            "type": "string",
-                            "description": "newest key"
+                            "description": "newest key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "newest"
-                    ]
+                    ],
+                    "type": "object"
                 },
                 {
-                    "type": "object",
                     "properties": {
                         "newer": {
-                            "type": "string",
-                            "description": "newer key"
+                            "description": "newer key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "newer"
-                    ]
+                    ],
+                    "type": "object"
                 },
                 {
-                    "type": "object",
                     "properties": {
                         "new": {
-                            "type": "string",
-                            "description": "new key"
+                            "description": "new key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "new"
-                    ]
+                    ],
+                    "type": "object"
                 },
                 {
-                    "type": "object",
                     "properties": {
                         "old": {
-                            "type": "string",
-                            "description": "old key"
+                            "description": "old key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "old"
-                    ]
+                    ],
+                    "type": "object"
                 },
                 {
-                    "type": "object",
                     "properties": {
                         "older": {
-                            "type": "string",
-                            "description": "older key"
+                            "description": "older key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "older"
-                    ]
+                    ],
+                    "type": "object"
                 },
                 {
-                    "type": "object",
                     "properties": {
                         "oldest": {
-                            "type": "string",
-                            "description": "oldest key"
+                            "description": "oldest key",
+                            "type": "string"
                         }
                     },
                     "required": [
                         "oldest"
-                    ]
+                    ],
+                    "type": "object"
                 }
-            ],
-            "additionalProperties": true
+            ]
         }
+    },
+    "reference": {
+        "$ref": "#/components/schemas/LegacyObject"
     }
 }

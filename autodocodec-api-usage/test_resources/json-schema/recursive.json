@@ -1,5 +1,4 @@
 {
-    "$ref": "#/$defs/recursive",
     "$defs": {
         "recursive": {
             "anyOf": [
@@ -11,18 +10,19 @@
                 },
                 {
                     "$comment": "Recurse",
-                    "required": [
-                        "recurse"
-                    ],
-                    "type": "object",
                     "properties": {
                         "recurse": {
                             "$comment": "recursive case",
                             "$ref": "#/$defs/recursive"
                         }
-                    }
+                    },
+                    "required": [
+                        "recurse"
+                    ],
+                    "type": "object"
                 }
             ]
         }
-    }
+    },
+    "$ref": "#/$defs/recursive"
 }

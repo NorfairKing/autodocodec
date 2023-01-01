@@ -1,10 +1,6 @@
 {
-    "reference": {
-        "$ref": "#/components/schemas/recursive"
-    },
     "definitions": {
         "Recurse": {
-            "type": "object",
             "properties": {
                 "recurse": {
                     "$ref": "#/components/schemas/recursive"
@@ -12,21 +8,25 @@
             },
             "required": [
                 "recurse"
-            ]
+            ],
+            "type": "object"
         },
         "recursive": {
+            "additionalProperties": true,
             "anyOf": [
                 {
+                    "description": "base case",
                     "maximum": 9223372036854775807,
-                    "type": "number",
                     "minimum": -9223372036854775808,
-                    "description": "base case"
+                    "type": "number"
                 },
                 {
                     "$ref": "#/components/schemas/Recurse"
                 }
-            ],
-            "additionalProperties": true
+            ]
         }
+    },
+    "reference": {
+        "$ref": "#/components/schemas/recursive"
     }
 }

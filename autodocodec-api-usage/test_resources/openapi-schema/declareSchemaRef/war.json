@@ -1,15 +1,15 @@
 {
+    "definitions": {},
     "reference": {
         "oneOf": [
             {
                 "maximum": 255,
-                "type": "number",
-                "minimum": 0
+                "minimum": 0,
+                "type": "number"
             },
             {
                 "type": "string"
             }
         ]
-    },
-    "definitions": {}
+    }
 }

@@ -4,58 +4,58 @@
             "(Either (Either Bool Scientific) Text)": {
                 "oneOf": [
                     {
-                        "required": [
-                            "Left"
-                        ],
-                        "type": "object",
                         "properties": {
                             "Left": {
                                 "oneOf": [
                                     {
-                                        "required": [
-                                            "Left"
-                                        ],
-                                        "type": "object",
                                         "properties": {
                                             "Left": {
                                                 "type": "boolean"
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "Left"
+                                        ],
+                                        "type": "object"
                                     },
                                     {
-                                        "required": [
-                                            "Right"
-                                        ],
-                                        "type": "object",
                                         "properties": {
                                             "Right": {
                                                 "type": "number"
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "Right"
+                                        ],
+                                        "type": "object"
                                     }
                                 ]
                             }
-                        }
+                        },
+                        "required": [
+                            "Left"
+                        ],
+                        "type": "object"
                     },
                     {
-                        "required": [
-                            "Right"
-                        ],
-                        "type": "object",
                         "properties": {
                             "Right": {
                                 "type": "string"
                             }
-                        }
+                        },
+                        "required": [
+                            "Right"
+                        ],
+                        "type": "object"
                     }
                 ]
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }

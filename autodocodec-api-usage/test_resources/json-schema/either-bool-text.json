@@ -1,26 +1,26 @@
 {
     "oneOf": [
         {
-            "required": [
-                "Left"
-            ],
-            "type": "object",
             "properties": {
                 "Left": {
                     "type": "boolean"
                 }
-            }
+            },
+            "required": [
+                "Left"
+            ],
+            "type": "object"
         },
         {
-            "required": [
-                "Right"
-            ],
-            "type": "object",
             "properties": {
                 "Right": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "Right"
+            ],
+            "type": "object"
         }
     ]
 }

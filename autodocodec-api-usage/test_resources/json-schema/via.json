@@ -1,18 +1,18 @@
 {
     "$comment": "Via",
+    "properties": {
+        "one": {
+            "$comment": "first field",
+            "type": "string"
+        },
+        "two": {
+            "$comment": "second field",
+            "type": "string"
+        }
+    },
     "required": [
         "two",
         "one"
     ],
-    "type": "object",
-    "properties": {
-        "two": {
-            "$comment": "second field",
-            "type": "string"
-        },
-        "one": {
-            "$comment": "first field",
-            "type": "string"
-        }
-    }
+    "type": "object"
 }

@@ -2,11 +2,6 @@
     "anyOf": [
         {
             "$comment": "Valar",
-            "required": [
-                "name",
-                "domain"
-            ],
-            "type": "object",
             "properties": {
                 "domain": {
                     "$comment": "Domain which the Valar rules over",
@@ -16,20 +11,25 @@
                     "$comment": "Name of the Valar",
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "name",
+                "domain"
+            ],
+            "type": "object"
         },
         {
             "$comment": "Maiar",
-            "required": [
-                "name"
-            ],
-            "type": "object",
             "properties": {
                 "name": {
                     "$comment": "Name of the Maiar",
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
         }
     ]
 }

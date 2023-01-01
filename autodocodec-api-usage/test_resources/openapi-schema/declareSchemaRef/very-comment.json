@@ -1,7 +1,7 @@
 {
+    "definitions": {},
     "reference": {
-        "type": "null",
-        "description": "This is the outermost outer comment\non multiple lines\nbecause we can.\n\nThis is the middle outer comment\nThis is the innermost outer comment\nThis is the inner comment"
-    },
-    "definitions": {}
+        "description": "This is the outermost outer comment\non multiple lines\nbecause we can.\n\nThis is the middle outer comment\nThis is the innermost outer comment\nThis is the inner comment",
+        "type": "null"
+    }
 }

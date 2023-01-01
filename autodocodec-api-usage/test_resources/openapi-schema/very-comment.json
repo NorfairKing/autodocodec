@@ -2,15 +2,15 @@
     "components": {
         "schemas": {
             "VeryComment": {
-                "type": "null",
-                "description": "This is the outermost outer comment\non multiple lines\nbecause we can.\n\nThis is the middle outer comment\nThis is the innermost outer comment\nThis is the inner comment"
+                "description": "This is the outermost outer comment\non multiple lines\nbecause we can.\n\nThis is the middle outer comment\nThis is the innermost outer comment\nThis is the inner comment",
+                "type": "null"
             }
         }
     },
-    "openapi": "3.0.0",
     "info": {
-        "version": "",
-        "title": ""
+        "title": "",
+        "version": ""
     },
+    "openapi": "3.0.0",
     "paths": {}
 }
