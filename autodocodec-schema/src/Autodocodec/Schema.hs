@@ -42,6 +42,7 @@ import GHC.Generics (Generic)
 data JSONSchema
   = AnySchema
   | NullSchema
+  | VoidSchema
   | BoolSchema
   | StringSchema
   | NumberSchema !(Maybe NumberBounds)
@@ -76,6 +77,7 @@ instance ToJSON JSONSchema where
       go :: JSONSchema -> [JSON.Pair]
       go = \case
         AnySchema -> []
+        VoidSchema -> [("anyOf", JSON.Array mempty)]
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
         StringSchema -> ["type" JSON..= ("string" :: Text)]
@@ -267,6 +269,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
       AnySchema -> pure True
+      VoidSchema -> pure False
       NullSchema -> pure $ value == JSON.Null
       BoolSchema -> pure $ case value of
         JSON.Bool _ -> True
@@ -317,6 +320,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
     go :: ValueCodec input output -> State (Set Text) JSONSchema
     go = \case
       NullCodec -> pure NullSchema
+      VoidCodec -> pure VoidSchema
       BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
       StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
       NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds

@@ -69,6 +69,9 @@ import GHC.Generics (Generic)
 -- * The @output@ parameter is used for the type that is used during decoding of a value, so it's the @output@ of the codec.
 -- * Both parameters are unused during documentation.
 data Codec context input output where
+  -- | 'Void' can neither be encoded nor decoded.
+  VoidCodec ::
+    ValueCodec Void Void
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
     ValueCodec () ()
@@ -326,6 +329,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
   where
     go :: Int -> Codec context input output -> State (Set Text) ShowS
     go d = \case
+      VoidCodec -> pure $ showString "VoidCodec"
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
       StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
@@ -529,7 +533,7 @@ eitherCodec ::
   Codec context input1 output1 ->
   Codec context input2 output2 ->
   Codec context (Either input1 input2) (Either output1 output2)
-eitherCodec = possiblyJointEitherCodec
+eitherCodec = collapseVoidEither possiblyJointEitherCodec
 
 -- | Possibly joint either codec
 --
@@ -605,7 +609,7 @@ disjointEitherCodec ::
   Codec context input1 output1 ->
   Codec context input2 output2 ->
   Codec context (Either input1 input2) (Either output1 output2)
-disjointEitherCodec = EitherCodec DisjointUnion
+disjointEitherCodec = collapseVoidEither (EitherCodec DisjointUnion)
 
 -- | Possibly joint either codec
 --
@@ -674,7 +678,7 @@ possiblyJointEitherCodec ::
   Codec context input1 output1 ->
   Codec context input2 output2 ->
   Codec context (Either input1 input2) (Either output1 output2)
-possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+possiblyJointEitherCodec = collapseVoidEither (EitherCodec PossiblyJointUnion)
 
 -- | Discriminator value used in 'DiscriminatedUnionCodec'
 type Discriminator = Text
@@ -1159,6 +1163,18 @@ valueCodec = ValueCodec
 -- > nullCodec = NullCodec
 nullCodec :: JSONCodec ()
 nullCodec = NullCodec
+
+-- | Codec for @Void@
+--
+-- === Example usage
+--
+-- >>> JSON.parseMaybe (parseJSONVia voidCodec) Null
+-- Nothing
+--
+-- >>> JSON.parseMaybe (parseJSONVia voidCodec) (Object mempty)
+-- Nothing
+voidCodec :: JSONCodec Void
+voidCodec = VoidCodec
 
 -- | Codec for boolean values
 --
@@ -1681,6 +1697,18 @@ orNullHelper = dimapCodec f g
     g = \case
       Nothing -> Nothing
       Just a -> Just (Just a)
+
+collapseVoidEither
+  :: ( Codec context input1 output1
+    -> Codec context input2 output2
+    -> Codec context (Either input1 input2) (Either output1 output2)
+     )
+  -> Codec context input1 output1
+  -> Codec context input2 output2
+  -> Codec context (Either input1 input2) (Either output1 output2)
+collapseVoidEither _ VoidCodec right = bimapCodec (Right . Right) (either absurd id) right
+collapseVoidEither _ left VoidCodec = bimapCodec (Right . Left) (either id absurd) left
+collapseVoidEither f left right = f left right
 
 -- | Name a codec.
 --

@@ -114,6 +114,7 @@ spec = do
 instance GenValid JSONSchema where
   shrinkValid = \case
     AnySchema -> []
+    VoidSchema -> []
     NullSchema -> [AnySchema]
     BoolSchema -> [AnySchema]
     StringSchema -> [AnySchema]

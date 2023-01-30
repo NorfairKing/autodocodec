@@ -22,10 +22,12 @@ import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
 import Text.Colour
+import Data.Void (Void)
 
 spec :: Spec
 spec = do
   yamlSchemaSpec @NullUnit "null"
+  yamlSchemaSpec @Void "void"
   yamlSchemaSpec @Bool "bool"
   yamlSchemaSpec @Ordering "ordering"
   yamlSchemaSpec @Char "char"

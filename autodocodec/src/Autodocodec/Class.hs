@@ -45,6 +45,9 @@ class HasCodec value where
 
   {-# MINIMAL codec #-}
 
+instance HasCodec Void where
+  codec = voidCodec
+
 instance HasCodec Bool where
   codec = boolCodec
 

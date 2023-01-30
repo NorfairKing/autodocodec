@@ -26,6 +26,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void (Void)
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity
@@ -35,6 +36,7 @@ spec :: Spec
 spec = do
   aesonCodecSpec @NullUnit
   aesonCodecErrorSpec @NullUnit "null-error-number" "5"
+  aesonCodecErrorSpec @Void "void" "{}"
   aesonCodecSpec @Bool
   aesonCodecErrorSpec @Bool "bool-error-string" "\"hello\""
   aesonCodecSpec @Ordering

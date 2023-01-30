@@ -40,6 +40,7 @@ parseJSONContextVia codec_ context_ =
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
     go :: context -> Codec context void a -> JSON.Parser a
     go value = \case
+      VoidCodec -> fail "Void values can't be decoded from JSON"
       NullCodec -> case (value :: JSON.Value) of
         Null -> pure ()
         _ -> typeMismatch "Null" value
