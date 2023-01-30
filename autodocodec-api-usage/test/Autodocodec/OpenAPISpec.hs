@@ -12,7 +12,6 @@ import Autodocodec.OpenAPI
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
-import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
@@ -31,16 +30,19 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
-import Test.Syd.Validity
 import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
   openAPISchemaSpec @NullUnit "null"
   openAPISchemaSpecViaDeclareSchemaRef @NullUnit "null"
+  openAPISchemaSpec @Void "void"
+  openAPISchemaSpecViaDeclareSchemaRef @Void "void"
+  openAPISchemaSpec @(Either Void Bool) "either-void-bool"
   openAPISchemaSpec @Bool "bool"
   openAPISchemaSpec @Ordering "ordering"
   openAPISchemaSpec @Char "char"
@@ -101,10 +103,10 @@ spec = do
   openAPISchemaSpec @Expression "expression"
   openAPISchemaSpecViaDeclareSchemaRef @Expression "expression"
 
-openAPISchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
+openAPISchemaSpec :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =
   describe ("openAPISchemaSpec @" <> nameOf @a) $ do
-    let (definitions, s) = flip OpenAPI.runDeclare mempty $ do
+    let (definitions, _) = flip OpenAPI.runDeclare mempty $ do
           OpenAPI.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
           OpenAPI.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
           pure schema
@@ -114,42 +116,15 @@ openAPISchemaSpec filePath =
             ("test_resources/openapi-schema/" <> filePath <> ".json")
             (JSON.toJSON openAPI)
 
-    xdescribe "The validateJSON function is full of bugs" $
-      -- Does not handle 'anyOf' correctly, I think.
-      -- Does not handle 'nullable' correctly.
-      it "validates all encoded values" $
-        forAllValid $ \(a :: a) ->
-          let encoded = toJSONViaCodec a
-           in case OpenAPI.validateJSON definitions s encoded of
-                [] -> pure ()
-                errors ->
-                  expectationFailure $
-                    unlines
-                      [ "Generated value did not pass the OpenAPI Schema validation, but it should have",
-                        unwords
-                          [ "value",
-                            ppShow a
-                          ],
-                        unwords
-                          [ "encoded",
-                            ppShow encoded
-                          ],
-                        unwords
-                          [ "schema",
-                            ppShow s
-                          ],
-                        show errors
-                      ]
-
 openAPISchemaSpecViaDeclareSchemaRef ::
   forall a.
-  (OpenAPI.ToSchema a) =>
+  (Typeable a, HasCodec a) =>
   FilePath ->
   Spec
 openAPISchemaSpecViaDeclareSchemaRef filePath =
   describe ("openAPISchemaSpecViaDeclareSchemaRef @" <> nameOf @a) $ do
     it "outputs the same schema as before" $
-      let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy a)) mempty
+      let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy (Autodocodec a))) mempty
           json =
             JSON.object
               [ "definitions" JSON..= definitions,

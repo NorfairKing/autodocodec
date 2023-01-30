@@ -17,6 +17,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
@@ -25,6 +26,8 @@ import Text.Show.Pretty as Pretty
 spec :: Spec
 spec = do
   showCodecSpec @NullUnit "null"
+  showCodecSpec @Void "void"
+  showCodecSpec @(Either Void Bool) "either-void-bool"
   showCodecSpec @Bool "bool"
   showCodecSpec @Ordering "ordering"
   showCodecSpec @Char "char"

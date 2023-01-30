@@ -1,0 +1,38 @@
+{
+    "components": {
+        "schemas": {
+            "(Either Void Bool)": {
+                "oneOf": [
+                    {
+                        "properties": {
+                            "Left": {
+                                "additionalProperties": true
+                            }
+                        },
+                        "required": [
+                            "Left"
+                        ],
+                        "type": "object"
+                    },
+                    {
+                        "properties": {
+                            "Right": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "Right"
+                        ],
+                        "type": "object"
+                    }
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

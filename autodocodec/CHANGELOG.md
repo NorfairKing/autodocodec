@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.3] - 2023-01-31
+
+### Added
+
+* The `HasCodec Void` instance, thanks @i-am-tom!
+
 ## [0.2.0.2] - 2023-01-19
 
 ### Changed

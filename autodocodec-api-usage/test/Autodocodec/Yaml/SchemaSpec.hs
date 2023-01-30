@@ -18,6 +18,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity.Utils
@@ -27,6 +28,8 @@ spec :: Spec
 spec = do
   yamlSchemaSpec @NullUnit "null"
   yamlSchemaSpec @Bool "bool"
+  yamlSchemaSpec @Void "void"
+  yamlSchemaSpec @(Either Void Bool) "either-void-bool"
   yamlSchemaSpec @Ordering "ordering"
   yamlSchemaSpec @Char "char"
   yamlSchemaSpec @Text "text"
@@ -83,4 +86,6 @@ yamlSchemaSpec ::
   Spec
 yamlSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
-    pureGoldenTextFile ("test_resources/yaml-schema/" <> filePath <> ".txt") (renderChunksText With24BitColours $ schemaChunksViaCodec @a)
+    pureGoldenTextFile
+      ("test_resources/yaml-schema/" <> filePath <> ".txt")
+      (renderChunksText With24BitColours $ schemaChunksViaCodec @a)

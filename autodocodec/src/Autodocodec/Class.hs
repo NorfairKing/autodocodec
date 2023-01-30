@@ -24,6 +24,7 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 
 -- | A class for values which have a canonical codec.
@@ -44,6 +45,9 @@ class HasCodec value where
   listCodecForStringCompatibility = listCodec codec
 
   {-# MINIMAL codec #-}
+
+instance HasCodec Void where
+  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd ValueCodec
 
 instance HasCodec Bool where
   codec = boolCodec

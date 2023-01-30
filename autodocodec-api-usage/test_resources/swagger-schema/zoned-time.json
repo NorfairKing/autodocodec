@@ -1,0 +1,14 @@
+{
+    "definitions": {
+        "ZonedTime": {
+            "additionalProperties": true,
+            "description": "ZonedTime"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

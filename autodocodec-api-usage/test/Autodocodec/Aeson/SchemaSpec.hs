@@ -26,6 +26,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 import Test.QuickCheck
 import Test.Syd
@@ -36,6 +37,7 @@ import Test.Syd.Validity.Utils
 spec :: Spec
 spec = do
   jsonSchemaSpec @NullUnit "null"
+  jsonSchemaSpec' @Void "void"
   jsonSchemaSpec @Bool "bool"
   jsonSchemaSpec @Ordering "ordering"
   jsonSchemaSpec @Char "char"
@@ -204,10 +206,7 @@ jsonSchemaSpec ::
   Spec
 jsonSchemaSpec filePath =
   describe ("jsonSchemaSpec @" <> nameOf @a) $ do
-    it "outputs the same schema as before" $
-      pureGoldenJSONFile
-        ("test_resources/json-schema/" <> filePath <> ".json")
-        (JSON.toJSON (jsonSchemaViaCodec @a))
+    jsonSchemaSpec' @a filePath
     it "validates all encoded values" $
       forAllValid $ \(a :: a) ->
         let schema = jsonSchemaViaCodec @a
@@ -231,3 +230,14 @@ jsonSchemaSpec filePath =
                           ppShow schema
                         ]
                     ]
+
+jsonSchemaSpec' ::
+  forall a.
+  HasCodec a =>
+  FilePath ->
+  Spec
+jsonSchemaSpec' filePath =
+  it "outputs the same schema as before" $
+    pureGoldenJSONFile
+      ("test_resources/json-schema/" <> filePath <> ".json")
+      (JSON.toJSON (jsonSchemaViaCodec @a))

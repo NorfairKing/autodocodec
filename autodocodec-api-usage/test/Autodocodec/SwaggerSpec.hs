@@ -31,6 +31,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Void
 import Data.Word
 import Test.Syd
 import Test.Syd.Aeson
@@ -40,6 +41,8 @@ import Test.Syd.Validity.Utils
 spec :: Spec
 spec = do
   swaggerSchemaSpec @NullUnit "null"
+  swaggerSchemaSpec' @Void "void"
+  swaggerSchemaSpec' @(Either Void Bool) "either-void-bool"
   swaggerSchemaSpec @Bool "bool"
   swaggerSchemaSpec @Ordering "ordering"
   swaggerSchemaSpec @Char "char"
@@ -70,7 +73,7 @@ spec = do
   swaggerSchemaSpec @LocalTime "local-time"
   swaggerSchemaSpec @UTCTime "utc-time"
   swaggerSchemaSpec @TimeOfDay "time-of-day"
-  xdescribe "doesn't hold" $ swaggerSchemaSpec @ZonedTime "zoned-time"
+  swaggerSchemaSpec' @ZonedTime "zoned-time"
   swaggerSchemaSpec @DiffTime "difftime"
   swaggerSchemaSpec @NominalDiffTime "nominal-difftime"
   swaggerSchemaSpec @Fruit "fruit"
@@ -90,17 +93,12 @@ spec = do
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =
   describe ("swaggerSchemaSpec @" <> nameOf @a) $ do
+    swaggerSchemaSpec' @a filePath
+
     let (definitions, s) = flip Swagger.runDeclare mempty $ do
           Swagger.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
           Swagger.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
           pure schema
-
-    it "outputs the same schema as before" $
-      let swagger = mempty {_swaggerDefinitions = definitions}
-       in pureGoldenJSONFile
-            ("test_resources/swagger-schema/" <> filePath <> ".json")
-            (JSON.toJSON swagger)
-
     it "validates all encoded values" $
       forAllValid $ \(a :: a) ->
         let encoded = toJSONViaCodec a
@@ -128,3 +126,16 @@ swaggerSchemaSpec filePath =
                         ],
                       show errors
                     ]
+
+swaggerSchemaSpec' :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
+swaggerSchemaSpec' filePath = do
+  let (definitions, _) = flip Swagger.runDeclare mempty $ do
+        Swagger.NamedSchema mName schema <- declareNamedSchemaViaCodec (Proxy :: Proxy a)
+        Swagger.declare [(fromMaybe (T.pack $ nameOf @a) mName, schema)]
+        pure schema
+
+  it "outputs the same schema as before" $
+    let swagger = mempty {_swaggerDefinitions = definitions}
+     in pureGoldenJSONFile
+          ("test_resources/swagger-schema/" <> filePath <> ".json")
+          (JSON.toJSON swagger)

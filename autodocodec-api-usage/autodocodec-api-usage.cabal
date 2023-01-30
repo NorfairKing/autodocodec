@@ -76,6 +76,7 @@ extra-source-files:
     test_resources/json-schema/value.json
     test_resources/json-schema/very-comment.json
     test_resources/json-schema/via.json
+    test_resources/json-schema/void.json
     test_resources/json-schema/war.json
     test_resources/json-schema/word.json
     test_resources/json-schema/word16.json
@@ -99,10 +100,12 @@ extra-source-files:
     test_resources/openapi-schema/declareSchemaRef/these.json
     test_resources/openapi-schema/declareSchemaRef/very-comment.json
     test_resources/openapi-schema/declareSchemaRef/via.json
+    test_resources/openapi-schema/declareSchemaRef/void.json
     test_resources/openapi-schema/declareSchemaRef/war.json
     test_resources/openapi-schema/difftime.json
     test_resources/openapi-schema/either-bool-text.json
     test_resources/openapi-schema/either-either-bool-scientific-text.json
+    test_resources/openapi-schema/either-void-bool.json
     test_resources/openapi-schema/example.json
     test_resources/openapi-schema/expression.json
     test_resources/openapi-schema/fruit.json
@@ -136,6 +139,7 @@ extra-source-files:
     test_resources/openapi-schema/value.json
     test_resources/openapi-schema/very-comment.json
     test_resources/openapi-schema/via.json
+    test_resources/openapi-schema/void.json
     test_resources/openapi-schema/war.json
     test_resources/openapi-schema/word.json
     test_resources/openapi-schema/word16.json
@@ -148,6 +152,7 @@ extra-source-files:
     test_resources/show-codec/day.txt
     test_resources/show-codec/either-bool-text.txt
     test_resources/show-codec/either-either-bool-scientific-text.txt
+    test_resources/show-codec/either-void-bool.txt
     test_resources/show-codec/example.txt
     test_resources/show-codec/expression.txt
     test_resources/show-codec/fruit.txt
@@ -180,6 +185,7 @@ extra-source-files:
     test_resources/show-codec/value.txt
     test_resources/show-codec/very-comment.txt
     test_resources/show-codec/via.txt
+    test_resources/show-codec/void.txt
     test_resources/show-codec/war.txt
     test_resources/show-codec/word.txt
     test_resources/show-codec/word16.txt
@@ -194,6 +200,7 @@ extra-source-files:
     test_resources/swagger-schema/difftime.json
     test_resources/swagger-schema/either-bool-text.json
     test_resources/swagger-schema/either-either-bool-scientific-text.json
+    test_resources/swagger-schema/either-void-bool.json
     test_resources/swagger-schema/example.json
     test_resources/swagger-schema/expression.json
     test_resources/swagger-schema/fruit.json
@@ -227,12 +234,14 @@ extra-source-files:
     test_resources/swagger-schema/value.json
     test_resources/swagger-schema/very-comment.json
     test_resources/swagger-schema/via.json
+    test_resources/swagger-schema/void.json
     test_resources/swagger-schema/war.json
     test_resources/swagger-schema/word.json
     test_resources/swagger-schema/word16.json
     test_resources/swagger-schema/word32.json
     test_resources/swagger-schema/word64.json
     test_resources/swagger-schema/word8.json
+    test_resources/swagger-schema/zoned-time.json
     test_resources/yaml-schema/ainur.txt
     test_resources/yaml-schema/bool.txt
     test_resources/yaml-schema/char.txt
@@ -240,6 +249,7 @@ extra-source-files:
     test_resources/yaml-schema/difftime.txt
     test_resources/yaml-schema/either-bool-text.txt
     test_resources/yaml-schema/either-either-bool-scientific-text.txt
+    test_resources/yaml-schema/either-void-bool.txt
     test_resources/yaml-schema/example.txt
     test_resources/yaml-schema/expression.txt
     test_resources/yaml-schema/fruit.txt
@@ -274,6 +284,7 @@ extra-source-files:
     test_resources/yaml-schema/value.txt
     test_resources/yaml-schema/very-comment.txt
     test_resources/yaml-schema/via.txt
+    test_resources/yaml-schema/void.txt
     test_resources/yaml-schema/war.txt
     test_resources/yaml-schema/word.txt
     test_resources/yaml-schema/word16.txt

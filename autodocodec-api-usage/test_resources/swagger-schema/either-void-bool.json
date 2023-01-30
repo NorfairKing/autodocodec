@@ -1,0 +1,21 @@
+{
+    "definitions": {
+        "(Either Void Bool)": {
+            "properties": {
+                "Left": {
+                    "additionalProperties": true
+                },
+                "Right": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

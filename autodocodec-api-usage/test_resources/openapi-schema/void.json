@@ -1,0 +1,15 @@
+{
+    "components": {
+        "schemas": {
+            "Void": {
+                "additionalProperties": true
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}
