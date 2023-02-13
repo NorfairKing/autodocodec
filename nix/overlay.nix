@@ -27,6 +27,11 @@ with final.haskell.lib;
                 # Ugly hack because we can't just add flags to the 'test' invocation.
                 # Show test output as we go, instead of all at once afterwards.
                 testTarget = (old.testTarget or "") + " --show-details=direct";
+                testDepends = (old.testDepends or [ ]) ++
+                  # Add doctest as a dependency for old-enough versions of ghc
+                  # until this is fixed:
+                  # https://github.com/sol/doctest/issues/327
+                  final.lib.optional (final.lib.versionOlder self.ghc.version "9.0.0") self.doctest;
               }));
 
             autodocodecPackages =
