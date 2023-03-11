@@ -109,6 +109,8 @@ data Codec context input output where
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
     JSONCodec JSON.Value
+  -- | Encode nothing and fail to decode anything.
+  VoidCodec :: JSONCodec Void
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     -- | Name of the @array@, for error messages and documentation.
@@ -333,6 +335,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
+      VoidCodec -> pure $ showString "VoidCodec"
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
       EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c

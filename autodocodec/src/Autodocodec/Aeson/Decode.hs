@@ -79,6 +79,7 @@ parseJSONContextVia codec_ context_ =
       HashMapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _)
       MapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _)
       ValueCodec -> pure (value :: JSON.Value)
+      VoidCodec -> fail "Tried to decode a value to Void"
       EqCodec expected c -> do
         actual <- go value c
         if expected == actual

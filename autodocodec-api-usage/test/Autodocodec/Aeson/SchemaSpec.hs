@@ -116,6 +116,7 @@ spec = do
 instance GenValid JSONSchema where
   shrinkValid = \case
     AnySchema -> []
+    NoSchema -> []
     NullSchema -> [AnySchema]
     BoolSchema -> [AnySchema]
     StringSchema -> [AnySchema]
@@ -137,7 +138,7 @@ instance GenValid JSONSchema where
       pure $ WithDefSchema name' s'
   genValid = sized $ \n ->
     if n <= 1
-      then elements [AnySchema, NullSchema, BoolSchema, StringSchema]
+      then elements [AnySchema, NoSchema, NullSchema, BoolSchema, StringSchema]
       else
         oneof
           [ NumberSchema <$> genValid,

@@ -84,6 +84,7 @@ declareNamedSchemaVia c' Proxy = go c'
             mempty
               { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
               }
+      VoidCodec -> undefined
       ArrayOfCodec mname c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema

@@ -47,7 +47,7 @@ class HasCodec value where
   {-# MINIMAL codec #-}
 
 instance HasCodec Void where
-  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd ValueCodec
+  codec = VoidCodec
 
 instance HasCodec Bool where
   codec = boolCodec

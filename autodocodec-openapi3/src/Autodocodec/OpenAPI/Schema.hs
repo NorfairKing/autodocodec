@@ -87,6 +87,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             mempty
               { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
               }
+      VoidCodec -> undefined
       EqCodec val valCodec ->
         pure $
           NamedSchema Nothing $

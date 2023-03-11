@@ -18,6 +18,7 @@ import Data.Scientific
 import Data.Text (Text)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Void
 
 -- | Implement 'JSON.toJSON' via a type's codec.
 toJSONViaCodec :: HasCodec a => a -> JSON.Value
@@ -40,6 +41,7 @@ toJSONVia = flip go
       HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
       MapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> (a :: JSON.Value)
+      VoidCodec -> absurd (a :: Void)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
@@ -89,6 +91,7 @@ toEncodingVia = flip go
       HashMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
       MapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> JSON.value (a :: JSON.Value)
+      VoidCodec -> absurd (a :: Void)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of

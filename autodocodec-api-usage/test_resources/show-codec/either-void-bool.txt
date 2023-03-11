@@ -1,7 +1,5 @@
 EitherCodec
   DisjointUnion
-  (ObjectOfCodec
-     Nothing
-     (RequiredKeyCodec "Left" Nothing (BimapCodec _ _ ValueCodec)))
+  (ObjectOfCodec Nothing (RequiredKeyCodec "Left" Nothing VoidCodec))
   (ObjectOfCodec
      Nothing (RequiredKeyCodec "Right" Nothing (BoolCodec Nothing)))

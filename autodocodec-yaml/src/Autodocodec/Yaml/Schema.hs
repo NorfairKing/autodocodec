@@ -82,6 +82,7 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
     go :: JSONSchema -> [[Chunk]]
     go = \case
       AnySchema -> [[fore yellow "<any>"]]
+      NoSchema -> [[fore yellow "<none>"]]
       NullSchema -> [[fore yellow "null"]]
       BoolSchema -> [[fore yellow "<boolean>"]]
       StringSchema -> [[fore yellow "<string>"]]

@@ -17,6 +17,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Data.Void
 import qualified Data.Yaml as JSON
 import Data.Yaml.Builder as Yaml
 
@@ -41,6 +42,7 @@ toYamlVia = flip go
       HashMapCodec c -> go (toJSONVia (HashMapCodec c) a) ValueCodec -- This may be optimisable?
       MapCodec c -> go (toJSONVia (MapCodec c) a) ValueCodec -- This may be optimisable?
       ValueCodec -> yamlValue (a :: JSON.Value)
+      VoidCodec -> absurd a
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of

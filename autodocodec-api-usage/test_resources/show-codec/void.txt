@@ -1,1 +1,1 @@
-BimapCodec _ _ ValueCodec
+VoidCodec

@@ -40,7 +40,10 @@ import GHC.Generics (Generic)
 --
 -- NOTE: This schema roundtrips to JSON, but it cannot expres everything that a fully-featured json-schema may be able to express.
 data JSONSchema
-  = AnySchema
+  = -- | Always succeeds to validate
+    AnySchema
+  | -- | Always fails to validate
+    NoSchema
   | NullSchema
   | BoolSchema
   | StringSchema
@@ -76,6 +79,7 @@ instance ToJSON JSONSchema where
       go :: JSONSchema -> [JSON.Pair]
       go = \case
         AnySchema -> []
+        NoSchema -> ["not" JSON..= JSON.object []]
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
         StringSchema -> ["type" JSON..= ("string" :: Text)]
@@ -267,6 +271,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
       AnySchema -> pure True
+      NoSchema -> pure False
       NullSchema -> pure $ value == JSON.Null
       BoolSchema -> pure $ case value of
         JSON.Bool _ -> True
@@ -329,6 +334,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       HashMapCodec c -> MapSchema <$> go c
       MapCodec c -> MapSchema <$> go c
       ValueCodec -> pure AnySchema
+      VoidCodec -> pure NoSchema
       EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
       EitherCodec u c1 c2 -> do
         s1 <- go c1
