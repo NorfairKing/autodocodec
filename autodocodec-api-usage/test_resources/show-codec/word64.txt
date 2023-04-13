@@ -7,4 +7,5 @@ BimapCodec
         NumberBounds
           { numberBoundsLower = 0.0
           , numberBoundsUpper = 1.8446744073709551615e19
-          }))
+          })
+     IntegerRequired)

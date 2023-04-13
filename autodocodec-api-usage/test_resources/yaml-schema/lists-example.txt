@@ -2,11 +2,11 @@
 [37mpossibly-empty-with-omitted-default[m: # [34moptional[m
   # default: [35m[][m
   # possibly empty list with omitted default empty list
-  - [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
+  - [33m<integer>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
 [37mpossibly-empty-with-default[m: # [34moptional[m
   # default: [35m[][m
   # possibly empty list with default empty list
-  - [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
+  - [33m<integer>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
 [37mrequired-non-empty[m: # [31mrequired[m
   # required non-empty list
   - [33m<string>[m

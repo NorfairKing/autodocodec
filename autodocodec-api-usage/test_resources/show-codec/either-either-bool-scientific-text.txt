@@ -12,6 +12,8 @@ EitherCodec
            (ObjectOfCodec
               Nothing
               (RequiredKeyCodec
-                 "Right" Nothing (NumberCodec Nothing Nothing))))))
+                 "Right"
+                 Nothing
+                 (NumberCodec Nothing Nothing IntegerNotRequired))))))
   (ObjectOfCodec
      Nothing (RequiredKeyCodec "Right" Nothing (StringCodec Nothing)))
