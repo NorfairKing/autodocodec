@@ -16,6 +16,7 @@ import Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Map (Map)
+import qualified Data.Scientific as Scientific
 import qualified Data.Text as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -49,14 +50,19 @@ parseJSONContextVia codec_ context_ =
       StringCodec mname -> case mname of
         Nothing -> parseJSON value
         Just name -> withText (T.unpack name) pure value
-      NumberCodec mname mBounds ->
+      NumberCodec mname mBounds requireInteger ->
         ( \f -> case mname of
             Nothing -> parseJSON value >>= f
             Just name -> withScientific (T.unpack name) f value
         )
           ( \s -> case maybe Right checkNumberBounds mBounds s of
               Left err -> fail err
-              Right s' -> pure s'
+              Right s' ->
+                case requireInteger of
+                  IntegerRequired
+                    | not $ Scientific.isInteger s' ->
+                        fail $ "non-integer value " ++ show s' ++ " where integer required"
+                  _ -> pure s'
           )
       ArrayOfCodec mname c ->
         ( \f -> case mname of

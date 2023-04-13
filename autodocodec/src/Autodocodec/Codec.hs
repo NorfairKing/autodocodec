@@ -95,6 +95,8 @@ data Codec context input output where
     Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Maybe NumberBounds ->
+    -- | Is the number required to be an integer?
+    RequireInteger ->
     JSONCodec Scientific
   -- | Encode a 'HashMap', and decode any 'HashMap'.
   HashMapCodec ::
@@ -267,6 +269,13 @@ data NumberBounds = NumberBounds
 
 instance Validity NumberBounds
 
+data RequireInteger
+  = IntegerRequired
+  | IntegerNotRequired
+  deriving (Show, Eq, Generic)
+
+instance Validity RequireInteger
+
 -- | Check if a number falls within given 'NumberBounds'.
 checkNumberBounds :: NumberBounds -> Scientific -> Either String Scientific
 checkNumberBounds NumberBounds {..} s =
@@ -329,7 +338,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
       StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
-      NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
+      NumberCodec mName mbs intRequired -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs . showString " " . showsPrec 11 intRequired
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
       ValueCodec -> pure $ showString "ValueCodec"
@@ -1246,7 +1255,7 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- > scientificCodec = NumberCodec Nothing Nothing
 scientificCodec :: JSONCodec Scientific
-scientificCodec = NumberCodec Nothing Nothing
+scientificCodec = NumberCodec Nothing Nothing IntegerNotRequired
 
 -- | Codec for 'Scientific' values with bounds
 --
@@ -1282,7 +1291,7 @@ scientificCodec = NumberCodec Nothing Nothing
 --
 -- > scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
 scientificWithBoundsCodec :: NumberBounds -> JSONCodec Scientific
-scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
+scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds) IntegerNotRequired
 
 -- | An object codec with a given name
 --
@@ -1323,7 +1332,7 @@ object name = ObjectOfCodec (Just name)
 -- Nothing
 boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
 boundedIntegralCodec =
-  bimapCodec go fromIntegral $ scientificWithBoundsCodec (boundedIntegralNumberBounds @i)
+  bimapCodec go fromIntegral $ NumberCodec Nothing (Just $ boundedIntegralNumberBounds @i) IntegerRequired
   where
     go s = case Scientific.toBoundedInteger s of
       Nothing -> Left $ "Number did not fit into bounded integer: " <> show s
