@@ -42,8 +42,10 @@ declareNamedSchemaVia c' Proxy = go c'
               }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
-      NumberCodec mname mBounds -> do
-        s <- declareSchema (Proxy :: Proxy Scientific)
+      NumberCodec mname mBounds requireInteger -> do
+        s <- case requireInteger of
+          IntegerRequired -> declareSchema (Proxy :: Proxy Integer)
+          IntegerNotRequired -> declareSchema (Proxy :: Proxy Scientific)
         let addNumberBounds NumberBounds {..} s_ =
               s_
                 { _schemaParamSchema =

@@ -5,7 +5,7 @@
                 "int": {
                     "maximum": 9223372036854775807,
                     "minimum": -9223372036854775808,
-                    "type": "number"
+                    "type": "integer"
                 },
                 "text": {
                     "type": "string"

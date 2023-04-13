@@ -5,4 +5,5 @@ BimapCodec
      Nothing
      (Just
         NumberBounds
-          { numberBoundsLower = -32768.0 , numberBoundsUpper = 32767.0 }))
+          { numberBoundsLower = -32768.0 , numberBoundsUpper = 32767.0 })
+     IntegerRequired)

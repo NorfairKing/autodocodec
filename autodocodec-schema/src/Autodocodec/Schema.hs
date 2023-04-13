@@ -22,6 +22,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
+import qualified Data.Scientific as Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -45,6 +46,7 @@ data JSONSchema
   | BoolSchema
   | StringSchema
   | NumberSchema !(Maybe NumberBounds)
+  | IntegerSchema !(Maybe NumberBounds)
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
@@ -81,6 +83,10 @@ instance ToJSON JSONSchema where
         StringSchema -> ["type" JSON..= ("string" :: Text)]
         NumberSchema mBounds ->
           ("type" JSON..= ("number" :: Text)) : case mBounds of
+            Nothing -> []
+            Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
+        IntegerSchema mBounds ->
+          ("type" JSON..= ("integer" :: Text)) : case mBounds of
             Nothing -> []
             Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
         ArraySchema s ->
@@ -128,6 +134,13 @@ instance FromJSON JSONSchema where
         mUpper <- o JSON..:? "maximum"
         pure $
           NumberSchema $ case (,) <$> mLower <*> mUpper of
+            Nothing -> Nothing
+            Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
+      Just "integer" -> do
+        mLower <- o JSON..:? "minimum"
+        mUpper <- o JSON..:? "maximum"
+        pure $
+          IntegerSchema $ case (,) <$> mLower <*> mUpper of
             Nothing -> Nothing
             Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
       Just "array" -> do
@@ -279,6 +292,11 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
           Left _ -> False
           Right _ -> True
         _ -> False
+      IntegerSchema mBounds -> pure $ case value of
+        JSON.Number s -> case maybe Right checkNumberBounds mBounds s of
+          Left _ -> False
+          Right _ -> Scientific.isInteger s
+        _ -> False
       ArraySchema as -> case value of
         JSON.Array v -> and <$> mapM (`go` as) v
         _ -> pure False
@@ -319,7 +337,10 @@ jsonSchemaVia = (`evalState` S.empty) . go
       NullCodec -> pure NullSchema
       BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
       StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
-      NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
+      NumberCodec mname mBounds IntegerRequired ->
+        pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
+      NumberCodec mname mBounds IntegerNotRequired ->
+        pure $ maybe id CommentSchema mname $ NumberSchema mBounds
       ArrayOfCodec mname c -> do
         s <- go c
         pure $ maybe id CommentSchema mname $ ArraySchema s

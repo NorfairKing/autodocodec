@@ -3,7 +3,7 @@
         "Word32": {
             "maximum": 4294967295,
             "minimum": 0,
-            "type": "number"
+            "type": "integer"
         }
     },
     "info": {

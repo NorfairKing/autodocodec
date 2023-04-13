@@ -35,7 +35,7 @@ toYamlVia = flip go
       NullCodec -> Yaml.null
       BoolCodec _ -> Yaml.bool (a :: Bool)
       StringCodec _ -> Yaml.string (a :: Text)
-      NumberCodec _ _ -> yamlNumber (a :: Scientific)
+      NumberCodec _ _ _ -> yamlNumber (a :: Scientific)
       ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (a :: Vector _)))
       ObjectOfCodec _ oc -> Yaml.mapping (goObject a oc)
       HashMapCodec c -> go (toJSONVia (HashMapCodec c) a) ValueCodec -- This may be optimisable?

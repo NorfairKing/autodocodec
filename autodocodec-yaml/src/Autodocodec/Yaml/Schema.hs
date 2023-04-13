@@ -99,6 +99,20 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
                   fore green $ scientificChunk numberBoundsUpper
                 ]
               ]
+      IntegerSchema mBounds -> case mBounds of
+        Nothing -> [[fore yellow "<integer>"]]
+        Just NumberBounds {..} ->
+          let scientificChunk s = chunk $
+                T.pack $ case floatingOrInteger s of
+                  Left (_ :: Double) -> show (s :: Scientific)
+                  Right i -> show (i :: Integer)
+           in [ [ fore yellow "<integer>",
+                  " # between ",
+                  fore green $ scientificChunk numberBoundsLower,
+                  " and ",
+                  fore green $ scientificChunk numberBoundsUpper
+                ]
+              ]
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s
