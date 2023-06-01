@@ -10,6 +10,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeApplications #-}
+-- Because Eq is a superclass of Hashable in newer versions.
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Autodocodec.Codec where
 

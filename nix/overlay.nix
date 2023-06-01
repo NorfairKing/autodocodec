@@ -57,6 +57,13 @@ with final.haskell.lib;
                 name = "autodocodec-release";
                 paths = final.lib.attrValues self.autodocodecPackages;
               };
+
+            openapi3 =
+              if super.openapi3.meta.broken
+              then unmarkBroken super.openapi3
+              else if final.lib.versionAtLeast super.openapi3.version "3.2.3"
+              then final.lib.warn "Don't need this override openapi3 anymore." super.openapi3
+              else super.openapi3;
           } // autodocodecPackages
       );
   });
