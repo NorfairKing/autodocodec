@@ -4,6 +4,8 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- Because Eq is a superclass of Hashable in newer versions.
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Autodocodec.Class where
 
