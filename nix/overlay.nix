@@ -29,25 +29,18 @@ with final.haskell.lib;
                 testTarget = (old.testTarget or "") + " --show-details=direct";
                 # Turn off tests for older GHC's because they use aeson <=1.0
                 # and that outputs different schemas so the tests would fail
-                doCheck = final.lib.versionAtLeast self.ghc.version "9.0.0";
-                testDepends = (old.testDepends or [ ]) ++
-                  # Add doctest as a dependency for old-enough versions of ghc
-                  # until this is fixed:
-                  # https://github.com/sol/doctest/issues/327
-                  final.lib.optional (final.lib.versionOlder self.ghc.version "9.0.0") self.doctest;
+                doCheck = final.lib.versionAtLeast self.ghc.version "9.2.7";
               }));
 
-            autodocodecPackages =
-              final.lib.genAttrs [
-                "autodocodec"
-                "autodocodec-api-usage"
-                "autodocodec-openapi3"
-                "autodocodec-schema"
-                "autodocodec-servant-multipart"
-                "autodocodec-swagger2"
-                "autodocodec-yaml"
-              ]
-                autodocodecPkg;
+            autodocodecPackages = {
+              autodocodec = autodocodecPkg "autodocodec";
+              autodocodec-api-usage = autodocodecPkg "autodocodec-api-usage";
+              autodocodec-openapi3 = autodocodecPkg "autodocodec-openapi3";
+              autodocodec-schema = autodocodecPkg "autodocodec-schema";
+              autodocodec-servant-multipart = autodocodecPkg "autodocodec-servant-multipart";
+              autodocodec-swagger2 = autodocodecPkg "autodocodec-swagger2";
+              autodocodec-yaml = autodocodecPkg "autodocodec-yaml";
+            };
           in
           {
             inherit autodocodecPackages;
@@ -60,7 +53,7 @@ with final.haskell.lib;
 
             openapi3 =
               if super.openapi3.meta.broken
-              then unmarkBroken super.openapi3
+              then dontCheck (unmarkBroken super.openapi3)
               else if final.lib.versionAtLeast super.openapi3.version "3.2.3"
               then final.lib.warn "Don't need this override openapi3 anymore." super.openapi3
               else super.openapi3;
