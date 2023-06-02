@@ -81,10 +81,10 @@ showCodecSpec ::
   FilePath ->
   Spec
 showCodecSpec filePath =
-  describe ("showCodecSpec " <> nameOf @a) $
-    it "outputs the same shown codec information as before" $
-      pureGoldenStringFile
-        ("test_resources/show-codec/" <> filePath <> ".txt")
-        $ case Pretty.parseValue (showCodecABit (codec @a)) of
-          Nothing -> "Error parsing value"
-          Just v -> Pretty.valToStr v
+  describe ("showCodecSpec " <> nameOf @a)
+    $ it "outputs the same shown codec information as before"
+    $ pureGoldenStringFile
+      ("test_resources/show-codec/" <> filePath <> ".txt")
+    $ case Pretty.parseValue (showCodecABit (codec @a)) of
+      Nothing -> "Error parsing value"
+      Just v -> Pretty.valToStr v

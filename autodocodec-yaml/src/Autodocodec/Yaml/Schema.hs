@@ -67,8 +67,9 @@ jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
       chunks :| [] -> addInFrontOfFirstInList ["[ "] chunks ++ [["]"]]
       (chunks :| restChunks) ->
         concat $
-          addInFrontOfFirstInList ["[ "] chunks :
-          map (addInFrontOfFirstInList [", "]) restChunks ++ [[["]"]]]
+          addInFrontOfFirstInList ["[ "] chunks
+            : map (addInFrontOfFirstInList [", "]) restChunks
+            ++ [[["]"]]]
 
     anyOfChunks :: NonEmpty [[Chunk]] -> [[Chunk]]
     anyOfChunks = (["# ", fore green "any of"] :) . choiceChunks
