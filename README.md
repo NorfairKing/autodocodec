@@ -7,7 +7,7 @@ You write a single instance, of the 'Codec' type-class, for your type, and you g
 
 * [A 'ToJSON' instance from 'aeson' with both a `toJSON` and `toEncoding` implementation](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:ToJSON)
 * [A 'FromJSON' instance from 'aeson'](https://hackage.haskell.org/package/aeson-2.0.1.0/docs/Data-Aeson-Types.html#t:FromJSON)
-* [A 'ToYaml` instance from 'yaml'](https://hackage.haskell.org/package/yaml-0.11.7.0/docs/Data-Yaml-Builder.html#t:ToYaml)
+* [A 'ToYaml' instance from 'yaml'](https://hackage.haskell.org/package/yaml-0.11.7.0/docs/Data-Yaml-Builder.html#t:ToYaml)
 * [A json schema](http://json-schema.org/)
 * [A nicely-coloured human-readable yaml schema](./autodocodec-yaml)
 * [A Swagger schema](https://swagger.io/specification/v2/)
@@ -29,6 +29,20 @@ This project is ready to try out!
 ## Fully featured example
 
 ``` haskell
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE TypeApplications #-}
+module Main (main) where
+
+
+import Autodocodec
+import Autodocodec.Yaml
+import GHC.Generics
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Text (Text)
+import qualified Data.Text as T
+
 data Example = Example
   { exampleTextField :: !Text,
     exampleIntField :: !Int
@@ -36,9 +50,7 @@ data Example = Example
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON, -- <- FromJSON instance for free.
-      ToJSON, -- <- ToJSON instance for free.
-      Swagger.ToSchema, -- <- Swagger schema for free.
-      OpenAPI.ToSchema -- <- OpenAPI schema for free.
+      ToJSON  -- <- ToJSON instance for free.
     )
     via (Autodocodec Example)
 
@@ -48,7 +60,25 @@ instance HasCodec Example where
       Example
         <$> requiredField "text" "documentation for the text field" .= exampleTextField
         <*> requiredField "int" "documentation for the int field" .= exampleIntField
+
+main :: IO ()
+main =  do
+  let schema = T.unpack $ renderColouredSchemaViaCodec @Example
+  putStrLn schema
 ```
+
+This will output a nice coloured yaml-schema: 
+
+```
+# Example
+text: # required
+  # documentation for the text field
+  <string>
+int: # required
+  # documentation for the int field
+  <number> # between -9223372036854775808 and 9223372036854775807
+```
+ 
 
 ## Tests
 
