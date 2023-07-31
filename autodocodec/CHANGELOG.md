@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.4] - 2023-07-31
+
+### Added
+
+* The `HasCodec Identity` instance, thanks @clintonmead!
+
 ## [0.2.0.3] - 2023-01-31
 
 ### Added

@@ -28,6 +28,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Void
 import Data.Word
+import Data.Functor.Identity (Identity(Identity), runIdentity)
 
 -- | A class for values which have a canonical codec.
 --
@@ -107,6 +108,10 @@ instance HasCodec Word64 where
 
 instance HasCodec JSON.Value where
   codec = ValueCodec
+
+instance HasCodec a => HasCodec (Identity a) where
+  codec = dimapCodec runIdentity Identity codec
+  listCodecForStringCompatibility = dimapCodec (runIdentity <$>) (Identity <$>) listCodecForStringCompatibility
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec
