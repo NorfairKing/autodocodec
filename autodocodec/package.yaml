@@ -1,10 +1,10 @@
 name: autodocodec
-version: 0.2.0.3
+version: 0.2.0.4
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2021-2022 Tom Sydney Kerckhove"
+copyright: "2021-2023 Tom Sydney Kerckhove"
 synopsis: Self-documenting encoder and decoder
 
 extra-source-files:

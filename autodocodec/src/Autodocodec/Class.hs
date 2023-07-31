@@ -15,6 +15,7 @@ import qualified Data.Aeson as JSON
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 #endif
+import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable (Hashable)
 import Data.Int
@@ -107,6 +108,9 @@ instance HasCodec Word64 where
 
 instance HasCodec JSON.Value where
   codec = ValueCodec
+
+instance HasCodec a => HasCodec (Identity a) where
+  codec = dimapCodec runIdentity Identity codec
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec

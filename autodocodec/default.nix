@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "autodocodec";
-  version = "0.2.0.3";
+  version = "0.2.0.4";
   src = ./.;
   libraryHaskellDepends = [
     aeson base bytestring containers hashable mtl scientific text time
