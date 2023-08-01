@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0.5] - 2023-08-01
+
+### Added
+
+* The `HasCodec` instances for `Const`, `()`, `Alt`, `Dual`, `Semigroup.First`, `Semigroup.Last`, `Monoid.First` and `Monoid.Last`, thanks @clintonmead!
+
+### Fixed
+
+* Infinite recursion in `HasCodec Identity` instance, thanks @clintonmead!
+
 ## [0.2.0.4] - 2023-07-31
 
 ### Added
