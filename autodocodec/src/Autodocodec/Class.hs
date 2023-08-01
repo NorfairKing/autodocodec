@@ -15,14 +15,19 @@ import qualified Data.Aeson as JSON
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 #endif
+import Data.Functor.Const (Const(Const), getConst)
 import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable (Hashable)
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import Data.Monoid (Alt(Alt, getAlt))
+import qualified Data.Monoid as Monoid
 import Data.Scientific
 import Data.Set (Set)
+import Data.Semigroup (Dual(Dual, getDual))
+import qualified Data.Semigroup as Semigroup
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -54,6 +59,9 @@ instance HasCodec Void where
 
 instance HasCodec Bool where
   codec = boolCodec
+
+instance HasCodec () where
+  codec = nullCodec
 
 instance HasCodec Ordering where
   codec = shownBoundedEnumCodec
@@ -111,6 +119,27 @@ instance HasCodec JSON.Value where
 
 instance HasCodec a => HasCodec (Identity a) where
   codec = dimapCodec Identity runIdentity codec
+
+instance HasCodec (f a) => HasCodec (Alt f a) where
+  codec = dimapCodec Alt getAlt codec
+
+instance HasCodec a => HasCodec (Dual a) where
+  codec = dimapCodec Dual getDual codec
+
+instance HasCodec a => HasCodec (Semigroup.First a) where
+  codec = dimapCodec Semigroup.First Semigroup.getFirst codec
+
+instance HasCodec a => HasCodec (Semigroup.Last a) where
+  codec = dimapCodec Semigroup.Last Semigroup.getLast codec
+
+instance HasCodec a => HasCodec (Monoid.First a) where
+  codec = dimapCodec Monoid.First Monoid.getFirst codec
+
+instance HasCodec a => HasCodec (Monoid.Last a) where
+  codec = dimapCodec Monoid.Last Monoid.getLast codec
+
+instance HasCodec a => HasCodec (Const a b) where
+  codec = dimapCodec Const getConst codec
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec
