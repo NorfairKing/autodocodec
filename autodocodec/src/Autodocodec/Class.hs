@@ -110,7 +110,7 @@ instance HasCodec JSON.Value where
   codec = ValueCodec
 
 instance HasCodec a => HasCodec (Identity a) where
-  codec = dimapCodec runIdentity Identity codec
+  codec = dimapCodec Identity runIdentity codec
 
 instance HasCodec a => HasCodec (Maybe a) where
   codec = maybeCodec codec
