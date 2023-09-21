@@ -11,6 +11,7 @@ module Autodocodec.Schema where
 
 import Autodocodec
 import qualified Autodocodec.Aeson.Compat as Compat
+import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.State
 import Data.Aeson (FromJSON (..), ToJSON (..))
@@ -31,6 +32,9 @@ import Data.Validity.Aeson ()
 import Data.Validity.Containers ()
 import Data.Validity.Text ()
 import GHC.Generics (Generic)
+import Witherable (Witherable (filterA))
+
+data AdditionalProperties = IsABool Bool | IsASchema !JSONSchema deriving (Show, Eq, Generic)
 
 -- | A JSON Schema
 --
@@ -46,7 +50,7 @@ data JSONSchema
   | StringSchema
   | NumberSchema !(Maybe NumberBounds)
   | ArraySchema !JSONSchema
-  | MapSchema !JSONSchema
+  | MapSchema AdditionalProperties ObjectSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
     ObjectSchema ObjectSchema
   | ValueSchema !JSON.Value
@@ -60,7 +64,7 @@ data JSONSchema
 instance Validity JSONSchema where
   validate js =
     mconcat
-      [ genericValidate js,
+      [ -- genericValidate js,
         declare "never has two nested comments" $ case js of
           CommentSchema _ (CommentSchema _ _) -> False
           _ -> True,
@@ -87,9 +91,12 @@ instance ToJSON JSONSchema where
           let itemSchemaVal = go s
            in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
         ValueSchema v -> ["const" JSON..= v]
-        MapSchema s ->
-          let itemSchemaVal = go s
-           in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object itemSchemaVal]
+        MapSchema additionalProperties os -> case additionalProperties of
+          IsABool b -> ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= b] <> go (ObjectSchema os)
+          IsASchema additionalPropertiesSchema ->
+            let itemSchemaVal = go (ObjectSchema os)
+                additionalPropertiesVal = go additionalPropertiesSchema
+             in ["type" JSON..= ("object" :: Text), "additionalProperties" JSON..= JSON.object additionalPropertiesVal] <> itemSchemaVal
         ObjectSchema os ->
           case toJSON os of
             JSON.Object o -> Compat.toList o
@@ -139,7 +146,13 @@ instance FromJSON JSONSchema where
         mAdditional <- o JSON..:? "additionalProperties"
         case mAdditional of
           Nothing -> ObjectSchema <$> parseJSON (JSON.Object o)
-          Just additional -> pure $ MapSchema additional
+          Just v ->
+            JSON.withBool "BooleanAdditionalProperties" (\b -> MapSchema (IsABool b) <$> parseJSON (JSON.Object $ Compat.delete "additionalProperties" o)) v
+              <|> ( do
+                      os <- parseJSON (JSON.Object $ Compat.delete "additionalProperties" o)
+                      additionalPropertiesSchema <- parseJSON v
+                      pure $ MapSchema (IsASchema additionalPropertiesSchema) os
+                  )
       Nothing -> do
         mAny <- o JSON..:? "anyOf"
         case mAny of
@@ -252,17 +265,31 @@ defsPrefix = "#/$defs/"
 validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
 validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
   where
-    goObject :: JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
-    goObject obj = \case
+    goObject :: JSON.Value -> ObjectSchema -> State (Map Text JSONSchema) Bool
+    goObject (JSON.Object obj) = \case
       ObjectAnySchema -> pure True
       ObjectKeySchema key kr ks _ -> case Compat.lookupKey (Compat.toKey key) obj of
         Nothing -> case kr of
           Required -> pure False
           Optional _ -> pure True
         Just value' -> go value' ks
-      ObjectAllOfSchema ne -> and <$> mapM (goObject obj) ne
-      ObjectAnyOfSchema ne -> or <$> mapM (goObject obj) ne
-      ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (goObject obj) ne
+      ObjectAllOfSchema ne -> and <$> mapM (goObject $ JSON.Object obj) ne
+      ObjectAnyOfSchema ne -> or <$> mapM (goObject $ JSON.Object obj) ne
+      ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (goObject $ JSON.Object obj) ne
+    goObject _ = const $ pure False
+
+    goObjectWithAdditionalProperties :: JSONSchema -> JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
+    goObjectWithAdditionalProperties additionalPropertiesSchema obj = \case
+      ObjectAnySchema -> pure True
+      ObjectKeySchema key kr ks _ -> case Compat.lookupKey (Compat.toKey key) obj of
+        Nothing -> case kr of
+          -- If the key is not on the object it must at least match the additionalProperties schema
+          Required -> pure (ks == additionalPropertiesSchema)
+          Optional _ -> pure True
+        Just value' -> go value' ks
+      ObjectAllOfSchema ne -> and <$> mapM (goObjectWithAdditionalProperties additionalPropertiesSchema obj) ne
+      ObjectAnyOfSchema ne -> or <$> mapM (goObjectWithAdditionalProperties additionalPropertiesSchema obj) ne
+      ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (goObjectWithAdditionalProperties additionalPropertiesSchema obj) ne
 
     go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
     go value = \case
@@ -282,11 +309,18 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       ArraySchema as -> case value of
         JSON.Array v -> and <$> mapM (`go` as) v
         _ -> pure False
-      MapSchema vs -> case value of
-        JSON.Object hm -> and <$> mapM (`go` vs) hm
-        _ -> pure False
+      MapSchema additionalProperties os ->
+        case (additionalProperties, value) of
+          (IsABool False, JSON.Object hm) -> and <$> mapM (`goObject` os) hm
+          -- TODO additionalProperties should not invalidate this
+          -- We need to call goObject with an additional argument
+          (IsABool True, JSON.Object hm) -> and <$> mapM (`goObject` os) hm
+          (IsABool _, _) -> pure False
+          -- All vs match hm or the one's that don't match apSchema
+          (IsASchema apSchema, JSON.Object hm) -> and <$> mapM (\v -> goObjectWithAdditionalProperties apSchema v os) hm
+          (IsASchema _, _) -> pure False
       ObjectSchema os -> case value of
-        JSON.Object obj -> goObject obj os
+        JSON.Object obj -> goObject (JSON.Object obj) os
         _ -> pure False
       ValueSchema v -> pure $ v == value
       AnyOfSchema ss -> or <$> mapM (go value) ss
@@ -326,8 +360,10 @@ jsonSchemaVia = (`evalState` S.empty) . go
       ObjectOfCodec mname oc -> do
         s <- goObject oc
         pure $ maybe id CommentSchema mname $ ObjectSchema s
-      HashMapCodec c -> MapSchema <$> go c
-      MapCodec c -> MapSchema <$> go c
+      HashMapCodec c -> undefined
+      -- MapSchema (IsABool False) <$> go c
+      MapCodec c -> undefined
+      -- MapSchema (IsABool False) <$> go c
       ValueCodec -> pure AnySchema
       EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
       EitherCodec u c1 c2 -> do

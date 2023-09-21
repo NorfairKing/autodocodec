@@ -44,6 +44,14 @@ insert = HM.insert
 #endif
 
 #if MIN_VERSION_aeson(2,0,0)
+delete :: Key -> KM.KeyMap v -> KM.KeyMap v
+delete = KM.delete
+#else
+delete :: Text -> HM.HashMap Text v -> HM.HashMap Text v
+delete = HM.delete
+#endif
+
+#if MIN_VERSION_aeson(2,0,0)
 fromList :: [(Key, v)] -> KM.KeyMap v
 fromList = KM.fromList
 #else
