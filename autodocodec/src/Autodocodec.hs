@@ -11,9 +11,19 @@ module Autodocodec
     toEncodingViaCodec,
     toEncodingVia,
 
+    -- ** JSON Objects
+    toJSONObjectViaCodec,
+    toJSONObjectVia,
+    toSeriesViaCodec,
+    toSeriesVia,
+
     -- * Instantiating 'Aeson.FromJSON'
     parseJSONViaCodec,
     parseJSONVia,
+
+    -- ** JSON Objects
+    parseJSONObjectViaCodec,
+    parseJSONObjectVia,
 
     -- * Codec
     JSONCodec,

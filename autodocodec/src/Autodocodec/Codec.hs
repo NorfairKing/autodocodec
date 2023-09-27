@@ -44,7 +44,7 @@ import Data.Void
 import GHC.Generics (Generic)
 
 -- $setup
--- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia, parseJSONViaCodec)
+-- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, toJSONObjectVia, toJSONObjectViaCodec, parseJSONVia, parseJSONViaCodec, parseJSONObjectVia, parseJSONObjectViaCodec)
 -- >>> import qualified Autodocodec.Aeson.Compat as Compat
 -- >>> import Autodocodec.Class (HasCodec(codec), requiredField)
 -- >>> import qualified Data.Aeson as JSON
@@ -1555,6 +1555,8 @@ matchChoicesCodecAs union l fallback = go l
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "Tomato") :: Maybe Fruit
+-- Nothing
 parseAlternatives ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->
@@ -1573,6 +1575,7 @@ parseAlternatives c rest = go (c :| rest)
 --
 --
 -- === Example usage
+-- ==== Values
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternative shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
@@ -1582,6 +1585,46 @@ parseAlternatives c rest = go (c :| rest)
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
+--
+-- ==== Required object fields
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = shownBoundedEnumCodec
+-- >>> let o = parseAlternative (requiredFieldWith "current" c "current key for this field") (requiredFieldWith "legacy" c "legacy key for this field")
+-- >>> toJSONObjectVia o Apple
+-- fromList [("current",String "Apple")]
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("legacy",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Tomato")]) :: Maybe Fruit
+-- Nothing
+--
+-- ==== Required object fields
+--
+-- While 'parseAlternative' works exactly like you would expect it would with 'requiredField', using 'parseAlterternative' with optional fields has some pitfalls.
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = shownBoundedEnumCodec
+-- >>> let o = parseAlternative (optionalFieldWith "current" c "current key for this field") (optionalFieldWith "legacy" c "legacy key for this field")
+-- >>> toJSONObjectVia o (Just Apple)
+-- fromList [("current",String "Apple")]
+-- >>> toJSONObjectVia o Nothing
+-- fromList []
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Apple")]) :: Maybe (Maybe Fruit)
+-- Just (Just Apple)
+--
+--
+-- ! This is the important result !
+-- The second 'optionalFieldWith' is not tried because the first one _succeeds_ in parsing 'Nothing'
+--
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("legacy",String "Apple")]) :: Maybe (Maybe Fruit)
+-- Just Nothing
+--
+-- Here the parser succeeds as well, because it fails to parse the @current@ field, so it tries to parse the @legacy@ field, which is missing.
+--
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Tomato")]) :: Maybe (Maybe Fruit)
+-- Just Nothing
 parseAlternative ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->

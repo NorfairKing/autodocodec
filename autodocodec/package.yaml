@@ -1,5 +1,5 @@
 name: autodocodec
-version: 0.2.0.4
+version: 0.2.0.5
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -35,7 +35,7 @@ tests:
     # Turn off doctests until this issue is fixed:
     # https://github.com/sol/doctest/issues/327
     when:
-      - condition: impl(GHC < 9.0)
+      - condition: impl(GHC > 9.2)
         then:
           buildable: true
         else:

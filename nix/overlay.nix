@@ -30,6 +30,7 @@ with final.haskell.lib;
                 # Turn off tests for older GHC's because they use aeson <=1.0
                 # and that outputs different schemas so the tests would fail
                 doCheck = final.lib.versionAtLeast self.ghc.version "9.2.7";
+                libraryHaskellDepends = (old.libraryHaskellDepends or [ ]) ++ [ self.doctest ];
               }));
 
             autodocodecPackages = {

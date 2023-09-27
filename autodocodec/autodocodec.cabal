@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec
-version:        0.2.0.4
+version:        0.2.0.5
 synopsis:       Self-documenting encoder and decoder
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -65,7 +65,7 @@ test-suite autodocodec-doctest
       base >=4.7 && <5
     , doctest
   default-language: Haskell2010
-  if impl(GHC < 9.0)
+  if impl(GHC > 9.2)
     buildable: True
   else
     buildable: False
