@@ -1556,16 +1556,22 @@ matchChoicesCodecAs union l fallback = go l
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "Tomato") :: Maybe Fruit
+-- Nothing
 --
 -- ==== Object fields
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = shownBoundedEnumCodec
--- >>> let o = parseAlternative (requiredFieldWith "foo" c "current key for this field") (requiredFieldWith "foo-legacy" c "legacy key for this field")
+-- >>> let o = parseAlternative (requiredFieldWith "current" c "current key for this field") (requiredFieldWith "legacy" c "legacy key for this field")
 -- >>> toJSONObjectVia o Apple
--- fromList [("foo",String "Apple")]
-
--- TODO parsing tests too.
+-- fromList [("current",String "Apple")]
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("legacy",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Tomato")]) :: Maybe Fruit
+-- Nothing
 parseAlternatives ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->
