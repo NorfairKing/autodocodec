@@ -14,6 +14,8 @@ module Autodocodec.Aeson
     -- ** JSON Objects
     toJSONObjectViaCodec,
     toJSONObjectVia,
+    toSeriesViaCodec,
+    toSeriesVia,
 
     -- * Instantiating @FromJSON@
     parseJSONViaCodec,
