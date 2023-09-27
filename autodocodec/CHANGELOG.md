@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0.5] - 2023-08-27
+
+### Added
+
+* JSON Object-specific versions of encoding and decoding functions
+* Documentation about how 'parseAlternative' and 'optionalField' together can be a pitfall.
+
 ## [0.2.0.4] - 2023-07-31
 
 ### Added
