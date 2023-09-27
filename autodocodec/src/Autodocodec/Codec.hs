@@ -1546,7 +1546,6 @@ matchChoicesCodecAs union l fallback = go l
 --
 --
 -- === Example usage
--- ==== Values
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternatives shownBoundedEnumCodec [stringConstCodec [(Apple, "foo"), (Orange, "bar")]]
@@ -1557,20 +1556,6 @@ matchChoicesCodecAs union l fallback = go l
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Tomato") :: Maybe Fruit
--- Nothing
---
--- ==== Object fields
---
--- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
--- >>> let c = shownBoundedEnumCodec
--- >>> let o = parseAlternative (requiredFieldWith "current" c "current key for this field") (requiredFieldWith "legacy" c "legacy key for this field")
--- >>> toJSONObjectVia o Apple
--- fromList [("current",String "Apple")]
--- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Apple")]) :: Maybe Fruit
--- Just Apple
--- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("legacy",String "Apple")]) :: Maybe Fruit
--- Just Apple
--- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Tomato")]) :: Maybe Fruit
 -- Nothing
 parseAlternatives ::
   -- | Main codec, for parsing and rendering
@@ -1590,6 +1575,7 @@ parseAlternatives c rest = go (c :| rest)
 --
 --
 -- === Example usage
+-- ==== Values
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternative shownBoundedEnumCodec (stringConstCodec [(Apple, "foo"), (Orange, "bar")])
@@ -1599,6 +1585,20 @@ parseAlternatives c rest = go (c :| rest)
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
+--
+-- ==== Object fields
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = shownBoundedEnumCodec
+-- >>> let o = parseAlternative (requiredFieldWith "current" c "current key for this field") (requiredFieldWith "legacy" c "legacy key for this field")
+-- >>> toJSONObjectVia o Apple
+-- fromList [("current",String "Apple")]
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("legacy",String "Apple")]) :: Maybe Fruit
+-- Just Apple
+-- >>> JSON.parseMaybe (parseJSONObjectVia o) (KM.fromList [("current",String "Tomato")]) :: Maybe Fruit
+-- Nothing
 parseAlternative ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->
