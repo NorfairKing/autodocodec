@@ -38,30 +38,29 @@ toJSONObjectViaCodec :: HasObjectCodec a => a -> JSON.Object
 toJSONObjectViaCodec = toJSONObjectVia objectCodec
 
 toJSONObjectVia :: ObjectCodec a void -> a -> JSON.Object
-toJSONObjectVia = flip goObject
+toJSONObjectVia = flip go
   where
-    goObject :: a -> ObjectCodec a void -> JSON.Object
-    goObject a = \case
-      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= go a c
+    go :: a -> ObjectCodec a void -> JSON.Object
+    go a = \case
+      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= toJSONVia c a
       OptionalKeyCodec k c _ -> case (a :: Maybe _) of
         Nothing -> mempty
-        Just b -> Compat.toKey k JSON..= go b c
-      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+        Just b -> Compat.toKey k JSON..= toJSONVia c b
+      OptionalKeyWithDefaultCodec k c _ mdoc -> go (Just a) (OptionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
         if a == defaultValue
           then mempty
-          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
-      BimapCodec _ g c -> goObject (g a) c
+          else go a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
+      BimapCodec _ g c -> go (g a) c
       PureCodec _ -> mempty
       EitherCodec _ c1 c2 -> case (a :: Either _ _) of
-        Left a1 -> goObject a1 c1
-        Right a2 -> goObject a2 c2
+        Left a1 -> go a1 c1
+        Right a2 -> go a2 c2
       DiscriminatedUnionCodec propertyName mapping _ ->
         case mapping a of
           (discriminatorValue, c) ->
-            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ goObject a c
-      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
-    go = flip toJSONVia
+            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ go a c
+      ApCodec oc1 oc2 -> go a oc1 <> go a oc2
 
 -- | Implement 'JSON.toJSON' via a given codec.
 toJSONVia :: ValueCodec a void -> a -> JSON.Value
@@ -76,7 +75,7 @@ toJSONVia = flip go
       StringCodec _ -> toJSON (a :: Text)
       NumberCodec _ _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
-      ObjectOfCodec _ oc -> JSON.Object (goObject a oc)
+      ObjectOfCodec _ oc -> JSON.Object (toJSONObjectVia oc a)
       HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
       MapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> (a :: JSON.Value)
@@ -87,7 +86,6 @@ toJSONVia = flip go
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
-    goObject = flip toJSONObjectVia
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
 toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding
