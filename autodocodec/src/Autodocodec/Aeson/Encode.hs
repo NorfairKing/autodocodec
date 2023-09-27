@@ -3,7 +3,18 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 
-module Autodocodec.Aeson.Encode where
+module Autodocodec.Aeson.Encode
+  ( -- * Encoding JSON Values
+    toJSONViaCodec,
+    toJSONVia,
+    toEncodingVia,
+
+    -- * Encoding JSON Objects
+    toJSONObjectViaCodec,
+    toJSONObjectVia,
+    toEncodingViaCodec,
+  )
+where
 
 import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
@@ -22,6 +33,35 @@ import qualified Data.Vector as V
 -- | Implement 'JSON.toJSON' via a type's codec.
 toJSONViaCodec :: HasCodec a => a -> JSON.Value
 toJSONViaCodec = toJSONVia codec
+
+toJSONObjectViaCodec :: HasObjectCodec a => a -> JSON.Object
+toJSONObjectViaCodec = toJSONObjectVia objectCodec
+
+toJSONObjectVia :: ObjectCodec a void -> a -> JSON.Object
+toJSONObjectVia = flip goObject
+  where
+    goObject :: a -> ObjectCodec a void -> JSON.Object
+    goObject a = \case
+      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= go a c
+      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
+        Nothing -> mempty
+        Just b -> Compat.toKey k JSON..= go b c
+      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
+        if a == defaultValue
+          then mempty
+          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
+      BimapCodec _ g c -> goObject (g a) c
+      PureCodec _ -> mempty
+      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+        Left a1 -> goObject a1 c1
+        Right a2 -> goObject a2 c2
+      DiscriminatedUnionCodec propertyName mapping _ ->
+        case mapping a of
+          (discriminatorValue, c) ->
+            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ goObject a c
+      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
+    go = flip toJSONVia
 
 -- | Implement 'JSON.toJSON' via a given codec.
 toJSONVia :: ValueCodec a void -> a -> JSON.Value
@@ -47,28 +87,7 @@ toJSONVia = flip go
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
-
-    goObject :: a -> ObjectCodec a void -> JSON.Object
-    goObject a = \case
-      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= go a c
-      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
-        Nothing -> mempty
-        Just b -> Compat.toKey k JSON..= go b c
-      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
-      OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
-        if a == defaultValue
-          then mempty
-          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
-      BimapCodec _ g c -> goObject (g a) c
-      PureCodec _ -> mempty
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
-        Left a1 -> goObject a1 c1
-        Right a2 -> goObject a2 c2
-      DiscriminatedUnionCodec propertyName mapping _ ->
-        case mapping a of
-          (discriminatorValue, c) ->
-            Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ goObject a c
-      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
+    goObject = flip toJSONObjectVia
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
 toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding

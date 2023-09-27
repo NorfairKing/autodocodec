@@ -11,9 +11,17 @@ module Autodocodec.Aeson
     toEncodingViaCodec,
     toEncodingVia,
 
+    -- ** JSON Objects
+    toJSONObjectViaCodec,
+    toJSONObjectVia,
+
     -- * Instantiating @FromJSON@
     parseJSONViaCodec,
     parseJSONVia,
+
+    -- ** JSON Objects
+    parseJSONObjectViaCodec,
+    parseJSONObjectVia,
 
     -- * To makes sure we definitely export everything.
     module Autodocodec.Aeson.Decode,

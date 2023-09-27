@@ -44,7 +44,7 @@ import Data.Void
 import GHC.Generics (Generic)
 
 -- $setup
--- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, parseJSONVia, parseJSONViaCodec)
+-- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, toJSONObjectVia, toJSONObjectViaCodec, parseJSONVia, parseJSONViaCodec, parseJSONObjectVia, parseJSONObjectViaCodec)
 -- >>> import qualified Autodocodec.Aeson.Compat as Compat
 -- >>> import Autodocodec.Class (HasCodec(codec), requiredField)
 -- >>> import qualified Data.Aeson as JSON
@@ -1546,6 +1546,7 @@ matchChoicesCodecAs union l fallback = go l
 --
 --
 -- === Example usage
+-- ==== Values
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
 -- >>> let c = parseAlternatives shownBoundedEnumCodec [stringConstCodec [(Apple, "foo"), (Orange, "bar")]]
@@ -1555,6 +1556,16 @@ matchChoicesCodecAs union l fallback = go l
 -- Just Apple
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "Apple") :: Maybe Fruit
 -- Just Apple
+--
+-- ==== Object fields
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Bounded, Enum)
+-- >>> let c = shownBoundedEnumCodec
+-- >>> let o = parseAlternative (requiredFieldWith "foo" c "current key for this field") (requiredFieldWith "foo-legacy" c "legacy key for this field")
+-- >>> toJSONObjectVia o Apple
+-- fromList [("foo",String "Apple")]
+
+-- TODO parsing tests too.
 parseAlternatives ::
   -- | Main codec, for parsing and rendering
   Codec context input output ->

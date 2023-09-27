@@ -4,7 +4,19 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 
-module Autodocodec.Aeson.Decode where
+module Autodocodec.Aeson.Decode
+  ( -- * Decoding JSON Values
+    parseJSONViaCodec,
+    parseJSONVia,
+
+    -- ** Decoding JSON Objects
+    parseJSONObjectViaCodec,
+    parseJSONObjectVia,
+
+    -- ** Internal
+    parseJSONContextVia,
+  )
+where
 
 import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
@@ -27,6 +39,12 @@ parseJSONViaCodec = parseJSONVia codec
 -- | Implement 'JSON.parseJSON' via a given codec.
 parseJSONVia :: ValueCodec void a -> JSON.Value -> JSON.Parser a
 parseJSONVia = parseJSONContextVia
+
+parseJSONObjectViaCodec :: HasObjectCodec a => JSON.Object -> JSON.Parser a
+parseJSONObjectViaCodec = parseJSONObjectVia objectCodec
+
+parseJSONObjectVia :: ObjectCodec void a -> JSON.Object -> JSON.Parser a
+parseJSONObjectVia = parseJSONContextVia
 
 -- | Parse via a general codec.
 --
