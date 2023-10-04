@@ -51,7 +51,7 @@
         overlays = [
           (final: prev: {
             haskellPackages = prev.haskellPackages.override (old: {
-              overrides = final.lib.composeExtensions (old.overridesor (_: _: { })) (self: super:
+              overrides = final.lib.composeExtensions (old.overrides or (_: _: { })) (self: super:
                 horizon-core.legacyPackages.${system} // super
               );
             });
