@@ -78,8 +78,8 @@ toJSONVia = flip go
       NumberCodec _ _ -> toJSON (a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.Object (toJSONObjectVia oc a)
-      HashMapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
-      MapCodec c -> JSON.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
+      HashMapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
+      MapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
@@ -133,8 +133,8 @@ toEncodingVia = flip go
       NumberCodec _ _ -> JSON.scientific (a :: Scientific)
       ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (a :: Vector _))
       ObjectOfCodec _ oc -> JSON.pairs (toSeriesVia oc a)
-      HashMapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
-      MapCodec c -> JSON.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
+      HashMapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
+      MapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
       ValueCodec -> JSON.value (a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c

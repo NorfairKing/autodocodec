@@ -94,8 +94,8 @@ parseJSONContextVia codec_ context_ =
             Just name -> withObject (T.unpack name) f value
         )
           (\object_ -> (`go` c) (object_ :: JSON.Object))
-      HashMapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _)
-      MapCodec c -> liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _)
+      HashMapCodec c -> Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _)
+      MapCodec c -> Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _)
       ValueCodec -> pure (value :: JSON.Value)
       EqCodec expected c -> do
         actual <- go value c

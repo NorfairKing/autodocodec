@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0.6] - 2023-10-05
+
+### Added
+
+* Forward-compatibility with `aeson >= 2.2`.
+
 ## [0.2.0.5] - 2023-08-27
 
 ### Added
