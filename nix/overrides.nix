@@ -54,7 +54,5 @@ in
   openapi3 =
     if super.openapi3.meta.broken
     then dontCheck (unmarkBroken super.openapi3)
-    else if versionAtLeast super.openapi3.version "3.2.3"
-    then warn "Don't need this override openapi3 anymore." super.openapi3
     else super.openapi3;
 } // autodocodecPackages
