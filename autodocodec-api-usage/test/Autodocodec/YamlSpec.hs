@@ -24,6 +24,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Word
 import Data.Yaml as Yaml
 import Data.Yaml.Builder as YamlBuilder
@@ -56,6 +57,7 @@ spec = do
   yamlCodecSpec @(Maybe Text)
   yamlCodecSpec @(Either Bool Text)
   yamlCodecSpec @(Either (Either Bool [Text]) Text)
+  yamlCodecSpec @(Vector Text)
   yamlCodecSpec @[Text]
   yamlCodecSpec @(NonEmpty Text)
   yamlCodecSpec @(Set Text)

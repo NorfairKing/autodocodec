@@ -27,6 +27,7 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Void
 import Data.Word
 
@@ -120,6 +121,9 @@ instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
     disjointEitherCodec
       (ObjectOfCodec Nothing (requiredField' "Left"))
       (ObjectOfCodec Nothing (requiredField' "Right"))
+
+instance HasCodec a => HasCodec (Vector a) where
+  codec = vectorCodec codec
 
 instance HasCodec a => HasCodec [a] where
   codec = listCodecForStringCompatibility

@@ -137,6 +137,7 @@ extra-source-files:
     test_resources/openapi-schema/time-of-day.json
     test_resources/openapi-schema/utc-time.json
     test_resources/openapi-schema/value.json
+    test_resources/openapi-schema/vector-text.json
     test_resources/openapi-schema/very-comment.json
     test_resources/openapi-schema/via.json
     test_resources/openapi-schema/void.json
@@ -183,6 +184,7 @@ extra-source-files:
     test_resources/show-codec/time-of-day.txt
     test_resources/show-codec/utc-time.txt
     test_resources/show-codec/value.txt
+    test_resources/show-codec/vector-text.txt
     test_resources/show-codec/very-comment.txt
     test_resources/show-codec/via.txt
     test_resources/show-codec/void.txt
@@ -232,6 +234,7 @@ extra-source-files:
     test_resources/swagger-schema/time-of-day.json
     test_resources/swagger-schema/utc-time.json
     test_resources/swagger-schema/value.json
+    test_resources/swagger-schema/vector-text.json
     test_resources/swagger-schema/very-comment.json
     test_resources/swagger-schema/via.json
     test_resources/swagger-schema/void.json
@@ -379,6 +382,7 @@ test-suite autodocodec-api-usage-test
     , sydtest-aeson
     , text
     , time
+    , vector
     , yaml
   default-language: Haskell2010
 
@@ -408,4 +412,5 @@ benchmark autodocodec-api-usage-bench
     , scientific
     , text
     , time
+    , vector
   default-language: Haskell2010

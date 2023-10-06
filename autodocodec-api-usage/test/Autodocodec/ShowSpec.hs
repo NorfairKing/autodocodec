@@ -17,6 +17,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Void
 import Data.Word
 import Test.Syd
@@ -50,6 +51,7 @@ spec = do
   showCodecSpec @(Maybe Text) "maybe-text"
   showCodecSpec @(Either Bool Text) "either-bool-text"
   showCodecSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
+  showCodecSpec @(Vector Text) "vector-text"
   showCodecSpec @[Text] "list-text"
   showCodecSpec @(NonEmpty Text) "nonempty-text"
   showCodecSpec @(Set Text) "set-text"

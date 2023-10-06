@@ -1,0 +1,18 @@
+{
+    "components": {
+        "schemas": {
+            "(Vector Text)": {
+                "items": {
+                    "type": "string"
+                },
+                "type": "array"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

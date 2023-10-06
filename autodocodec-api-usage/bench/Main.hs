@@ -25,6 +25,7 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Typeable
+import Data.Vector (Vector)
 import Data.Word
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Random
@@ -58,6 +59,7 @@ main =
       comparisonBench @(Maybe Text),
       comparisonBench @(Either Bool Text),
       comparisonBench @(Either (Either Bool [Text]) Text),
+      comparisonBench @(Vector Text),
       comparisonBench @[Text],
       comparisonBench @(NonEmpty Text),
       comparisonBench @(Set Text),

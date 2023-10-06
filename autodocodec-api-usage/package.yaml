@@ -82,6 +82,7 @@ tests:
     - text
     - time
     - yaml
+    - vector
 
 benchmarks:
   autodocodec-api-usage-bench:
@@ -109,3 +110,4 @@ benchmarks:
     - scientific
     - text
     - time
+    - vector

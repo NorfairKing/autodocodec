@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1.0] - 2023-10-06
+
+### Added
+
+* `HasCodec a => HasCodec (Vector a)` instance.
+
 ## [0.2.0.6] - 2023-10-05
 
 ### Added

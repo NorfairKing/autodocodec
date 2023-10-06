@@ -8,7 +8,7 @@
 , lib, openapi3, pretty-show, QuickCheck, safe-coloured-text
 , scientific, servant-multipart, servant-multipart-api, swagger2
 , sydtest, sydtest-aeson, sydtest-discover, text, time
-, unordered-containers, yaml
+, unordered-containers, vector, yaml
 }:
 mkDerivation {
   pname = "autodocodec-api-usage";
@@ -29,13 +29,15 @@ mkDerivation {
     genvalidity-containers genvalidity-scientific genvalidity-sydtest
     genvalidity-sydtest-aeson genvalidity-text genvalidity-time
     openapi3 pretty-show QuickCheck safe-coloured-text scientific
-    servant-multipart-api swagger2 sydtest sydtest-aeson text time yaml
+    servant-multipart-api swagger2 sydtest sydtest-aeson text time
+    vector yaml
   ];
   testToolDepends = [ sydtest-discover ];
   benchmarkHaskellDepends = [
     aeson autodocodec base bytestring containers criterion deepseq
     genvalidity-containers genvalidity-criterion genvalidity-sydtest
     genvalidity-text genvalidity-time QuickCheck scientific text time
+    vector
   ];
   homepage = "https://github.com/NorfairKing/autodocodec#readme";
   description = "Autodocodec api usage tests";

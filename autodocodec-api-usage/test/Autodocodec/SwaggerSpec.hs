@@ -31,6 +31,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Void
 import Data.Word
 import Test.Syd
@@ -65,6 +66,7 @@ spec = do
   swaggerSchemaSpec @(Maybe Text) "maybe-text"
   swaggerSchemaSpec @(Either Bool Text) "either-bool-text"
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
+  swaggerSchemaSpec @(Vector Text) "vector-text"
   swaggerSchemaSpec @[Text] "list-text"
   swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
   swaggerSchemaSpec @(Set Text) "set-text"

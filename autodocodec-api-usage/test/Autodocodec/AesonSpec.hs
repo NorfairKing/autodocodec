@@ -26,6 +26,7 @@ import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Word
 import Test.Syd
 import Test.Syd.Validity
@@ -71,6 +72,7 @@ spec = do
   aesonCodecSpec @(Either Bool Text)
   aesonCodecErrorSpec @(Either Bool Text) "either-bool-text-error-array" "[{}]"
   aesonCodecSpec @(Either (Either Bool Scientific) Text)
+  aesonCodecSpec @(Vector Text)
   aesonCodecSpec @[Text]
   aesonCodecErrorSpec @[Text] "list-text-error-string" "\"string\""
   aesonCodecSpec @(NonEmpty Text)

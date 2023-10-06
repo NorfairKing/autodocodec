@@ -30,6 +30,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Time
+import Data.Vector (Vector)
 import Data.Void
 import Data.Word
 import Test.Syd
@@ -65,6 +66,7 @@ spec = do
   openAPISchemaSpec @(Maybe Text) "maybe-text"
   openAPISchemaSpec @(Either Bool Text) "either-bool-text"
   openAPISchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
+  openAPISchemaSpec @(Vector Text) "vector-text"
   openAPISchemaSpec @[Text] "list-text"
   openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
   openAPISchemaSpec @(Set Text) "set-text"

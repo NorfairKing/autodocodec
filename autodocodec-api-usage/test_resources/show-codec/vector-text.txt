@@ -1,0 +1,1 @@
+ArrayOfCodec Nothing (StringCodec Nothing)
