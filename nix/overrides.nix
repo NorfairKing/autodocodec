@@ -27,9 +27,9 @@ let
       # Ugly hack because we can't just add flags to the 'test' invocation.
       # Show test output as we go, instead of all at once afterwards.
       testTarget = (old.testTarget or "") + " --show-details=direct";
-      # Turn off tests for older GHC's because they use aeson <=1.0
-      # and that outputs different schemas so the tests would fail
-      doCheck = versionAtLeast self.ghc.version "9.2.7";
+      # Turn off tests for anything but the current GHC's because different
+      # versions make for different outputs sometimes.
+      doCheck = self.ghc.version == "9.2.7";
     }));
 
   autodocodecPackages = {
