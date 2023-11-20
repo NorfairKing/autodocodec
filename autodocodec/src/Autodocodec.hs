@@ -81,6 +81,10 @@ module Autodocodec
     -- *** Integral codecs
     boundedIntegralCodec,
     boundedIntegralNumberBounds,
+    integerCodec,
+    unsafeUnboundedIntegerCodec,
+    naturalCodec,
+    unsafeUnboundedNaturalCodec,
 
     -- *** Literal value codecs
     literalTextCodec,

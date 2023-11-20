@@ -20,6 +20,7 @@ import Data.Time
 import Data.Vector (Vector)
 import Data.Void
 import Data.Word
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Validity.Utils
 import Text.Show.Pretty as Pretty
@@ -43,11 +44,13 @@ spec = do
   showCodecSpec @Int16 "int16"
   showCodecSpec @Int32 "int32"
   showCodecSpec @Int64 "int64"
+  showCodecSpec @Integer "integer"
   showCodecSpec @Word "word"
   showCodecSpec @Word8 "word8"
   showCodecSpec @Word16 "word16"
   showCodecSpec @Word32 "word32"
   showCodecSpec @Word64 "word64"
+  showCodecSpec @Natural "natural"
   showCodecSpec @(Maybe Text) "maybe-text"
   showCodecSpec @(Either Bool Text) "either-bool-text"
   showCodecSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"

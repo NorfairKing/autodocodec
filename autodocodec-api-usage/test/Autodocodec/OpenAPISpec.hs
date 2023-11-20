@@ -33,6 +33,7 @@ import Data.Time
 import Data.Vector (Vector)
 import Data.Void
 import Data.Word
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Aeson
 import Test.Syd.Validity.Utils
@@ -58,11 +59,13 @@ spec = do
   openAPISchemaSpec @Int16 "int16"
   openAPISchemaSpec @Int32 "int32"
   openAPISchemaSpec @Int64 "int64"
+  openAPISchemaSpec @Integer "integer"
   openAPISchemaSpec @Word "word"
   openAPISchemaSpec @Word8 "word8"
   openAPISchemaSpec @Word16 "word16"
   openAPISchemaSpec @Word32 "word32"
   openAPISchemaSpec @Word64 "word64"
+  openAPISchemaSpec @Natural "natural"
   openAPISchemaSpec @(Maybe Text) "maybe-text"
   openAPISchemaSpec @(Either Bool Text) "either-bool-text"
   openAPISchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"

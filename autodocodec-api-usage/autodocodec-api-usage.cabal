@@ -51,6 +51,7 @@ extra-source-files:
     test_resources/json-schema/int32.json
     test_resources/json-schema/int64.json
     test_resources/json-schema/int8.json
+    test_resources/json-schema/integer.json
     test_resources/json-schema/lazy-text.json
     test_resources/json-schema/legacy-object.json
     test_resources/json-schema/legacy-value.json
@@ -60,6 +61,7 @@ extra-source-files:
     test_resources/json-schema/map-text-ind.json
     test_resources/json-schema/maybe-text.json
     test_resources/json-schema/mutually-recursive.json
+    test_resources/json-schema/natural.json
     test_resources/json-schema/nominal-difftime.json
     test_resources/json-schema/nonempty-text.json
     test_resources/json-schema/null.json
@@ -114,6 +116,7 @@ extra-source-files:
     test_resources/openapi-schema/int32.json
     test_resources/openapi-schema/int64.json
     test_resources/openapi-schema/int8.json
+    test_resources/openapi-schema/integer.json
     test_resources/openapi-schema/lazy-text.json
     test_resources/openapi-schema/legacy-object.json
     test_resources/openapi-schema/legacy-value.json
@@ -123,6 +126,7 @@ extra-source-files:
     test_resources/openapi-schema/map-text-int.json
     test_resources/openapi-schema/maybe-text.json
     test_resources/openapi-schema/mutually-recursive.json
+    test_resources/openapi-schema/natural.json
     test_resources/openapi-schema/nominal-difftime.json
     test_resources/openapi-schema/nonempty-text.json
     test_resources/openapi-schema/null.json
@@ -162,6 +166,7 @@ extra-source-files:
     test_resources/show-codec/int32.txt
     test_resources/show-codec/int64.txt
     test_resources/show-codec/int8.txt
+    test_resources/show-codec/integer.txt
     test_resources/show-codec/lazy-text.txt
     test_resources/show-codec/legacy-object.txt
     test_resources/show-codec/legacy-value.txt
@@ -171,6 +176,7 @@ extra-source-files:
     test_resources/show-codec/map-text-int.txt
     test_resources/show-codec/maybe-text.txt
     test_resources/show-codec/mutually-recursive.txt
+    test_resources/show-codec/natural.txt
     test_resources/show-codec/nonempty-text.txt
     test_resources/show-codec/null.txt
     test_resources/show-codec/object.txt
@@ -211,6 +217,7 @@ extra-source-files:
     test_resources/swagger-schema/int32.json
     test_resources/swagger-schema/int64.json
     test_resources/swagger-schema/int8.json
+    test_resources/swagger-schema/integer.json
     test_resources/swagger-schema/lazy-text.json
     test_resources/swagger-schema/legacy-object.json
     test_resources/swagger-schema/legacy-value.json
@@ -220,6 +227,7 @@ extra-source-files:
     test_resources/swagger-schema/map-text-int.json
     test_resources/swagger-schema/maybe-text.json
     test_resources/swagger-schema/mutually-recursive.json
+    test_resources/swagger-schema/natural.json
     test_resources/swagger-schema/nominal-difftime.json
     test_resources/swagger-schema/nonempty-text.json
     test_resources/swagger-schema/null.json
@@ -261,6 +269,7 @@ extra-source-files:
     test_resources/yaml-schema/int32.txt
     test_resources/yaml-schema/int64.txt
     test_resources/yaml-schema/int8.txt
+    test_resources/yaml-schema/integer.txt
     test_resources/yaml-schema/lazy-text.txt
     test_resources/yaml-schema/legacy-object.txt
     test_resources/yaml-schema/legacy-value.txt
@@ -271,6 +280,7 @@ extra-source-files:
     test_resources/yaml-schema/maybe-text.txt
     test_resources/yaml-schema/multiline-default.txt
     test_resources/yaml-schema/mutually-recursive.txt
+    test_resources/yaml-schema/natural.txt
     test_resources/yaml-schema/nominal-difftime.txt
     test_resources/yaml-schema/nonempty-text.txt
     test_resources/yaml-schema/null.txt

@@ -27,6 +27,7 @@ import Data.Time
 import Data.Typeable
 import Data.Vector (Vector)
 import Data.Word
+import Numeric.Natural
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Random
 import Test.Syd.Validity
@@ -51,11 +52,13 @@ main =
       comparisonBench @Int16,
       comparisonBench @Int32,
       comparisonBench @Int64,
+      comparisonBench @Integer,
       comparisonBench @Word,
       comparisonBench @Word8,
       comparisonBench @Word16,
       comparisonBench @Word32,
       comparisonBench @Word64,
+      comparisonBench @Natural,
       comparisonBench @(Maybe Text),
       comparisonBench @(Either Bool Text),
       comparisonBench @(Either (Either Bool [Text]) Text),

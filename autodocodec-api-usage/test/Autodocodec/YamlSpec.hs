@@ -28,6 +28,7 @@ import Data.Vector (Vector)
 import Data.Word
 import Data.Yaml as Yaml
 import Data.Yaml.Builder as YamlBuilder
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Validity
 import Test.Syd.Validity.Utils
@@ -49,11 +50,13 @@ spec = do
   yamlCodecSpec @Int16
   yamlCodecSpec @Int32
   yamlCodecSpec @Int64
+  yamlCodecSpec @Integer
   yamlCodecSpec @Word
   yamlCodecSpec @Word8
   yamlCodecSpec @Word16
   yamlCodecSpec @Word32
   yamlCodecSpec @Word64
+  yamlCodecSpec @Natural
   yamlCodecSpec @(Maybe Text)
   yamlCodecSpec @(Either Bool Text)
   yamlCodecSpec @(Either (Either Bool [Text]) Text)

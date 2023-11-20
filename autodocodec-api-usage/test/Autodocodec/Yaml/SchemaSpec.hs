@@ -20,6 +20,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Void
 import Data.Word
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Validity.Utils
 import Text.Colour
@@ -43,11 +44,13 @@ spec = do
   yamlSchemaSpec @Int16 "int16"
   yamlSchemaSpec @Int32 "int32"
   yamlSchemaSpec @Int64 "int64"
+  yamlSchemaSpec @Integer "integer"
   yamlSchemaSpec @Word "word"
   yamlSchemaSpec @Word8 "word8"
   yamlSchemaSpec @Word16 "word16"
   yamlSchemaSpec @Word32 "word32"
   yamlSchemaSpec @Word64 "word64"
+  yamlSchemaSpec @Natural "natural"
   yamlSchemaSpec @(Maybe Text) "maybe-text"
   yamlSchemaSpec @(Either Bool Text) "either-bool-text"
   yamlSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"

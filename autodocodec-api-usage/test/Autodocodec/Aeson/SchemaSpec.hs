@@ -28,6 +28,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Void
 import Data.Word
+import Numeric.Natural
 import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Aeson
@@ -52,11 +53,13 @@ spec = do
   jsonSchemaSpec @Int16 "int16"
   jsonSchemaSpec @Int32 "int32"
   jsonSchemaSpec @Int64 "int64"
+  jsonSchemaSpec @Integer "integer"
   jsonSchemaSpec @Word "word"
   jsonSchemaSpec @Word8 "word8"
   jsonSchemaSpec @Word16 "word16"
   jsonSchemaSpec @Word32 "word32"
   jsonSchemaSpec @Word64 "word64"
+  jsonSchemaSpec @Natural "natural"
   jsonSchemaSpec @(Maybe Text) "maybe-text"
   jsonSchemaSpec @(Either Bool Text) "either-bool-text"
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"

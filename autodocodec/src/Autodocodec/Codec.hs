@@ -42,6 +42,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Data.Void
 import GHC.Generics (Generic)
+import Numeric.Natural
 
 -- $setup
 -- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, toJSONObjectVia, toJSONObjectViaCodec, parseJSONVia, parseJSONViaCodec, parseJSONObjectVia, parseJSONObjectViaCodec)
@@ -1340,6 +1341,84 @@ boundedIntegralNumberBounds =
     { numberBoundsLower = fromIntegral (minBound :: i),
       numberBoundsUpper = fromIntegral (maxBound :: i)
     }
+
+-- | A safe codec for 'Integer'.
+--
+-- This codec does a bounds check for the range [-10^1024, 10^1024] it can safely parse very large numbers.
+--
+-- For a codec without this protection, see 'unsafeUnboundedIntegerCodec'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia integerCodec 5
+-- Number 5.0
+-- >>> toJSONVia integerCodec (-1000000000000)
+-- Number (-1.0e12)
+-- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (-4.0))
+-- Just (-4)
+-- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (scientific 1 100000000))
+-- Nothing
+integerCodec :: JSONCodec Integer
+integerCodec =
+  bimapCodec go fromIntegral $
+    scientificWithBoundsCodec
+      ( NumberBounds
+          { numberBoundsLower = scientific (-1) 1024,
+            numberBoundsUpper = scientific 1 1024
+          }
+      )
+  where
+    go s = case Scientific.floatingOrInteger s :: Either Float Integer of
+      Right i -> Right i
+      Left _ -> Left ("Number is not an integer: " <> show s)
+
+-- | This is an unsafe (unchecked) version of 'integerCodec'.
+unsafeUnboundedIntegerCodec :: JSONCodec Integer
+unsafeUnboundedIntegerCodec =
+  bimapCodec go fromIntegral scientificCodec
+  where
+    go s = case Scientific.floatingOrInteger s :: Either Float Integer of
+      Right i -> Right i
+      Left _ -> Left ("Number is not an integer: " <> show s)
+
+-- | A safe codec for 'Natural'.
+--
+-- This codec does a bounds check for the range [0, 10^1024] it can safely parse very large numbers.
+--
+-- For a codec without this protection, see 'unsafeUnboundedNaturalCodec'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia naturalCodec 5
+-- Number 5.0
+-- >>> toJSONVia naturalCodec (1000000000000)
+-- Number 1.0e12
+-- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number 4.0)
+-- Just 4
+-- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number (scientific 1 100000000))
+-- Nothing
+naturalCodec :: JSONCodec Natural
+naturalCodec =
+  bimapCodec go fromIntegral $
+    scientificWithBoundsCodec
+      ( NumberBounds
+          { numberBoundsLower = scientific 0 0,
+            numberBoundsUpper = scientific 1 1024
+          }
+      )
+  where
+    go s = case Scientific.floatingOrInteger s :: Either Float Natural of
+      Right i -> Right i
+      Left _ -> Left ("Number is not an integer: " <> show s)
+
+-- | This is an unsafe (unchecked) version of 'naturalCodec'.
+unsafeUnboundedNaturalCodec :: JSONCodec Natural
+unsafeUnboundedNaturalCodec =
+  bimapCodec go fromIntegral scientificCodec
+  where
+    go s = case Scientific.floatingOrInteger s :: Either Float Natural of
+      Right i -> Right i
+      Left _ -> Left ("Number is not an integer: " <> show s)
 
 -- | A codec for a literal piece of 'Text'.
 --

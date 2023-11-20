@@ -1,0 +1,15 @@
+{
+    "definitions": {
+        "Natural": {
+            "maximum": 1.0e1024,
+            "minimum": 0,
+            "type": "number"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

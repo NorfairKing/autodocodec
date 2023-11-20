@@ -1,0 +1,8 @@
+BimapCodec
+  _
+  _
+  (NumberCodec
+     Nothing
+     (Just
+        NumberBounds
+          { numberBoundsLower = -1.0e1024 , numberBoundsUpper = 1.0e1024 }))

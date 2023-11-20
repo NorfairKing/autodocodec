@@ -12,6 +12,7 @@ module Autodocodec.Class where
 import Autodocodec.Codec
 import Data.Aeson (FromJSONKey, ToJSONKey)
 import qualified Data.Aeson as JSON
+import Numeric.Natural
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 #endif
@@ -92,6 +93,10 @@ instance HasCodec Int32 where
 instance HasCodec Int64 where
   codec = boundedIntegralCodec
 
+-- | This instance uses the "safe" 'integerCodec'.
+instance HasCodec Integer where
+  codec = integerCodec
+
 instance HasCodec Word where
   codec = boundedIntegralCodec
 
@@ -106,6 +111,10 @@ instance HasCodec Word32 where
 
 instance HasCodec Word64 where
   codec = boundedIntegralCodec
+
+-- | This instance uses the "safe" 'naturalCodec'.
+instance HasCodec Natural where
+  codec = naturalCodec
 
 instance HasCodec JSON.Value where
   codec = ValueCodec

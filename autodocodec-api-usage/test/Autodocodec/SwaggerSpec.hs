@@ -34,6 +34,7 @@ import Data.Time
 import Data.Vector (Vector)
 import Data.Void
 import Data.Word
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Aeson
 import Test.Syd.Validity
@@ -58,11 +59,13 @@ spec = do
   swaggerSchemaSpec @Int16 "int16"
   swaggerSchemaSpec @Int32 "int32"
   swaggerSchemaSpec @Int64 "int64"
+  swaggerSchemaSpec @Integer "integer"
   swaggerSchemaSpec @Word "word"
   swaggerSchemaSpec @Word8 "word8"
   swaggerSchemaSpec @Word16 "word16"
   swaggerSchemaSpec @Word32 "word32"
   swaggerSchemaSpec @Word64 "word64"
+  swaggerSchemaSpec @Natural "natural"
   swaggerSchemaSpec @(Maybe Text) "maybe-text"
   swaggerSchemaSpec @(Either Bool Text) "either-bool-text"
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"

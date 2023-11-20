@@ -1,5 +1,5 @@
 name: autodocodec
-version: 0.2.1.0
+version: 0.2.2.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -42,4 +42,3 @@ tests:
     - -Wall
     dependencies:
     - doctest
-

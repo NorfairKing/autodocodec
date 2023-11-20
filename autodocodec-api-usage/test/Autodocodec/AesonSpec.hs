@@ -28,6 +28,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Vector (Vector)
 import Data.Word
+import Numeric.Natural
 import Test.Syd
 import Test.Syd.Validity
 import Test.Syd.Validity.Utils
@@ -60,6 +61,7 @@ spec = do
   aesonCodecSpec @Int16
   aesonCodecSpec @Int32
   aesonCodecSpec @Int64
+  aesonCodecSpec @Integer
   aesonCodecSpec @Word
   aesonCodecErrorSpec @Word "word-error-negative" "-3"
   aesonCodecSpec @Word8
@@ -67,6 +69,7 @@ spec = do
   aesonCodecSpec @Word16
   aesonCodecSpec @Word32
   aesonCodecSpec @Word64
+  aesonCodecSpec @Natural
   aesonCodecSpec @(Maybe Text)
   aesonCodecErrorSpec @(Maybe Text) "maybe-text-error-object" "{}"
   aesonCodecSpec @(Either Bool Text)

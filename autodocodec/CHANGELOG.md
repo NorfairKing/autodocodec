@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2.0] - 2023-11-20
+
+### Added
+
+* `HasCodec Integer` and `HasCodec Natural` instances.
+
 ## [0.2.1.0] - 2023-10-06
 
 ### Added
