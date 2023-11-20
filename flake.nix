@@ -98,5 +98,9 @@
           ]);
         shellHook = self.checks.${system}.pre-commit.shellHook;
       };
+      nix-ci.cachix = {
+        name = "autodocodec";
+        public-key = "autodocodec.cachix.org-1:UU3l42g+wSr6tzvawO/oDLo+5yC5BJiATnoV4/AViMs=";
+      };
     };
 }
