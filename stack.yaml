@@ -9,7 +9,7 @@ packages:
 - autodocodec-yaml
 extra-deps:
 - github: NorfairKing/validity
-  commit: a251897dc1eb7e851fd4d3dbc6fa976d22388f27
+  commit: 57c4897ccfeb3de60489e0328113798f059ef140
   subdirs:
     - validity
     - validity-aeson
