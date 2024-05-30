@@ -55,13 +55,13 @@
             },
             "oneOf": [
                 {
-                    "$ref": "#/components/schemas/This"
+                    "$ref": "#/components/schemas/That"
                 },
                 {
                     "$ref": "#/components/schemas/Both"
                 },
                 {
-                    "$ref": "#/components/schemas/That"
+                    "$ref": "#/components/schemas/This"
                 }
             ]
         },

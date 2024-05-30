@@ -28,7 +28,7 @@ import Data.Scientific
 import Data.Text (Text)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
-declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
+declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
 declareNamedSchemaViaCodec proxy = declareNamedSchemaVia codec proxy
 
 -- | Use a given 'codec' to implement 'declareNamedSchema'.
@@ -219,7 +219,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
 
-    combineSchemasOr :: MonadDeclare (Definitions Schema) m => Union -> NamedSchema -> NamedSchema -> m NamedSchema
+    combineSchemasOr :: (MonadDeclare (Definitions Schema) m) => Union -> NamedSchema -> NamedSchema -> m NamedSchema
     combineSchemasOr u ns1 ns2 = do
       let s1 = _namedSchemaSchema ns1
       let s2 = _namedSchemaSchema ns2
@@ -250,12 +250,12 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               (Nothing, Just s2s) -> prototype & orLens ?~ (s1Ref : s2s)
               (Nothing, Nothing) -> prototype & orLens ?~ [s1Ref, s2Ref]
 
-declareSpecificNamedSchemaRef :: MonadDeclare (Definitions Schema) m => OpenAPI.NamedSchema -> m (Referenced NamedSchema)
+declareSpecificNamedSchemaRef :: (MonadDeclare (Definitions Schema) m) => OpenAPI.NamedSchema -> m (Referenced NamedSchema)
 declareSpecificNamedSchemaRef namedSchema =
   fmap (NamedSchema (_namedSchemaName namedSchema))
     <$> declareSpecificSchemaRef (_namedSchemaName namedSchema) (_namedSchemaSchema namedSchema)
 
-declareSpecificSchemaRef :: MonadDeclare (Definitions Schema) m => Maybe Text -> OpenAPI.Schema -> m (Referenced Schema)
+declareSpecificSchemaRef :: (MonadDeclare (Definitions Schema) m) => Maybe Text -> OpenAPI.Schema -> m (Referenced Schema)
 declareSpecificSchemaRef mName s =
   case mName of
     Nothing -> pure $ Inline s

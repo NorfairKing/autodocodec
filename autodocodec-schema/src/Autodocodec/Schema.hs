@@ -308,7 +308,7 @@ data KeyRequirement
 
 instance Validity KeyRequirement
 
-jsonSchemaViaCodec :: forall a. HasCodec a => JSONSchema
+jsonSchemaViaCodec :: forall a. (HasCodec a) => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
 
 jsonSchemaVia :: ValueCodec input output -> JSONSchema

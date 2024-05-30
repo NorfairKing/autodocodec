@@ -5,7 +5,21 @@ ReferenceCodec
      (DiscriminatedUnionCodec
         "type"
         _
-        [ ( "product"
+        [ ( "sum"
+          , BimapCodec
+              _
+              _
+              (ApCodec
+                 (BimapCodec
+                    _
+                    _
+                    (RequiredKeyCodec "left" Nothing (ReferenceCodec "Expression")))
+                 (BimapCodec
+                    _
+                    _
+                    (RequiredKeyCodec "right" Nothing (ReferenceCodec "Expression"))))
+          )
+        , ( "product"
           , BimapCodec
               _
               _
@@ -36,19 +50,5 @@ ReferenceCodec
                             { numberBoundsLower = -9.223372036854775808e18
                             , numberBoundsUpper = 9.223372036854775807e18
                             }))))
-          )
-        , ( "sum"
-          , BimapCodec
-              _
-              _
-              (ApCodec
-                 (BimapCodec
-                    _
-                    _
-                    (RequiredKeyCodec "left" Nothing (ReferenceCodec "Expression")))
-                 (BimapCodec
-                    _
-                    _
-                    (RequiredKeyCodec "right" Nothing (ReferenceCodec "Expression"))))
           )
         ]))

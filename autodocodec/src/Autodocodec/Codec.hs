@@ -235,7 +235,7 @@ data Codec context input output where
     Maybe Text ->
     ObjectCodec value value
   OptionalKeyWithOmittedDefaultCodec ::
-    Eq value =>
+    (Eq value) =>
     -- | Key
     Text ->
     -- | Codec for the value
@@ -975,7 +975,7 @@ optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec k
 --
 -- The shown version of the default value will appear in the documentation.
 optionalFieldWithOmittedDefaultWith ::
-  Eq output =>
+  (Eq output) =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -989,7 +989,7 @@ optionalFieldWithOmittedDefaultWith key c defaultValue doc = OptionalKeyWithOmit
 
 -- | Like 'optionalFieldWithOmittedDefaultWith', but without documentation.
 optionalFieldWithOmittedDefaultWith' ::
-  Eq output =>
+  (Eq output) =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -1002,7 +1002,7 @@ optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmitted
 -- | Like 'optionalFieldWithOmittedDefaultWith', but the value may also be
 -- @null@ and that will be interpreted as the default value.
 optionalFieldOrNullWithOmittedDefaultWith ::
-  Eq output =>
+  (Eq output) =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -1022,7 +1022,7 @@ optionalFieldOrNullWithOmittedDefaultWith key c defaultValue doc = dimapCodec f 
 -- | Like 'optionalFieldWithOmittedDefaultWith'', but the value may also be
 -- @null@ and that will be interpreted as the default value.
 optionalFieldOrNullWithOmittedDefaultWith' ::
-  Eq output =>
+  (Eq output) =>
   -- | Key
   Text ->
   -- | Codec for the value
@@ -1720,7 +1720,7 @@ parseAlternative c cAlt = matchChoiceCodec c cAlt Left
 -- If you don't provide a string for one of the type's constructors, the last codec in the list will be used instead.
 enumCodec ::
   forall enum context.
-  Eq enum =>
+  (Eq enum) =>
   NonEmpty (enum, Codec context enum enum) ->
   Codec context enum enum
 enumCodec = go
@@ -1755,7 +1755,7 @@ enumCodec = go
 -- String "foo"
 stringConstCodec ::
   forall constant.
-  Eq constant =>
+  (Eq constant) =>
   NonEmpty (constant, Text) ->
   JSONCodec constant
 stringConstCodec =

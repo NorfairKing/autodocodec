@@ -23,13 +23,13 @@ deriving instance Show Tmp
 
 deriving instance Show Mem
 
-deriving instance Show (MultipartResult tag) => Show (MultipartData tag)
+deriving instance (Show (MultipartResult tag)) => Show (MultipartData tag)
 
 deriving instance Eq Tmp
 
 deriving instance Eq Mem
 
-deriving instance Eq (MultipartResult tag) => Eq (MultipartData tag)
+deriving instance (Eq (MultipartResult tag)) => Eq (MultipartData tag)
 
 spec :: Spec
 spec = do

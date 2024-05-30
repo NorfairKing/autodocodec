@@ -33,10 +33,10 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 
 -- | Implement 'JSON.toJSON' via a type's codec.
-toJSONViaCodec :: HasCodec a => a -> JSON.Value
+toJSONViaCodec :: (HasCodec a) => a -> JSON.Value
 toJSONViaCodec = toJSONVia codec
 
-toJSONObjectViaCodec :: HasObjectCodec a => a -> JSON.Object
+toJSONObjectViaCodec :: (HasObjectCodec a) => a -> JSON.Object
 toJSONObjectViaCodec = toJSONObjectVia objectCodec
 
 toJSONObjectVia :: ObjectCodec a void -> a -> JSON.Object
@@ -90,10 +90,10 @@ toJSONVia = flip go
       ReferenceCodec _ c -> go a c
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
-toEncodingViaCodec :: HasCodec a => a -> JSON.Encoding
+toEncodingViaCodec :: (HasCodec a) => a -> JSON.Encoding
 toEncodingViaCodec = toEncodingVia codec
 
-toSeriesViaCodec :: HasObjectCodec a => a -> JSON.Series
+toSeriesViaCodec :: (HasObjectCodec a) => a -> JSON.Series
 toSeriesViaCodec = toSeriesVia objectCodec
 
 toSeriesVia :: ObjectCodec a void -> a -> JSON.Series
@@ -144,6 +144,6 @@ toEncodingVia = flip go
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
 
-instance HasCodec a => JSON.ToJSON (Autodocodec a) where
+instance (HasCodec a) => JSON.ToJSON (Autodocodec a) where
   toJSON = toJSONViaCodec . unAutodocodec
   toEncoding = toEncodingViaCodec . unAutodocodec

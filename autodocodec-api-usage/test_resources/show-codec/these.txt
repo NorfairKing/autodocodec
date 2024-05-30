@@ -3,9 +3,23 @@ ObjectOfCodec
   (DiscriminatedUnionCodec
      "type"
      _
-     [ ( "this"
+     [ ( "that"
        , BimapCodec
-           _ _ (RequiredKeyCodec "text" Nothing (StringCodec Nothing))
+           _
+           _
+           (RequiredKeyCodec
+              "int"
+              Nothing
+              (BimapCodec
+                 _
+                 _
+                 (NumberCodec
+                    Nothing
+                    (Just
+                       NumberBounds
+                         { numberBoundsLower = -9.223372036854775808e18
+                         , numberBoundsUpper = 9.223372036854775807e18
+                         }))))
        )
      , ( "both"
        , BimapCodec
@@ -31,22 +45,8 @@ ObjectOfCodec
                                , numberBoundsUpper = 9.223372036854775807e18
                                }))))))
        )
-     , ( "that"
+     , ( "this"
        , BimapCodec
-           _
-           _
-           (RequiredKeyCodec
-              "int"
-              Nothing
-              (BimapCodec
-                 _
-                 _
-                 (NumberCodec
-                    Nothing
-                    (Just
-                       NumberBounds
-                         { numberBoundsLower = -9.223372036854775808e18
-                         , numberBoundsUpper = 9.223372036854775807e18
-                         }))))
+           _ _ (RequiredKeyCodec "text" Nothing (StringCodec Nothing))
        )
      ])

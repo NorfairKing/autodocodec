@@ -22,7 +22,7 @@ import Data.Swagger.Declare as Swagger
 import Data.Text (Text)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
-declareNamedSchemaViaCodec :: HasCodec value => Proxy value -> Declare (Definitions Schema) NamedSchema
+declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
 declareNamedSchemaViaCodec proxy = declareNamedSchemaVia codec proxy
 
 -- | Use a given 'codec' to implement 'declareNamedSchema'.

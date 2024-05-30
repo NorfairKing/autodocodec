@@ -33,14 +33,14 @@ import Data.Vector (Vector)
 import qualified Data.Vector as V
 
 -- | Implement 'JSON.parseJSON' via a type's codec.
-parseJSONViaCodec :: HasCodec a => JSON.Value -> JSON.Parser a
+parseJSONViaCodec :: (HasCodec a) => JSON.Value -> JSON.Parser a
 parseJSONViaCodec = parseJSONVia codec
 
 -- | Implement 'JSON.parseJSON' via a given codec.
 parseJSONVia :: ValueCodec void a -> JSON.Value -> JSON.Parser a
 parseJSONVia = parseJSONContextVia
 
-parseJSONObjectViaCodec :: HasObjectCodec a => JSON.Object -> JSON.Parser a
+parseJSONObjectViaCodec :: (HasObjectCodec a) => JSON.Object -> JSON.Parser a
 parseJSONObjectViaCodec = parseJSONObjectVia objectCodec
 
 parseJSONObjectVia :: ObjectCodec void a -> JSON.Object -> JSON.Parser a
@@ -152,5 +152,5 @@ parseJSONContextVia codec_ context_ =
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
 
-instance HasCodec a => JSON.FromJSON (Autodocodec a) where
+instance (HasCodec a) => JSON.FromJSON (Autodocodec a) where
   parseJSON = fmap Autodocodec <$> parseJSONViaCodec

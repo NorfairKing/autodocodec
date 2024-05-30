@@ -21,7 +21,7 @@ import qualified Data.Yaml as JSON
 import Data.Yaml.Builder as Yaml
 
 -- | Implement 'Yaml.toYaml' using a type's codec
-toYamlViaCodec :: HasCodec a => a -> YamlBuilder
+toYamlViaCodec :: (HasCodec a) => a -> YamlBuilder
 toYamlViaCodec = toYamlVia codec
 
 -- | Implement 'Yaml.toYaml' using a given codec
@@ -92,5 +92,5 @@ toYamlVia = flip go
       JSON.Object o -> yamlObject o
       JSON.Array v -> Yaml.array $ map yamlValue $ V.toList v
 
-instance HasCodec a => ToYaml (Autodocodec a) where
+instance (HasCodec a) => ToYaml (Autodocodec a) where
   toYaml = toYamlViaCodec . unAutodocodec

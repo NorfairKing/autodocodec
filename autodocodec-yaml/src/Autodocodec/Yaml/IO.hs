@@ -16,13 +16,13 @@ import System.Exit
 -- | Helper function to read a yaml file for a type in 'HasCodec'
 --
 -- This will output a colourful yaml schema if parsing fails.
-readYamlConfigFile :: HasCodec a => Path r File -> IO (Maybe a)
+readYamlConfigFile :: (HasCodec a) => Path r File -> IO (Maybe a)
 readYamlConfigFile p = readFirstYamlConfigFile [p]
 
 -- | Helper function to read the first in a list of yaml files for a type is 'HasCodec'
 --
 -- This will output a colourful yaml schema if parsing fails.
-readFirstYamlConfigFile :: forall a r. HasCodec a => [Path r File] -> IO (Maybe a)
+readFirstYamlConfigFile :: forall a r. (HasCodec a) => [Path r File] -> IO (Maybe a)
 readFirstYamlConfigFile files = go files
   where
     go :: [Path r File] -> IO (Maybe a)

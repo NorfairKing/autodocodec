@@ -119,10 +119,10 @@ instance HasCodec Natural where
 instance HasCodec JSON.Value where
   codec = ValueCodec
 
-instance HasCodec a => HasCodec (Identity a) where
+instance (HasCodec a) => HasCodec (Identity a) where
   codec = dimapCodec runIdentity Identity codec
 
-instance HasCodec a => HasCodec (Maybe a) where
+instance (HasCodec a) => HasCodec (Maybe a) where
   codec = maybeCodec codec
 
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
@@ -131,13 +131,13 @@ instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
       (ObjectOfCodec Nothing (requiredField' "Left"))
       (ObjectOfCodec Nothing (requiredField' "Right"))
 
-instance HasCodec a => HasCodec (Vector a) where
+instance (HasCodec a) => HasCodec (Vector a) where
   codec = vectorCodec codec
 
-instance HasCodec a => HasCodec [a] where
+instance (HasCodec a) => HasCodec [a] where
   codec = listCodecForStringCompatibility
 
-instance HasCodec a => HasCodec (NonEmpty a) where
+instance (HasCodec a) => HasCodec (NonEmpty a) where
   codec = nonEmptyCodec codec
 
 instance (Ord a, HasCodec a) => HasCodec (Set a) where
@@ -194,7 +194,7 @@ class HasObjectCodec object where
 --
 -- See 'requiredFieldWith'
 requiredField ::
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   -- | Documentation
@@ -204,7 +204,7 @@ requiredField key = requiredFieldWith key codec
 
 -- | Like 'requiredField', but without documentation
 requiredField' ::
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   ObjectCodec output output
@@ -218,7 +218,7 @@ requiredField' key = requiredFieldWith' key codec
 --
 -- See 'optionalFieldWith'
 optionalField ::
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   -- | Documentation
@@ -228,7 +228,7 @@ optionalField key = optionalFieldWith key codec
 
 -- | Like 'optionalField', but without documentation
 optionalField' ::
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
@@ -270,7 +270,7 @@ optionalFieldWithDefault' key defaultValue = optionalFieldWithDefaultWith' key c
 -- During encoding, the field will be in the object if it is not 'Nothing', and omitted otherwise.
 optionalFieldOrNull ::
   forall output.
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   -- | Documentation
@@ -281,7 +281,7 @@ optionalFieldOrNull key doc = orNullHelper $ OptionalKeyCodec key (maybeCodec co
 -- | Like 'optionalFieldOrNull', but without documentation
 optionalFieldOrNull' ::
   forall output.
-  HasCodec output =>
+  (HasCodec output) =>
   -- | Key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)

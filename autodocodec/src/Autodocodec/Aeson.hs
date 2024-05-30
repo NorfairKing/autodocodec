@@ -39,9 +39,9 @@ import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as LB
 
 -- | Encode a value as a JSON 'LB.ByteString' via its type's 'codec'.
-encodeJSONViaCodec :: HasCodec a => a -> LB.ByteString
+encodeJSONViaCodec :: (HasCodec a) => a -> LB.ByteString
 encodeJSONViaCodec = Aeson.encode . Autodocodec
 
 -- | Parse a JSON 'LB.ByteString' using a type's 'codec'.
-eitherDecodeJSONViaCodec :: HasCodec a => LB.ByteString -> Either String a
+eitherDecodeJSONViaCodec :: (HasCodec a) => LB.ByteString -> Either String a
 eitherDecodeJSONViaCodec = fmap unAutodocodec . Aeson.eitherDecode

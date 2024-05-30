@@ -236,7 +236,7 @@ jsonSchemaSpec filePath =
 
 jsonSchemaSpec' ::
   forall a.
-  HasCodec a =>
+  (HasCodec a) =>
   FilePath ->
   Spec
 jsonSchemaSpec' filePath =

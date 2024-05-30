@@ -12,6 +12,25 @@
                             "$ref": "#/$defs/Expression"
                         },
                         "type": {
+                            "const": "sum"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "right",
+                        "left"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "left": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "right": {
+                            "$ref": "#/$defs/Expression"
+                        },
+                        "type": {
                             "const": "product"
                         }
                     },
@@ -36,25 +55,6 @@
                     "required": [
                         "type",
                         "value"
-                    ],
-                    "type": "object"
-                },
-                {
-                    "properties": {
-                        "left": {
-                            "$ref": "#/$defs/Expression"
-                        },
-                        "right": {
-                            "$ref": "#/$defs/Expression"
-                        },
-                        "type": {
-                            "const": "sum"
-                        }
-                    },
-                    "required": [
-                        "type",
-                        "right",
-                        "left"
                     ],
                     "type": "object"
                 }

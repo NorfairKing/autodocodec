@@ -23,7 +23,7 @@ import qualified Data.Vector as V
 import Servant.Multipart as Servant
 import Servant.Multipart.API as Servant
 
-toMultipartViaCodec :: forall a tag. HasObjectCodec a => a -> MultipartData tag
+toMultipartViaCodec :: forall a tag. (HasObjectCodec a) => a -> MultipartData tag
 toMultipartViaCodec = toMultipartVia (objectCodec @a)
 
 toMultipartVia :: ObjectCodec a void -> a -> MultipartData tag
@@ -116,10 +116,10 @@ mappendMultipartData mpd1 mpd2 =
       files = files mpd1 ++ files mpd2
     }
 
-instance HasObjectCodec a => Servant.ToMultipart tag (Autodocodec a) where
+instance (HasObjectCodec a) => Servant.ToMultipart tag (Autodocodec a) where
   toMultipart = toMultipartViaCodec . unAutodocodec
 
-fromMultipartViaCodec :: forall a tag. HasObjectCodec a => MultipartData tag -> Either String a
+fromMultipartViaCodec :: forall a tag. (HasObjectCodec a) => MultipartData tag -> Either String a
 fromMultipartViaCodec = fromMultipartVia (objectCodec @a)
 
 fromMultipartVia :: ObjectCodec void a -> MultipartData tag -> Either String a
@@ -248,5 +248,5 @@ lookupMInput iname = Right . fmap iValue . find ((== iname) . iName) . inputs
 lookupLInput :: Text -> MultipartData tag -> Either String [Text]
 lookupLInput iname = Right . map iValue . filter ((== iname) . iName) . inputs
 
-instance HasObjectCodec a => Servant.FromMultipart tag (Autodocodec a) where
+instance (HasObjectCodec a) => Servant.FromMultipart tag (Autodocodec a) where
   fromMultipart = fmap Autodocodec . fromMultipartViaCodec
