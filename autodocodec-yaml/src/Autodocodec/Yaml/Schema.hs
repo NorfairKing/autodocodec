@@ -46,7 +46,11 @@ schemaChunksVia = jsonSchemaChunks . jsonSchemaVia
 
 -- | Render a 'JSONSchema' as 'Chunk's
 jsonSchemaChunks :: JSONSchema -> [Chunk]
-jsonSchemaChunks = concatMap (\l -> l ++ ["\n"]) . go
+jsonSchemaChunks = unlinesChunks . jsonSchemaChunkLines
+
+-- | Render a 'JSONSchema' as lines of 'Chunk's
+jsonSchemaChunkLines :: JSONSchema -> [[Chunk]]
+jsonSchemaChunkLines = go
   where
     indent :: [[Chunk]] -> [[Chunk]]
     indent = map ("  " :)

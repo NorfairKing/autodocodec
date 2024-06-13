@@ -48,14 +48,14 @@ data JSONSchema
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
-    ObjectSchema ObjectSchema
+    ObjectSchema !ObjectSchema
   | ValueSchema !JSON.Value
   | AnyOfSchema !(NonEmpty JSONSchema)
   | OneOfSchema !(NonEmpty JSONSchema)
   | CommentSchema !Text !JSONSchema
   | RefSchema !Text
   | WithDefSchema !(Map Text JSONSchema) !JSONSchema
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity JSONSchema where
   validate js =
@@ -167,7 +167,7 @@ data ObjectSchema
   | ObjectAnyOfSchema !(NonEmpty ObjectSchema)
   | ObjectOneOfSchema !(NonEmpty ObjectSchema)
   | ObjectAllOfSchema !(NonEmpty ObjectSchema)
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity ObjectSchema
 
@@ -304,7 +304,7 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
 data KeyRequirement
   = Required
   | Optional !(Maybe JSON.Value) -- Default value
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity KeyRequirement
 

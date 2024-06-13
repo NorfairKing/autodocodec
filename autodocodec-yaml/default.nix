@@ -1,6 +1,6 @@
 { mkDerivation, autodocodec, autodocodec-schema, base, bytestring
 , containers, lib, path, path-io, safe-coloured-text, scientific
-, text, unordered-containers, vector, yaml
+, text, vector, yaml
 }:
 mkDerivation {
   pname = "autodocodec-yaml";
@@ -8,8 +8,7 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     autodocodec autodocodec-schema base bytestring containers path
-    path-io safe-coloured-text scientific text unordered-containers
-    vector yaml
+    path-io safe-coloured-text scientific text vector yaml
   ];
   homepage = "https://github.com/NorfairKing/autodocodec#readme";
   description = "Autodocodec interpreters for yaml";

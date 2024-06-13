@@ -17,6 +17,7 @@ module Autodocodec.Yaml
     schemaChunksViaCodec,
     schemaChunksVia,
     jsonSchemaChunks,
+    jsonSchemaChunkLines,
 
     -- * Instantiating @ToYaml@
     toYamlViaCodec,
