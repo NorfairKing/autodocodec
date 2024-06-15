@@ -7,6 +7,8 @@ packages:
 - autodocodec-servant-multipart
 - autodocodec-swagger2
 - autodocodec-yaml
+
+- /home/syd/src/safe-coloured-text/safe-coloured-text
 extra-deps:
 - github: NorfairKing/validity
   commit: 57c4897ccfeb3de60489e0328113798f059ef140
@@ -23,11 +25,11 @@ extra-deps:
     - genvalidity-sydtest-aeson
     - genvalidity-text
 
-- github: NorfairKing/safe-coloured-text
-  commit: f18578151d579c495eda46b8eeafcddb69adea07
-  subdirs:
-    - safe-coloured-text
-    - safe-coloured-text-terminfo
+# - github: NorfairKing/safe-coloured-text
+#   commit: f18578151d579c495eda46b8eeafcddb69adea07
+#   subdirs:
+#     - safe-coloured-text
+#     - safe-coloured-text-terminfo
 
 - github: NorfairKing/sydtest
   commit: 6be618a53366d2453ba55da6cddc119d6d589916

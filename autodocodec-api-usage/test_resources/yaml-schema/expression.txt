@@ -14,7 +14,7 @@
   [37mtype[m: # [31mrequired[m
     product
 , [37mvalue[m: # [31mrequired[m
-    [33m<number>[m # between [32m-9223372036854775808[m and [32m9223372036854775807[m
+    [33m<number>[m # [32m64 bit signed integer[m
   [37mtype[m: # [31mrequired[m
     literal
 ]

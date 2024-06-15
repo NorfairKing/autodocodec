@@ -1,1 +1,1 @@
-[33m<number>[m # between [32m0[m and [32m4294967295[m
+[33m<number>[m # [32m32 bit unsigned integer[m
