@@ -1,5 +1,5 @@
 name: autodocodec-yaml
-version: 0.2.0.3
+version: 0.3.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -17,13 +17,13 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - autodocodec >= 0.2.0.0
+  - autodocodec >= 0.2.3.0
   - autodocodec-schema >=0.1.0.0
   - bytestring
   - containers
   - path
   - path-io
-  - safe-coloured-text >=0.2.0.0
+  - safe-coloured-text >=0.3.0.1
   - scientific
   - text
   - vector

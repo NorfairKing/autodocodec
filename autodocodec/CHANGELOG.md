@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3.0] - 2024-06-23
+
+### Added
+
+* `Ord NumberBounds` instance
+
 ## [0.2.2.0] - 2023-11-20
 
 ### Added

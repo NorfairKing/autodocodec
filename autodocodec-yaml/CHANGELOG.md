@@ -1,11 +1,21 @@
 # Changelog
 
+## [0.3.0.0] - 2024-06-23
+
+### Added
+
+* `jsonSchemaChunkLines`
+
+### Changed
+
+* Show number bounds in a nicer way.
+
 ## [0.2.0.3] - 2023-01-01
 
 ### Changed
 
-Use the `ToYaml` instance instead of the `ToJSON` instance when encoding to Yaml.
-This preserves the key order where `ToJSON` wouldn't.
+* Use the `ToYaml` instance instead of the `ToJSON` instance when encoding to Yaml.
+  This preserves the key order where `ToJSON` wouldn't.
 
 ## [0.2.0.2] - 2022-07-21
 

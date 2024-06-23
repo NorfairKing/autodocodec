@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-yaml
-version:        0.2.0.3
+version:        0.3.0.0
 synopsis:       Autodocodec interpreters for yaml
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -34,14 +34,14 @@ library
   hs-source-dirs:
       src
   build-depends:
-      autodocodec >=0.2.0.0
+      autodocodec >=0.2.3.0
     , autodocodec-schema >=0.1.0.0
     , base >=4.7 && <5
     , bytestring
     , containers
     , path
     , path-io
-    , safe-coloured-text >=0.2.0.0
+    , safe-coloured-text >=0.3.0.1
     , scientific
     , text
     , vector
