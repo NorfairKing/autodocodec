@@ -466,11 +466,11 @@
     "safe-coloured-text": {
       "flake": false,
       "locked": {
-        "lastModified": 1717391548,
-        "narHash": "sha256-wyIqmhEsw2ZDqEUA7Q7q1Ush+HYR4NEWNxNK8ljT4Ss=",
+        "lastModified": 1719159317,
+        "narHash": "sha256-5P+iUgLtQa7p9XzX7gt9pfJBLzAfGJ0dlb1Lw0eZIv0=",
         "owner": "NorfairKing",
         "repo": "safe-coloured-text",
-        "rev": "b780c38faf1bbeb69fb92b96aac411b04c384cec",
+        "rev": "61f14d21b7399fe97da24e484c2f9fedaf532bb8",
         "type": "github"
       },
       "original": {
