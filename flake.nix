@@ -90,11 +90,11 @@
         packages = p: builtins.attrValues p.autodocodecPackages;
         withHoogle = true;
         doBenchmark = true;
-        buildInputs = (with pkgs; [
+        buildInputs = with pkgs; [
           niv
           zlib
           cabal-install
-        ]) ++ self.checks.${system}.pre-commit.enabledPackages;
+        ] ++ self.checks.${system}.pre-commit.enabledPackages;
         shellHook = self.checks.${system}.pre-commit.shellHook;
       };
       nix-ci.cachix = {
