@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0.4] - 2024-06-23
+
+### Added
+
+* `Ord JSONSchema`
+* `Ord ObjectSchema`
+* `Ord KeyRequirement`
+
 ## [0.1.0.3] - 2023-01-18
 
 ### Changed
