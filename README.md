@@ -12,6 +12,7 @@ You write a single instance, of the 'Codec' type-class, for your type, and you g
 * [A nicely-coloured human-readable yaml schema](./autodocodec-yaml)
 * [A Swagger schema](https://swagger.io/specification/v2/)
 * [An Openapi schema](https://swagger.io/specification/)
+* A Nixos module type
 
 See [the golden test directory](./autodocodec-api-usage/test_resources) directory for example outputs.
 
