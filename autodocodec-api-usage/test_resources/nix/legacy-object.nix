@@ -1,4 +1,4 @@
 mkOption {
-  type = ;
-    description = LegacyObject;
+  type =   ;
+  description = LegacyObject;
 }

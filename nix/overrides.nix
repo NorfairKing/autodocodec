@@ -35,6 +35,7 @@ let
   autodocodecPackages = {
     autodocodec = autodocodecPkg "autodocodec";
     autodocodec-api-usage = autodocodecPkg "autodocodec-api-usage";
+    autodocodec-nix = autodocodecPkg "autodocodec-nix";
     autodocodec-openapi3 = autodocodecPkg "autodocodec-openapi3";
     autodocodec-schema = autodocodecPkg "autodocodec-schema";
     autodocodec-servant-multipart = autodocodecPkg "autodocodec-servant-multipart";

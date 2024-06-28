@@ -1,4 +1,4 @@
 mkOption {
-  type = ;
-    description = ListsExample;
+  type =   ;
+  description = ListsExample;
 }

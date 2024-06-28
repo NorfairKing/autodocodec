@@ -1,1 +1,2 @@
-mkOption { }
+mkOption {
+}

@@ -1,4 +1,4 @@
 mkOption {
-  type = ;
-    description = Example;
+  type =   ;
+  description = Example;
 }

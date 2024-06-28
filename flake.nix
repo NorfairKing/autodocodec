@@ -80,7 +80,10 @@
               hpack.enable = true;
               ormolu.enable = true;
               nixpkgs-fmt.enable = true;
-              nixpkgs-fmt.excludes = [ ".*/default.nix" ];
+              nixpkgs-fmt.excludes = [
+                ".*/default.nix"
+                "autodocodec-api-usage/test_resources/nix/.*.nix"
+              ];
               cabal2nix.enable = true;
             };
           };
