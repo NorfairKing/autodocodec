@@ -1,0 +1,23 @@
+name: autodocodec-nix
+version: 0.0.0.0
+github: "NorfairKing/autodocodec"
+license: MIT
+author: "Tom Sydney Kerckhove"
+maintainer: "syd@cs-syd.eu"
+copyright: "2024 Tom Sydney Kerckhove"
+synopsis: Autodocodec interpreters for nix
+
+extra-source-files:
+- LICENSE
+- CHANGELOG.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - autodocodec >= 0.2.3.0
+  - containers
+  - text
+  - unordered-containers

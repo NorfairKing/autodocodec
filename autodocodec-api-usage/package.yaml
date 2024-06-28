@@ -64,6 +64,7 @@ tests:
     - bytestring
     - containers
     - genvalidity
+    - autodocodec-nix
     - genvalidity-aeson
     - genvalidity-containers
     - genvalidity-scientific
