@@ -1,0 +1,3 @@
+mkOption {
+  type = types.str;
+}

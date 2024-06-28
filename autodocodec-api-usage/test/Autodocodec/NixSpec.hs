@@ -10,13 +10,6 @@ import Autodocodec
 import Autodocodec.Nix
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
-import Data.Data
-import Data.GenValidity
-import Data.GenValidity.Aeson ()
-import Data.GenValidity.Containers ()
-import Data.GenValidity.Scientific ()
-import Data.GenValidity.Text ()
-import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
@@ -28,11 +21,7 @@ import Data.Time
 import Data.Void
 import Data.Word
 import Numeric.Natural
-import Test.QuickCheck
 import Test.Syd
-import Test.Syd.Aeson
-import Test.Syd.Validity
-import Test.Syd.Validity.Utils
 
 spec :: Spec
 spec = do
@@ -88,14 +77,11 @@ spec = do
 
 nixTypeSpec ::
   forall a.
-  ( Show a,
-    Typeable a,
-    HasCodec a
-  ) =>
+  (HasCodec a) =>
   FilePath ->
   Spec
 nixTypeSpec filePath =
   it "outputs the same nix type as before" $
-    pureGoldenJSONFile
+    pureGoldenTextFile
       ("test_resources/nix/" <> filePath <> ".nix")
-      (JSON.toJSON (nixTypeViaCodec @a))
+      (nixTypeViaCodec @a)
