@@ -151,7 +151,19 @@ data OptionType
   | OptionTypeSubmodule !(Map Text Option)
 
 simplifyOptionType :: OptionType -> OptionType
-simplifyOptionType = id -- TODO
+simplifyOptionType = go
+  where
+    go = \case
+      OptionTypeSimple t -> OptionTypeSimple t
+      OptionTypeListOf o -> OptionTypeListOf $ go o
+      OptionTypeOneOf os -> OptionTypeOneOf $ concatMap goOr os
+      OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
+
+    goOpt o = o {optionType = go <$> optionType o}
+
+    goOr = \case
+      OptionTypeOneOf os -> concatMap goOr os
+      o -> [o]
 
 renderOptionType :: OptionType -> [Text]
 renderOptionType = \case

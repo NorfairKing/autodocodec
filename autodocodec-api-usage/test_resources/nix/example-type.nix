@@ -11,17 +11,9 @@ types.submodule { options =
         type = 
           oneOf [
             (types.anything)
-            (
-              oneOf [
-                (types.anything)
-                (
-                  oneOf [
-                    (types.anything)
-                    (types.anything)
-                  ]
-                  )
-              ]
-              )
+            (types.anything)
+            (types.anything)
+            (types.anything)
           ]
           ;
         description = "fruit!!";
