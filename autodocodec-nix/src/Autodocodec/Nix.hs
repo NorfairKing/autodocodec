@@ -26,8 +26,10 @@ module Autodocodec.Nix
 where
 
 import Autodocodec
-import Data.Map (Map)
-import qualified Data.Map as M
+import Data.Containers.ListUtils
+import qualified Data.HashMap.Strict as HM
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -50,17 +52,18 @@ renderNixOptionsVia :: ObjectCodec input output -> Text
 renderNixOptionsVia =
   T.unlines
     . renderOptions
+    . simplifyOptions
     . objectCodecNixOption
 
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
 valueCodecNixOptionType = go
   where
-    mTyp = fromMaybe (OptionTypeSimple "types.anything")
+    mTyp = fromMaybe $ OptionTypeSimple "types.anything"
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
       NullCodec -> Nothing
-      BoolCodec _ -> Just (OptionTypeSimple "types.bool")
-      StringCodec _ -> Just (OptionTypeSimple "types.str")
+      BoolCodec _ -> Just $ OptionTypeSimple "types.bool"
+      StringCodec _ -> Just $ OptionTypeSimple "types.str"
       NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
         Nothing -> "types.number"
         Just bounds -> case guessNumberBoundsSymbolic bounds of
@@ -75,7 +78,7 @@ valueCodecNixOptionType = go
       EqCodec _ _ -> Nothing -- TODO
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
-      CommentCodec _ c -> go c -- TODO: use the comment
+      CommentCodec _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
 objectCodecNixOption :: ObjectCodec input output -> Map Text Option
@@ -83,7 +86,23 @@ objectCodecNixOption = go
   where
     go :: ObjectCodec input output -> Map Text Option
     go = \case
-      DiscriminatedUnionCodec {} -> M.empty -- TODO
+      DiscriminatedUnionCodec k _ m ->
+        M.insert
+          k
+          ( Option
+              { optionType = Just $ OptionTypeOneOf $ map (OptionTypeSimple . T.pack . show) $ HM.keys m,
+                optionDescription = Nothing
+              }
+          )
+          $ M.unionsWith
+            ( \t1 t2 ->
+                Option
+                  { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "types.anything") . optionType) [t1, t2],
+                    optionDescription = Nothing -- TODO
+                  }
+            )
+          $ map (go . snd)
+          $ HM.elems m
       RequiredKeyCodec key o mDesc ->
         M.singleton key $
           Option
@@ -121,6 +140,7 @@ data Option = Option
   { optionType :: !(Maybe OptionType),
     optionDescription :: !(Maybe Text)
   }
+  deriving (Eq, Ord)
 
 emptyOption :: Option
 emptyOption =
@@ -128,6 +148,9 @@ emptyOption =
     { optionType = Nothing,
       optionDescription = Nothing
     }
+
+simplifyOption :: Option -> Option
+simplifyOption o = o {optionType = simplifyOptionType <$> optionType o}
 
 renderOption :: Option -> [Text]
 renderOption Option {..} =
@@ -151,6 +174,7 @@ data OptionType
   | OptionTypeAttrsOf !OptionType
   | OptionTypeOneOf ![OptionType]
   | OptionTypeSubmodule !(Map Text Option)
+  deriving (Eq, Ord)
 
 simplifyOptionType :: OptionType -> OptionType
 simplifyOptionType = go
@@ -159,7 +183,9 @@ simplifyOptionType = go
       OptionTypeSimple t -> OptionTypeSimple t
       OptionTypeListOf o -> OptionTypeListOf $ go o
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
-      OptionTypeOneOf os -> OptionTypeOneOf $ concatMap goOr os
+      OptionTypeOneOf os -> case nubOrd $ concatMap goOr os of
+        [ot] -> ot
+        os' -> OptionTypeOneOf os'
       OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
 
     goOpt o = o {optionType = go <$> optionType o}
@@ -179,6 +205,9 @@ renderOptionType = \case
       "types.submodule { options = "
       (renderOptions obj)
       `append` ";}"
+
+simplifyOptions :: Map Text Option -> Map Text Option
+simplifyOptions = M.map simplifyOption
 
 renderOptions :: Map Text Option -> [Text]
 renderOptions obj =

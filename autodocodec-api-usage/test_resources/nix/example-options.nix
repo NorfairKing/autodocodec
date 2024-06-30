@@ -7,22 +7,7 @@
   ;
   "fruit" =
     mkOption {
-      type = 
-        types.oneOf [
-          (types.anything)
-          (
-            types.oneOf [
-              (types.anything)
-              (
-                types.oneOf [
-                  (types.anything)
-                  (types.anything)
-                ]
-                )
-            ]
-            )
-        ]
-        ;
+      type = types.anything;
       description = "fruit!!";
     }
   ;

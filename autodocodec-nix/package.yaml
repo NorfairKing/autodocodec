@@ -20,3 +20,4 @@ library:
   - autodocodec >= 0.2.3.0
   - containers
   - text
+  - unordered-containers

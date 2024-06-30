@@ -8,14 +8,7 @@ types.submodule { options =
     ;
     "fruit" =
       mkOption {
-        type = 
-          types.oneOf [
-            (types.anything)
-            (types.anything)
-            (types.anything)
-            (types.anything)
-          ]
-          ;
+        type = types.anything;
         description = "fruit!!";
       }
     ;
