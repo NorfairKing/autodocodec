@@ -1,4 +1,4 @@
 mkOption {
-  type = ;
-  description = These;
+  type = attrsOf (types.submodule { options = {}; ));
+  description = "These";
 }

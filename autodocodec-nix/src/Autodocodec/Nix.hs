@@ -76,7 +76,15 @@ nixOptionVia = T.unlines . renderOption . go
       ReferenceCodec {} -> emptyOption -- TODO: let-binding?
     goO :: ObjectCodec input output -> Map Text Option
     goO = \case
-      _ -> M.empty -- TODO
+      DiscriminatedUnionCodec {} -> M.empty -- TODO
+      RequiredKeyCodec key o _ -> M.singleton key (go o) -- TODO use the docs
+      OptionalKeyCodec key o _ -> M.singleton key (go o) -- TODO mark as optional
+      OptionalKeyWithDefaultCodec key o _ _ -> M.singleton key (go o) -- TODO set the default
+      OptionalKeyWithOmittedDefaultCodec key o _ _ -> M.singleton key (go o) -- TODO set the default
+      PureCodec _ -> M.empty
+      ApCodec c1 c2 -> M.union (goO c1) (goO c2)
+      BimapCodec _ _ c -> goO c
+      EitherCodec _ c1 c2 -> M.union (goO c1) (goO c2) -- TODO use an or?
 
 data Option = Option
   { optionType :: !(Maybe OptionType),
@@ -105,7 +113,7 @@ renderOption Option {..} =
               [ prepend "type = " (renderOptionType typ `append` ";") | typ <- maybeToList optionType
               ],
             concat
-              [ prepend "description = " ([d] `append` ";") | d <- maybeToList optionDescription
+              [ prepend "description = " ([T.pack (show d)] `append` ";") | d <- maybeToList optionDescription
               ]
           ],
       ["}"]
@@ -115,7 +123,14 @@ renderOptionType :: OptionType -> [Text]
 renderOptionType = \case
   OptionTypeSimple t -> [t]
   OptionTypeListOf o -> prepend "listOf (" (renderOption o) `append` ")"
-  OptionTypeSubmodule _ -> [] -- TODO
+  OptionTypeSubmodule obj ->
+    prepend
+      "attrsOf (types.submodule { options = {"
+      ( concatMap
+          (\(k, o) -> prepend (k <> " =") (renderOption o) `append` ";")
+          (M.toList obj)
+      )
+      `append` "}; ))"
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)
