@@ -57,7 +57,11 @@ nixOptionVia = T.unlines . renderOption . go
           }
       HashMapCodec _ -> emptyOption -- TODO
       MapCodec _ -> emptyOption -- TODO
-      ValueCodec -> emptyOption -- TODO
+      ValueCodec ->
+        Option
+          { optionType = Just (OptionTypeSimple "types.unspecified"),
+            optionDescription = Nothing
+          }
       ArrayOfCodec mDesc c ->
         let o = go c
          in Option
@@ -71,7 +75,7 @@ nixOptionVia = T.unlines . renderOption . go
           } -- TODO
       EqCodec _ _ -> emptyOption -- TODO
       BimapCodec _ _ c -> go c
-      EitherCodec {} -> emptyOption -- TODO
+      EitherCodec {} -> emptyOption -- TODO use types.oneOf
       CommentCodec _ c -> go c -- TODO: use the comment
       ReferenceCodec {} -> emptyOption -- TODO: let-binding?
     goO :: ObjectCodec input output -> Map Text Option

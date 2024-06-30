@@ -1,2 +1,3 @@
 mkOption {
+  type = types.unspecified;
 }
