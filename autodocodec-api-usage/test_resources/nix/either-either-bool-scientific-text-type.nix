@@ -1,11 +1,11 @@
-oneOf [
+types.oneOf [
   (
     types.submodule { options = 
       {
         "Left" =
           mkOption {
             type = 
-              oneOf [
+              types.oneOf [
                 (
                   types.submodule { options = 
                     {

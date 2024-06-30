@@ -1,4 +1,4 @@
-oneOf [
+types.oneOf [
   (
     types.submodule { options = 
       {

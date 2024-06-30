@@ -8,13 +8,13 @@
   "fruit" =
     mkOption {
       type = 
-        oneOf [
+        types.oneOf [
           (types.anything)
           (
-            oneOf [
+            types.oneOf [
               (types.anything)
               (
-                oneOf [
+                types.oneOf [
                   (types.anything)
                   (types.anything)
                 ]
@@ -29,7 +29,7 @@
   "maybe" =
     mkOption {
       type = 
-        oneOf [
+        types.oneOf [
           (types.anything)
           (types.str)
         ]
@@ -46,7 +46,7 @@
   "optional-or-null" =
     mkOption {
       type = 
-        oneOf [
+        types.oneOf [
           (types.anything)
           (types.str)
         ]
@@ -62,16 +62,16 @@
   ;
   "optional-with-null-default" =
     mkOption {
-      type = listOf (types.str);
+      type = types.listOf (types.str);
       description = "an optional list of texts with a default empty list where the empty list would be omitted";
     }
   ;
   "single-or-list" =
     mkOption {
       type = 
-        oneOf [
+        types.oneOf [
           (types.str)
-          (listOf (types.str))
+          (types.listOf (types.str))
         ]
         ;
       description = "an optional list that can also be specified as a single element";

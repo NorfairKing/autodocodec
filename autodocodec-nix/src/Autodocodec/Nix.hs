@@ -55,6 +55,7 @@ renderNixOptionsVia =
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
 valueCodecNixOptionType = go
   where
+    mTyp = fromMaybe (OptionTypeSimple "types.anything")
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
       NullCodec -> Nothing
@@ -66,14 +67,14 @@ valueCodecNixOptionType = go
           BitUInt w -> T.pack $ "types.u" <> show w -- TODO this will not exist for u7
           BitSInt w -> T.pack $ "types.s" <> show w -- TODO this will not exist for s7
           OtherNumberBounds _ _ -> "types.number" -- TODO
-      HashMapCodec _ -> Nothing -- TODO
-      MapCodec _ -> Nothing -- TODO
+      HashMapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
+      MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec -> Just (OptionTypeSimple "types.unspecified")
-      ArrayOfCodec _ c -> OptionTypeListOf <$> go c
+      ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
       ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOption oc))
       EqCodec _ _ -> Nothing -- TODO
       BimapCodec _ _ c -> go c
-      EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map (fromMaybe (OptionTypeSimple "types.anything")) [go c1, go c2])
+      EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
       CommentCodec _ c -> go c -- TODO: use the comment
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
@@ -147,6 +148,7 @@ renderOption Option {..} =
 data OptionType
   = OptionTypeSimple !Text
   | OptionTypeListOf !OptionType
+  | OptionTypeAttrsOf !OptionType
   | OptionTypeOneOf ![OptionType]
   | OptionTypeSubmodule !(Map Text Option)
 
@@ -156,6 +158,7 @@ simplifyOptionType = go
     go = \case
       OptionTypeSimple t -> OptionTypeSimple t
       OptionTypeListOf o -> OptionTypeListOf $ go o
+      OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
       OptionTypeOneOf os -> OptionTypeOneOf $ concatMap goOr os
       OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
 
@@ -168,8 +171,9 @@ simplifyOptionType = go
 renderOptionType :: OptionType -> [Text]
 renderOptionType = \case
   OptionTypeSimple t -> [t]
-  OptionTypeListOf o -> prepend "listOf (" (renderOptionType o) `append` ")"
-  OptionTypeOneOf os -> prepend "oneOf [" (concatMap (parens . renderOptionType) os) `append` "]"
+  OptionTypeListOf o -> prepend "types.listOf (" (renderOptionType o) `append` ")"
+  OptionTypeAttrsOf o -> prepend "types.attrsOf (" (renderOptionType o) `append` ")"
+  OptionTypeOneOf os -> prepend "types.oneOf [" (concatMap (parens . renderOptionType) os) `append` "]"
   OptionTypeSubmodule obj ->
     prepend
       "types.submodule { options = "

@@ -1,1 +1,1 @@
-types.anything
+types.attrsOf (types.unspecified)
