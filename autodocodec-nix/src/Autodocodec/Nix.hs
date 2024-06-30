@@ -58,7 +58,12 @@ nixOptionVia = T.unlines . renderOption . go
       HashMapCodec _ -> emptyOption -- TODO
       MapCodec _ -> emptyOption -- TODO
       ValueCodec -> emptyOption -- TODO
-      ArrayOfCodec _ _ -> emptyOption -- TODO
+      ArrayOfCodec mDesc c ->
+        let o = go c
+         in Option
+              { optionType = Just (OptionTypeListOf o),
+                optionDescription = mDesc
+              }
       ObjectOfCodec mDesc oc ->
         Option
           { optionType = Just (OptionTypeSubmodule (goO oc)),
@@ -87,6 +92,7 @@ emptyOption =
 
 data OptionType
   = OptionTypeSimple !Text
+  | OptionTypeListOf !Option
   | OptionTypeSubmodule !(Map Text Option)
 
 renderOption :: Option -> [Text]
@@ -108,6 +114,7 @@ renderOption Option {..} =
 renderOptionType :: OptionType -> [Text]
 renderOptionType = \case
   OptionTypeSimple t -> [t]
+  OptionTypeListOf o -> prepend "listOf (" (renderOption o) `append` ")"
   OptionTypeSubmodule _ -> [] -- TODO
 
 indent :: [Text] -> [Text]
@@ -121,4 +128,4 @@ prepend t = \case
 append :: [Text] -> Text -> [Text]
 append ts u = case ts of
   [t] -> [t <> u]
-  _ -> ts ++ indent [u]
+  _ -> ts ++ [u]

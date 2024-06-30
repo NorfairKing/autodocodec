@@ -1,4 +1,4 @@
 mkOption {
-  type =   ;
+  type = ;
   description = LegacyValue;
 }
