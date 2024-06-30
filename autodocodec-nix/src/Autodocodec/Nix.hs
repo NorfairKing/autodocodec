@@ -75,7 +75,11 @@ nixOptionVia = T.unlines . renderOption . go
           } -- TODO
       EqCodec _ _ -> emptyOption -- TODO
       BimapCodec _ _ c -> go c
-      EitherCodec {} -> emptyOption -- TODO use types.oneOf
+      EitherCodec _ c1 c2 ->
+        Option
+          { optionType = Just (OptionTypeOneOf (map (fromMaybe (OptionTypeSimple "types.anything") . optionType) [go c1, go c2])),
+            optionDescription = Nothing
+          }
       CommentCodec _ c -> go c -- TODO: use the comment
       ReferenceCodec {} -> emptyOption -- TODO: let-binding?
     goO :: ObjectCodec input output -> Map Text Option
@@ -102,11 +106,6 @@ emptyOption =
       optionDescription = Nothing
     }
 
-data OptionType
-  = OptionTypeSimple !Text
-  | OptionTypeListOf !Option
-  | OptionTypeSubmodule !(Map Text Option)
-
 renderOption :: Option -> [Text]
 renderOption Option {..} =
   concat
@@ -114,7 +113,7 @@ renderOption Option {..} =
       indent $
         concat
           [ concat
-              [ prepend "type = " (renderOptionType typ `append` ";") | typ <- maybeToList optionType
+              [ prepend "type =" (renderOptionType typ `append` ";") | typ <- maybeToList optionType
               ],
             concat
               [ prepend "description = " ([T.pack (show d)] `append` ";") | d <- maybeToList optionDescription
@@ -123,15 +122,22 @@ renderOption Option {..} =
       ["}"]
     ]
 
+data OptionType
+  = OptionTypeSimple !Text
+  | OptionTypeListOf !Option
+  | OptionTypeOneOf ![OptionType]
+  | OptionTypeSubmodule !(Map Text Option)
+
 renderOptionType :: OptionType -> [Text]
 renderOptionType = \case
   OptionTypeSimple t -> [t]
   OptionTypeListOf o -> prepend "listOf (" (renderOption o) `append` ")"
+  OptionTypeOneOf os -> prepend "oneOf [" (concatMap (parens . renderOptionType) os) `append` "]"
   OptionTypeSubmodule obj ->
     prepend
       "attrsOf (types.submodule { options = {"
       ( concatMap
-          (\(k, o) -> prepend (k <> " =") (renderOption o) `append` ";")
+          (\(k, o) -> prepend (T.pack (show k <> " =")) (renderOption o) `append` ";")
           (M.toList obj)
       )
       `append` "}; ))"
@@ -148,3 +154,6 @@ append :: [Text] -> Text -> [Text]
 append ts u = case ts of
   [t] -> [t <> u]
   _ -> ts ++ [u]
+
+parens :: [Text] -> [Text]
+parens = prepend "(" . (`append` ")")
