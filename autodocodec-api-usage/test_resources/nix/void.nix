@@ -1,3 +1,1 @@
-mkOption {
-  type = types.unspecified;
-}
+types.unspecified

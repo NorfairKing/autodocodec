@@ -1,3 +1,1 @@
-mkOption {
-  type = types.s8;
-}
+types.s8

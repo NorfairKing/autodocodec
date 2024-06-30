@@ -84,4 +84,4 @@ nixOptionSpec filePath =
   it "outputs the same nix type as before" $
     pureGoldenTextFile
       ("test_resources/nix/" <> filePath <> ".nix")
-      (nixOptionViaCodec @a)
+      (renderNixOptionTypeViaCodec @a)

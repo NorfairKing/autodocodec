@@ -1,45 +1,49 @@
-mkOption {
-  type = 
-    oneOf [
-      (
-        attrsOf (types.submodule { options = {
-          "Left" =
-            mkOption {
-              type = 
-                oneOf [
-                  (
-                    attrsOf (types.submodule { options = {
+oneOf [
+  (
+    types.submodule { options = 
+      {
+        "Left" =
+          mkOption {
+            type = 
+              oneOf [
+                (
+                  types.submodule { options = 
+                    {
                       "Left" =
                         mkOption {
                           type = types.bool;
                         }
                       ;
-                    }; ))
-                    )
-                  (
-                    attrsOf (types.submodule { options = {
+                    }
+                  ;}
+                  )
+                (
+                  types.submodule { options = 
+                    {
                       "Right" =
                         mkOption {
                           type = types.number;
                         }
                       ;
-                    }; ))
-                    )
-                ]
-                ;
-            }
-          ;
-        }; ))
-        )
-      (
-        attrsOf (types.submodule { options = {
-          "Right" =
-            mkOption {
-              type = types.str;
-            }
-          ;
-        }; ))
-        )
-    ]
-    ;
-}
+                    }
+                  ;}
+                  )
+              ]
+              ;
+          }
+        ;
+      }
+    ;}
+    )
+  (
+    types.submodule { options = 
+      {
+        "Right" =
+          mkOption {
+            type = types.str;
+          }
+        ;
+      }
+    ;}
+    )
+]

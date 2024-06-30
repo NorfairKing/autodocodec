@@ -1,3 +1,1 @@
-mkOption {
-  type = types.s32;
-}
+types.s32

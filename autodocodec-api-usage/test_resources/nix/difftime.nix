@@ -1,3 +1,1 @@
-mkOption {
-  type = types.number;
-}
+types.number

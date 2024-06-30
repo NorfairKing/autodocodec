@@ -1,8 +1,4 @@
-mkOption {
-  type = 
-    oneOf [
-      (types.anything)
-      (types.str)
-    ]
-    ;
-}
+oneOf [
+  (types.anything)
+  (types.str)
+]

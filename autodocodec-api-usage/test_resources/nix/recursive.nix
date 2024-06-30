@@ -1,2 +1,1 @@
-mkOption {
-}
+types.anything

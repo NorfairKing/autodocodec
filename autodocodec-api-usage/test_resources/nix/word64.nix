@@ -1,3 +1,1 @@
-mkOption {
-  type = types.u64;
-}
+types.u64

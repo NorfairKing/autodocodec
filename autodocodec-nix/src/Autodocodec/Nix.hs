@@ -9,8 +9,16 @@
 
 module Autodocodec.Nix
   ( -- * Producing a Nixos module type
-    nixOptionViaCodec,
-    nixOptionVia,
+    renderNixOptionTypeViaCodec,
+    renderNixOptionViaCodec,
+    renderNixOptionTypeVia,
+    renderNixOptionVia,
+    valueCodecNixOptionType,
+    objectCodecNixOption,
+    Option (..),
+    OptionType (..),
+    renderOption,
+    renderOptionType,
 
     -- * To makes sure we definitely export everything.
     module Autodocodec.Nix,
@@ -24,75 +32,89 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 
--- | Produce a Nixos module type via a type's 'codec'.
-nixOptionViaCodec :: forall a. (HasCodec a) => Text
-nixOptionViaCodec = nixOptionVia (codec @a)
+renderNixOptionTypeViaCodec :: forall a. (HasCodec a) => Text
+renderNixOptionTypeViaCodec = renderNixOptionTypeVia (codec @a)
 
--- | Parse a Yaml 'ByteString' using a type's 'codec'.
-nixOptionVia :: ValueCodec input output -> Text
-nixOptionVia = T.unlines . renderOption . go
+renderNixOptionViaCodec :: forall a. (HasObjectCodec a) => Text
+renderNixOptionViaCodec = renderNixOptionVia (objectCodec @a)
+
+renderNixOptionTypeVia :: ValueCodec input output -> Text
+renderNixOptionTypeVia =
+  T.unlines
+    . renderOptionType
+    . simplifyOptionType
+    . fromMaybe (OptionTypeSimple "types.anything")
+    . valueCodecNixOptionType
+
+renderNixOptionVia :: ObjectCodec input output -> Text
+renderNixOptionVia =
+  T.unlines
+    . renderOptions
+    . objectCodecNixOption
+
+valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
+valueCodecNixOptionType = go
   where
-    go :: ValueCodec input output -> Option
+    go :: ValueCodec input output -> Maybe OptionType
     go = \case
-      NullCodec -> emptyOption
-      BoolCodec mDesc ->
-        Option
-          { optionType = Just (OptionTypeSimple "types.bool"),
-            optionDescription = mDesc
-          }
-      StringCodec mDesc ->
-        Option
-          { optionType = Just (OptionTypeSimple "types.str"),
-            optionDescription = mDesc
-          }
-      NumberCodec mDesc mBounds ->
-        Option
-          { optionType = Just $ OptionTypeSimple $ case mBounds of
-              Nothing -> "types.number"
-              Just bounds -> case guessNumberBoundsSymbolic bounds of
-                BitUInt w -> T.pack $ "types.u" <> show w -- TODO this will not exist for u7
-                BitSInt w -> T.pack $ "types.s" <> show w -- TODO this will not exist for s7
-                OtherNumberBounds _ _ -> "types.number", -- TODO
-            optionDescription = mDesc
-          }
-      HashMapCodec _ -> emptyOption -- TODO
-      MapCodec _ -> emptyOption -- TODO
-      ValueCodec ->
-        Option
-          { optionType = Just (OptionTypeSimple "types.unspecified"),
-            optionDescription = Nothing
-          }
-      ArrayOfCodec mDesc c ->
-        let o = go c
-         in Option
-              { optionType = Just (OptionTypeListOf o),
-                optionDescription = mDesc
-              }
-      ObjectOfCodec mDesc oc ->
-        Option
-          { optionType = Just (OptionTypeSubmodule (goO oc)),
-            optionDescription = mDesc
-          } -- TODO
-      EqCodec _ _ -> emptyOption -- TODO
+      NullCodec -> Nothing
+      BoolCodec _ -> Just (OptionTypeSimple "types.bool")
+      StringCodec _ -> Just (OptionTypeSimple "types.str")
+      NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
+        Nothing -> "types.number"
+        Just bounds -> case guessNumberBoundsSymbolic bounds of
+          BitUInt w -> T.pack $ "types.u" <> show w -- TODO this will not exist for u7
+          BitSInt w -> T.pack $ "types.s" <> show w -- TODO this will not exist for s7
+          OtherNumberBounds _ _ -> "types.number" -- TODO
+      HashMapCodec _ -> Nothing -- TODO
+      MapCodec _ -> Nothing -- TODO
+      ValueCodec -> Just (OptionTypeSimple "types.unspecified")
+      ArrayOfCodec _ c -> OptionTypeListOf <$> go c
+      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOption oc))
+      EqCodec _ _ -> Nothing -- TODO
       BimapCodec _ _ c -> go c
-      EitherCodec _ c1 c2 ->
-        Option
-          { optionType = Just (OptionTypeOneOf (map (fromMaybe (OptionTypeSimple "types.anything") . optionType) [go c1, go c2])),
-            optionDescription = Nothing
-          }
+      EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map (fromMaybe (OptionTypeSimple "types.anything")) [go c1, go c2])
       CommentCodec _ c -> go c -- TODO: use the comment
-      ReferenceCodec {} -> emptyOption -- TODO: let-binding?
-    goO :: ObjectCodec input output -> Map Text Option
-    goO = \case
+      ReferenceCodec {} -> Nothing -- TODO: let-binding?
+
+objectCodecNixOption :: ObjectCodec input output -> Map Text Option
+objectCodecNixOption = go
+  where
+    go :: ObjectCodec input output -> Map Text Option
+    go = \case
       DiscriminatedUnionCodec {} -> M.empty -- TODO
-      RequiredKeyCodec key o _ -> M.singleton key (go o) -- TODO use the docs
-      OptionalKeyCodec key o _ -> M.singleton key (go o) -- TODO mark as optional
-      OptionalKeyWithDefaultCodec key o _ _ -> M.singleton key (go o) -- TODO set the default
-      OptionalKeyWithOmittedDefaultCodec key o _ _ -> M.singleton key (go o) -- TODO set the default
+      RequiredKeyCodec key o mDesc ->
+        M.singleton key $
+          Option
+            { optionType = valueCodecNixOptionType o,
+              optionDescription = mDesc
+            } -- TODO use the docs
+      OptionalKeyCodec key o mDesc ->
+        M.singleton key $
+          Option
+            { optionType = valueCodecNixOptionType o,
+              optionDescription = mDesc
+            } -- TODO mark as optional
+      OptionalKeyWithDefaultCodec key o _ mDesc ->
+        -- TODO set the default
+        M.singleton
+          key
+          Option
+            { optionType = valueCodecNixOptionType o,
+              optionDescription = mDesc
+            }
+      OptionalKeyWithOmittedDefaultCodec key o _ mDesc ->
+        -- TODO set the default
+        M.singleton
+          key
+          Option
+            { optionType = valueCodecNixOptionType o,
+              optionDescription = mDesc
+            }
       PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.union (goO c1) (goO c2)
-      BimapCodec _ _ c -> goO c
-      EitherCodec _ c1 c2 -> M.union (goO c1) (goO c2) -- TODO use an or?
+      ApCodec c1 c2 -> M.union (go c1) (go c2)
+      BimapCodec _ _ c -> go c
+      EitherCodec _ c1 c2 -> M.union (go c1) (go c2) -- TODO use an or?
 
 data Option = Option
   { optionType :: !(Maybe OptionType),
@@ -124,23 +146,33 @@ renderOption Option {..} =
 
 data OptionType
   = OptionTypeSimple !Text
-  | OptionTypeListOf !Option
+  | OptionTypeListOf !OptionType
   | OptionTypeOneOf ![OptionType]
   | OptionTypeSubmodule !(Map Text Option)
+
+simplifyOptionType :: OptionType -> OptionType
+simplifyOptionType = id -- TODO
 
 renderOptionType :: OptionType -> [Text]
 renderOptionType = \case
   OptionTypeSimple t -> [t]
-  OptionTypeListOf o -> prepend "listOf (" (renderOption o) `append` ")"
+  OptionTypeListOf o -> prepend "listOf (" (renderOptionType o) `append` ")"
   OptionTypeOneOf os -> prepend "oneOf [" (concatMap (parens . renderOptionType) os) `append` "]"
   OptionTypeSubmodule obj ->
     prepend
-      "attrsOf (types.submodule { options = {"
-      ( concatMap
-          (\(k, o) -> prepend (T.pack (show k <> " =")) (renderOption o) `append` ";")
-          (M.toList obj)
-      )
-      `append` "}; ))"
+      "types.submodule { options = "
+      (renderOptions obj)
+      `append` ";}"
+
+renderOptions :: Map Text Option -> [Text]
+renderOptions obj =
+  prepend
+    "{"
+    ( concatMap
+        (\(k, o) -> prepend (T.pack (show k <> " =")) (renderOption o) `append` ";")
+        (M.toList obj)
+    )
+    `append` "}"
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)

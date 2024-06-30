@@ -1,17 +1,16 @@
-mkOption {
-  type = 
-    attrsOf (types.submodule { options = {
-      "one" =
-        mkOption {
-          type = types.str;
-        }
-      ;
-      "two" =
-        mkOption {
-          type = types.str;
-        }
-      ;
-    }; ))
+types.submodule { options = 
+  {
+    "one" =
+      mkOption {
+        type = types.str;
+        description = "first field";
+      }
     ;
-  description = "Via";
-}
+    "two" =
+      mkOption {
+        type = types.str;
+        description = "second field";
+      }
+    ;
+  }
+;}

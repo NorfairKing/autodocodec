@@ -1,3 +1,1 @@
-mkOption {
-  type = types.s16;
-}
+types.s16
