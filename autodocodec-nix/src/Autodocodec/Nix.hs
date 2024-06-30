@@ -10,9 +10,9 @@
 module Autodocodec.Nix
   ( -- * Producing a Nixos module type
     renderNixOptionTypeViaCodec,
-    renderNixOptionViaCodec,
+    renderNixOptionsViaCodec,
     renderNixOptionTypeVia,
-    renderNixOptionVia,
+    renderNixOptionsVia,
     valueCodecNixOptionType,
     objectCodecNixOption,
     Option (..),
@@ -35,8 +35,8 @@ import qualified Data.Text as T
 renderNixOptionTypeViaCodec :: forall a. (HasCodec a) => Text
 renderNixOptionTypeViaCodec = renderNixOptionTypeVia (codec @a)
 
-renderNixOptionViaCodec :: forall a. (HasObjectCodec a) => Text
-renderNixOptionViaCodec = renderNixOptionVia (objectCodec @a)
+renderNixOptionsViaCodec :: forall a. (HasObjectCodec a) => Text
+renderNixOptionsViaCodec = renderNixOptionsVia (objectCodec @a)
 
 renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
@@ -46,8 +46,8 @@ renderNixOptionTypeVia =
     . fromMaybe (OptionTypeSimple "types.anything")
     . valueCodecNixOptionType
 
-renderNixOptionVia :: ObjectCodec input output -> Text
-renderNixOptionVia =
+renderNixOptionsVia :: ObjectCodec input output -> Text
+renderNixOptionsVia =
   T.unlines
     . renderOptions
     . objectCodecNixOption

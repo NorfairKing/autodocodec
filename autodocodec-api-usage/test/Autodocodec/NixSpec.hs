@@ -25,63 +25,81 @@ import Test.Syd
 
 spec :: Spec
 spec = do
-  nixOptionSpec @NullUnit "null"
-  nixOptionSpec @Void "void"
-  nixOptionSpec @Bool "bool"
-  nixOptionSpec @Ordering "ordering"
-  nixOptionSpec @Char "char"
-  nixOptionSpec @Text "text"
-  nixOptionSpec @LT.Text "lazy-text"
-  nixOptionSpec @String "string"
-  nixOptionSpec @Scientific "scientific"
-  nixOptionSpec @JSON.Object "object"
-  nixOptionSpec @JSON.Value "value"
-  nixOptionSpec @Int "int"
-  nixOptionSpec @Int8 "int8"
-  nixOptionSpec @Int16 "int16"
-  nixOptionSpec @Int32 "int32"
-  nixOptionSpec @Int64 "int64"
-  nixOptionSpec @Integer "integer"
-  nixOptionSpec @Word "word"
-  nixOptionSpec @Word8 "word8"
-  nixOptionSpec @Word16 "word16"
-  nixOptionSpec @Word32 "word32"
-  nixOptionSpec @Word64 "word64"
-  nixOptionSpec @Natural "natural"
-  nixOptionSpec @(Maybe Text) "maybe-text"
-  nixOptionSpec @(Either Bool Text) "either-bool-text"
-  nixOptionSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
-  nixOptionSpec @[Text] "list-text"
-  nixOptionSpec @(NonEmpty Text) "nonempty-text"
-  nixOptionSpec @(Set Text) "set-text"
-  nixOptionSpec @(Map Text Int) "map-text-ind"
-  nixOptionSpec @Day "day"
-  nixOptionSpec @LocalTime "local-time"
-  nixOptionSpec @UTCTime "utc-time"
-  nixOptionSpec @TimeOfDay "time-of-day"
-  nixOptionSpec @NominalDiffTime "nominal-difftime"
-  nixOptionSpec @DiffTime "difftime"
-  nixOptionSpec @Fruit "fruit"
-  nixOptionSpec @Example "example"
-  nixOptionSpec @Recursive "recursive"
-  nixOptionSpec @ListsExample "lists-example"
-  nixOptionSpec @MutuallyRecursiveA "mutually-recursive"
-  nixOptionSpec @Via "via"
-  nixOptionSpec @VeryComment "very-comment"
-  nixOptionSpec @LegacyValue "legacy-value"
-  nixOptionSpec @LegacyObject "legacy-object"
-  nixOptionSpec @Ainur "ainur"
-  nixOptionSpec @War "war"
-  nixOptionSpec @These "these"
-  nixOptionSpec @Expression "expression"
+  nixOptionTypeSpec @NullUnit "null"
+  nixOptionTypeSpec @Void "void"
+  nixOptionTypeSpec @Bool "bool"
+  nixOptionTypeSpec @Ordering "ordering"
+  nixOptionTypeSpec @Char "char"
+  nixOptionTypeSpec @Text "text"
+  nixOptionTypeSpec @LT.Text "lazy-text"
+  nixOptionTypeSpec @String "string"
+  nixOptionTypeSpec @Scientific "scientific"
+  nixOptionTypeSpec @JSON.Object "object"
+  nixOptionTypeSpec @JSON.Value "value"
+  nixOptionTypeSpec @Int "int"
+  nixOptionTypeSpec @Int8 "int8"
+  nixOptionTypeSpec @Int16 "int16"
+  nixOptionTypeSpec @Int32 "int32"
+  nixOptionTypeSpec @Int64 "int64"
+  nixOptionTypeSpec @Integer "integer"
+  nixOptionTypeSpec @Word "word"
+  nixOptionTypeSpec @Word8 "word8"
+  nixOptionTypeSpec @Word16 "word16"
+  nixOptionTypeSpec @Word32 "word32"
+  nixOptionTypeSpec @Word64 "word64"
+  nixOptionTypeSpec @Natural "natural"
+  nixOptionTypeSpec @(Maybe Text) "maybe-text"
+  nixOptionTypeSpec @(Either Bool Text) "either-bool-text"
+  nixOptionTypeSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
+  nixOptionTypeSpec @[Text] "list-text"
+  nixOptionTypeSpec @(NonEmpty Text) "nonempty-text"
+  nixOptionTypeSpec @(Set Text) "set-text"
+  nixOptionTypeSpec @(Map Text Int) "map-text-ind"
+  nixOptionTypeSpec @Day "day"
+  nixOptionTypeSpec @LocalTime "local-time"
+  nixOptionTypeSpec @UTCTime "utc-time"
+  nixOptionTypeSpec @TimeOfDay "time-of-day"
+  nixOptionTypeSpec @NominalDiffTime "nominal-difftime"
+  nixOptionTypeSpec @DiffTime "difftime"
+  nixOptionTypeSpec @Fruit "fruit"
+  nixOptionTypeSpec @Example "example"
+  nixOptionsSpec @Example "example"
+  nixOptionTypeSpec @Recursive "recursive"
+  nixOptionTypeSpec @ListsExample "lists-example"
+  nixOptionsSpec @ListsExample "lists-example"
+  nixOptionTypeSpec @MutuallyRecursiveA "mutually-recursive"
+  nixOptionTypeSpec @Via "via"
+  nixOptionsSpec @Via "via"
+  nixOptionTypeSpec @VeryComment "very-comment"
+  nixOptionTypeSpec @LegacyValue "legacy-value"
+  nixOptionsSpec @LegacyValue "legacy-value"
+  nixOptionTypeSpec @LegacyObject "legacy-object"
+  nixOptionsSpec @LegacyObject "legacy-object"
+  nixOptionTypeSpec @Ainur "ainur"
+  nixOptionTypeSpec @War "war"
+  nixOptionTypeSpec @These "these"
+  nixOptionsSpec @These "these"
+  nixOptionTypeSpec @Expression "expression"
+  nixOptionsSpec @Expression "expression"
 
-nixOptionSpec ::
+nixOptionsSpec ::
+  forall a.
+  (HasObjectCodec a) =>
+  FilePath ->
+  Spec
+nixOptionsSpec filePath =
+  it "outputs the same nix type as before" $
+    pureGoldenTextFile
+      ("test_resources/nix/" <> filePath <> "-options.nix")
+      (renderNixOptionsViaCodec @a)
+
+nixOptionTypeSpec ::
   forall a.
   (HasCodec a) =>
   FilePath ->
   Spec
-nixOptionSpec filePath =
+nixOptionTypeSpec filePath =
   it "outputs the same nix type as before" $
     pureGoldenTextFile
-      ("test_resources/nix/" <> filePath <> ".nix")
+      ("test_resources/nix/" <> filePath <> "-type.nix")
       (renderNixOptionTypeViaCodec @a)
