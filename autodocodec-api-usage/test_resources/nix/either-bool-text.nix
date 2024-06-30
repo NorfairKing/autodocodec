@@ -3,7 +3,7 @@ mkOption {
     oneOf [
       (
         attrsOf (types.submodule { options = {
-          Left =
+          "Left" =
             mkOption {
               type = types.bool;
             }
@@ -12,7 +12,7 @@ mkOption {
         )
       (
         attrsOf (types.submodule { options = {
-          Right =
+          "Right" =
             mkOption {
               type = types.str;
             }

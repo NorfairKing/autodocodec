@@ -1,12 +1,12 @@
 mkOption {
   type = 
     attrsOf (types.submodule { options = {
-      bool =
+      "bool" =
         mkOption {
           type = types.bool;
         }
       ;
-      fruit =
+      "fruit" =
         mkOption {
           type = 
             oneOf [
@@ -26,7 +26,7 @@ mkOption {
             ;
         }
       ;
-      maybe =
+      "maybe" =
         mkOption {
           type = 
             oneOf [
@@ -36,12 +36,12 @@ mkOption {
             ;
         }
       ;
-      optional =
+      "optional" =
         mkOption {
           type = types.str;
         }
       ;
-      optional-or-null =
+      "optional-or-null" =
         mkOption {
           type = 
             oneOf [
@@ -51,12 +51,12 @@ mkOption {
             ;
         }
       ;
-      optional-with-default =
+      "optional-with-default" =
         mkOption {
           type = types.str;
         }
       ;
-      optional-with-null-default =
+      "optional-with-null-default" =
         mkOption {
           type = 
             listOf (
@@ -67,7 +67,7 @@ mkOption {
             ;
         }
       ;
-      single-or-list =
+      "single-or-list" =
         mkOption {
           type = 
             oneOf [
@@ -83,7 +83,7 @@ mkOption {
             ;
         }
       ;
-      text =
+      "text" =
         mkOption {
           type = types.str;
         }

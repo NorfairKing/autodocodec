@@ -3,12 +3,12 @@ mkOption {
     oneOf [
       (
         attrsOf (types.submodule { options = {
-          domain =
+          "domain" =
             mkOption {
               type = types.str;
             }
           ;
-          name =
+          "name" =
             mkOption {
               type = types.str;
             }
@@ -17,7 +17,7 @@ mkOption {
         )
       (
         attrsOf (types.submodule { options = {
-          name =
+          "name" =
             mkOption {
               type = types.str;
             }

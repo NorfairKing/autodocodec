@@ -1,7 +1,7 @@
 mkOption {
   type = 
     attrsOf (types.submodule { options = {
-      optional-non-empty =
+      "optional-non-empty" =
         mkOption {
           type = 
             listOf (
@@ -12,7 +12,7 @@ mkOption {
             ;
         }
       ;
-      possibly-empty-with-default =
+      "possibly-empty-with-default" =
         mkOption {
           type = 
             listOf (
@@ -23,7 +23,7 @@ mkOption {
             ;
         }
       ;
-      possibly-empty-with-omitted-default =
+      "possibly-empty-with-omitted-default" =
         mkOption {
           type = 
             listOf (
@@ -34,7 +34,7 @@ mkOption {
             ;
         }
       ;
-      required-non-empty =
+      "required-non-empty" =
         mkOption {
           type = 
             listOf (

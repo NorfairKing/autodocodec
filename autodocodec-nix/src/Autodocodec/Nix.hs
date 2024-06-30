@@ -113,7 +113,7 @@ renderOption Option {..} =
       indent $
         concat
           [ concat
-              [ prepend "type =" (renderOptionType typ `append` ";") | typ <- maybeToList optionType
+              [ prepend "type = " (renderOptionType typ `append` ";") | typ <- maybeToList optionType
               ],
             concat
               [ prepend "description = " ([T.pack (show d)] `append` ";") | d <- maybeToList optionDescription

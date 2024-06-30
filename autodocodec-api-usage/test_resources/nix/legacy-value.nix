@@ -1,32 +1,32 @@
 mkOption {
   type = 
     attrsOf (types.submodule { options = {
-      1 =
+      "1" =
         mkOption {
           type = types.str;
         }
       ;
-      1old =
+      "1old" =
         mkOption {
           type = types.str;
         }
       ;
-      2 =
+      "2" =
         mkOption {
           type = types.str;
         }
       ;
-      2old =
+      "2old" =
         mkOption {
           type = types.str;
         }
       ;
-      3 =
+      "3" =
         mkOption {
           type = types.str;
         }
       ;
-      3old =
+      "3old" =
         mkOption {
           type = types.str;
         }
