@@ -9,8 +9,8 @@
 
 module Autodocodec.Nix
   ( -- * Producing a Nixos module type
-    nixTypeViaCodec,
-    nixTypeVia,
+    nixOptionViaCodec,
+    nixOptionVia,
 
     -- * To makes sure we definitely export everything.
     module Autodocodec.Nix,
@@ -25,12 +25,12 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 -- | Produce a Nixos module type via a type's 'codec'.
-nixTypeViaCodec :: forall a. (HasCodec a) => Text
-nixTypeViaCodec = nixTypeVia (codec @a)
+nixOptionViaCodec :: forall a. (HasCodec a) => Text
+nixOptionViaCodec = nixOptionVia (codec @a)
 
 -- | Parse a Yaml 'ByteString' using a type's 'codec'.
-nixTypeVia :: ValueCodec input output -> Text
-nixTypeVia = T.unlines . renderOption . go
+nixOptionVia :: ValueCodec input output -> Text
+nixOptionVia = T.unlines . renderOption . go
   where
     go :: ValueCodec input output -> Option
     go = \case
@@ -49,7 +49,10 @@ nixTypeVia = T.unlines . renderOption . go
         Option
           { optionType = Just $ OptionTypeSimple $ case mBounds of
               Nothing -> "types.number"
-              Just _ -> "types.number", -- TODO
+              Just bounds -> case guessNumberBoundsSymbolic bounds of
+                BitUInt w -> T.pack $ "types.u" <> show w -- TODO this will not exist for u7
+                BitSInt w -> T.pack $ "types.s" <> show w -- TODO this will not exist for s7
+                OtherNumberBounds _ _ -> "types.number", -- TODO
             optionDescription = mDesc
           }
       HashMapCodec _ -> emptyOption -- TODO

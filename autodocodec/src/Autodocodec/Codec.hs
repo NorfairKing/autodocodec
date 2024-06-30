@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RoleAnnotations #-}
@@ -19,10 +20,6 @@ import Control.Monad
 import Control.Monad.State
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
-#if MIN_VERSION_aeson(2,0,0)
-import Data.Aeson.KeyMap (KeyMap)
-import qualified Data.Aeson.KeyMap as KM
-#endif
 import qualified Data.Aeson.Types as JSON
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -41,8 +38,13 @@ import Data.Validity.Scientific ()
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Data.Void
+import Data.Word
 import GHC.Generics (Generic)
 import Numeric.Natural
+#if MIN_VERSION_aeson(2,0,0)
+import Data.Aeson.KeyMap (KeyMap)
+import qualified Data.Aeson.KeyMap as KM
+#endif
 
 -- $setup
 -- >>> import Autodocodec.Aeson (toJSONVia, toJSONViaCodec, toJSONObjectVia, toJSONObjectViaCodec, parseJSONVia, parseJSONViaCodec, parseJSONObjectVia, parseJSONObjectViaCodec)
@@ -279,6 +281,43 @@ checkNumberBounds NumberBounds {..} s =
         then Right s
         else Left $ unwords ["Number", show s, "is bigger than the upper bound", show numberBoundsUpper]
     else Left $ unwords ["Number", show s, "is smaller than the lower bound", show numberBoundsUpper]
+
+data NumberBoundsSymbolic
+  = BitUInt !Word8 -- w bit unsigned int
+  | BitSInt !Word8 -- w bit signed int
+  | OtherNumberBounds !ScientificSymbolic !ScientificSymbolic
+
+guessNumberBoundsSymbolic :: NumberBounds -> NumberBoundsSymbolic
+guessNumberBoundsSymbolic NumberBounds {..} =
+  case (guessScientificSymbolic numberBoundsLower, guessScientificSymbolic numberBoundsUpper) of
+    (Zero, PowerOf2MinusOne w) -> BitUInt w
+    (MinusPowerOf2 w1, PowerOf2MinusOne w2) | w1 == w2 -> BitSInt (succ w1)
+    (l, u) -> OtherNumberBounds l u
+
+data ScientificSymbolic
+  = Zero
+  | PowerOf2 !Word8 -- 2^w
+  | PowerOf2MinusOne !Word8 -- 2^w -1
+  | MinusPowerOf2 !Word8 -- - 2^w
+  | MinusPowerOf2MinusOne !Word8 -- - (2^w -1)
+  | OtherInteger !Integer
+  | OtherDouble !Double
+
+guessScientificSymbolic :: Scientific -> ScientificSymbolic
+guessScientificSymbolic s = case floatingOrInteger s of
+  Left d -> OtherDouble d
+  Right i ->
+    let log2Rounded :: Word8
+        log2Rounded = round (logBase 2 (fromInteger (abs i)) :: Double)
+        guess :: Integer
+        guess = 2 ^ log2Rounded
+     in if
+          | i == 0 -> Zero
+          | guess == i -> PowerOf2 log2Rounded
+          | (guess - 1) == i -> PowerOf2MinusOne log2Rounded
+          | -guess == i -> MinusPowerOf2 log2Rounded
+          | -(guess - 1) == i -> MinusPowerOf2MinusOne log2Rounded
+          | otherwise -> OtherInteger i
 
 -- | What type of union the encoding uses
 data Union

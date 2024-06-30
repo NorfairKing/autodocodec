@@ -1,3 +1,3 @@
 mkOption {
-  type = types.number;
+  type = types.s16;
 }

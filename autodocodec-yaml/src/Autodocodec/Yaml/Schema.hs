@@ -1,8 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -23,12 +21,10 @@ import Autodocodec.Schema
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
-import Data.Scientific (Scientific, floatingOrInteger)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import Data.Word
 import Data.Yaml as Yaml
 import Text.Colour
 
@@ -173,40 +169,3 @@ jsonSchemaChunkLines = go
           MinusPowerOf2MinusOne w -> chunk $ T.pack $ "- (2^" <> show w <> "-1)"
           OtherInteger i -> chunk $ T.pack $ show i
           OtherDouble d -> chunk $ T.pack $ show d
-
-data NumberBoundsSymbolic
-  = BitUInt !Word8 -- w bit unsigned int
-  | BitSInt !Word8 -- w bit signed int
-  | OtherNumberBounds !ScientificSymbolic !ScientificSymbolic
-
-guessNumberBoundsSymbolic :: NumberBounds -> NumberBoundsSymbolic
-guessNumberBoundsSymbolic NumberBounds {..} =
-  case (guessScientificSymbolic numberBoundsLower, guessScientificSymbolic numberBoundsUpper) of
-    (Zero, PowerOf2MinusOne w) -> BitUInt w
-    (MinusPowerOf2 w1, PowerOf2MinusOne w2) | w1 == w2 -> BitSInt (succ w1)
-    (l, u) -> OtherNumberBounds l u
-
-data ScientificSymbolic
-  = Zero
-  | PowerOf2 !Word8 -- 2^w
-  | PowerOf2MinusOne !Word8 -- 2^w -1
-  | MinusPowerOf2 !Word8 -- - 2^w
-  | MinusPowerOf2MinusOne !Word8 -- - (2^w -1)
-  | OtherInteger !Integer
-  | OtherDouble !Double
-
-guessScientificSymbolic :: Scientific -> ScientificSymbolic
-guessScientificSymbolic s = case floatingOrInteger s of
-  Left d -> OtherDouble d
-  Right i ->
-    let log2Rounded :: Word8
-        log2Rounded = round (logBase 2 (fromInteger (abs i)) :: Double)
-        guess :: Integer
-        guess = 2 ^ log2Rounded
-     in if
-          | i == 0 -> Zero
-          | guess == i -> PowerOf2 log2Rounded
-          | (guess - 1) == i -> PowerOf2MinusOne log2Rounded
-          | -guess == i -> MinusPowerOf2 log2Rounded
-          | -(guess - 1) == i -> MinusPowerOf2MinusOne log2Rounded
-          | otherwise -> OtherInteger i
