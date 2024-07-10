@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0.0] - 2024-07-19
+
+### Added
+
+* `HasCodec` instances for:
+    * `Const`
+    * `Dual`
+    * `Semigroup.First`
+    * `Semigroup.Last`
+    * `Monoid.First`
+    * `Monoid.Last`
+
+
+### Changed
+
+* Refactored `Codec` so it's input and output parameters have a representative, not nominal role.
+  This means one can now use `deriving newtype` with the `HasCodec` class.
+* Fixed infinitely looping `Identity` instance
+* Improve the documentation of `time`-related codecs to show `<string>` instead of `<any>`.
+
 ## [0.2.3.0] - 2024-06-23
 
 ### Added

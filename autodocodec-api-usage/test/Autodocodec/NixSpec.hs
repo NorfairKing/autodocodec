@@ -10,10 +10,15 @@ import Autodocodec
 import Autodocodec.Nix
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import Data.Semigroup (Dual)
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -81,6 +86,13 @@ spec = do
   nixOptionsSpec @These "these"
   nixOptionTypeSpec @Expression "expression"
   nixOptionsSpec @Expression "expression"
+  nixOptionTypeSpec @(Identity Text) "identity"
+  nixOptionTypeSpec @(Dual Text) "dual"
+  nixOptionTypeSpec @(Semigroup.First Text) "semigroup-first"
+  nixOptionTypeSpec @(Semigroup.Last Text) "semigroup-last"
+  nixOptionTypeSpec @(Monoid.First Text) "monoid-first"
+  nixOptionTypeSpec @(Monoid.Last Text) "monoid-last"
+  nixOptionTypeSpec @(Const Text Void) "const"
 
 nixOptionsSpec ::
   forall a.

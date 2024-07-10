@@ -1,8 +1,8 @@
 {
     "definitions": {
         "TimeOfDay": {
-            "additionalProperties": true,
-            "description": "TimeOfDay"
+            "description": "TimeOfDay",
+            "type": "string"
         }
     },
     "info": {

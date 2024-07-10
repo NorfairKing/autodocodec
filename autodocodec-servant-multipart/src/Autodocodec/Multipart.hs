@@ -14,11 +14,13 @@ import Autodocodec
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
+import Data.Coerce (coerce)
 import Data.Foldable
 import qualified Data.HashMap.Strict as HashMap
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
+import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Servant.Multipart as Servant
 import Servant.Multipart.API as Servant
@@ -32,7 +34,7 @@ toMultipartVia = flip go
     go :: a -> ObjectCodec a void -> MultipartData tag
     go a = \case
       BimapCodec _ to c -> go (to a) c
-      EitherCodec _ c1 c2 -> case a of
+      EitherCodec _ c1 c2 -> case coerce a of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       DiscriminatedUnionCodec discriminator encoding _ ->
@@ -52,7 +54,7 @@ toMultipartVia = flip go
       OptionalKeyCodec key vc _ ->
         MultipartData
           { inputs = do
-              a' <- maybeToList a
+              a' <- maybeToList $ coerce a
               v <- goValue a' vc
               pure $ Input key v,
             files = []
@@ -65,9 +67,9 @@ toMultipartVia = flip go
       OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ ->
         MultipartData
           { inputs =
-              if a == defaultValue
+              if coerce a == defaultValue
                 then []
-                else map (Input key) (goValue a vc),
+                else map (Input key) (goValue (coerce a) vc),
             files = []
           }
       PureCodec _ -> memptyMultipartData
@@ -76,26 +78,26 @@ toMultipartVia = flip go
     goValue :: a -> ValueCodec a void -> [Text]
     goValue a = \case
       BimapCodec _ to vc -> goValue (to a) vc
-      EitherCodec _ c1 c2 -> case a of
+      EitherCodec _ c1 c2 -> case coerce a of
         Left a1 -> goValue a1 c1
         Right a2 -> goValue a2 c2
       CommentCodec _ vc -> goValue a vc
-      ArrayOfCodec _ vc -> map (`goSingleValue` vc) (toList a)
+      ArrayOfCodec _ (vc :: ValueCodec input output) -> map (`goSingleValue` vc) (toList (coerce a :: Vector input))
       vc -> [goSingleValue a vc]
 
     goSingleValue :: a -> ValueCodec a void -> Text
     goSingleValue a = \case
       BimapCodec _ to vc -> goSingleValue (to a) vc
-      EitherCodec _ c1 c2 -> case a of
+      EitherCodec _ c1 c2 -> case coerce a of
         Left a1 -> goSingleValue a1 c1
         Right a2 -> goSingleValue a2 c2
       CommentCodec _ vc -> goSingleValue a vc
       NullCodec -> "null"
       BoolCodec _ ->
-        case a of
+        case coerce a of
           True -> "True"
           False -> "False"
-      StringCodec _ -> a
+      StringCodec _ -> coerce a
       vc ->
         let value = toJSONVia vc a
          in case value of
@@ -128,7 +130,7 @@ fromMultipartVia = flip go
     go :: MultipartData tag -> ObjectCodec void a -> Either String a
     go mpd = \case
       BimapCodec from _ c -> go mpd c >>= from
-      EitherCodec u c1 c2 -> case u of
+      EitherCodec u c1 c2 -> coerce $ case u of
         PossiblyJointUnion ->
           case go mpd c1 of
             Right l -> pure (Left l)
@@ -157,17 +159,17 @@ fromMultipartVia = flip go
         goValue values vc
       OptionalKeyCodec key vc _ -> do
         values <- lookupLInput key mpd
-        case values of
+        coerce $ case values of
           [] -> pure Nothing
           _ -> Just <$> goValue values vc
       OptionalKeyWithDefaultCodec key vc defaultValue _ -> do
         values <- lookupLInput key mpd
-        case values of
+        coerce $ case values of
           [] -> pure defaultValue
           _ -> goValue values vc
       OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ -> do
         values <- lookupLInput key mpd
-        case values of
+        coerce $ case values of
           [] -> pure defaultValue
           _ -> goValue values vc
       PureCodec v -> pure v
@@ -176,7 +178,7 @@ fromMultipartVia = flip go
     goValue :: [Text] -> ValueCodec void a -> Either String a
     goValue ts = \case
       BimapCodec from _ c -> goValue ts c >>= from
-      EitherCodec u c1 c2 -> case u of
+      EitherCodec u c1 c2 -> coerce $ case u of
         PossiblyJointUnion ->
           case goValue ts c1 of
             Right l -> pure (Left l)
@@ -197,7 +199,7 @@ fromMultipartVia = flip go
                   ]
       ReferenceCodec _ vc -> goValue ts vc
       CommentCodec _ c -> goValue ts c
-      ArrayOfCodec _ vc -> V.fromList <$> mapM (`goSingleValue` vc) (toList ts)
+      ArrayOfCodec _ vc -> coerce $ V.fromList <$> mapM (`goSingleValue` vc) (toList ts)
       vc -> case ts of
         [t] -> goSingleValue t vc
         _ -> Left "Expected exactly one value."
@@ -205,7 +207,7 @@ fromMultipartVia = flip go
     goSingleValue :: Text -> ValueCodec void a -> Either String a
     goSingleValue t = \case
       BimapCodec from _ c -> goSingleValue t c >>= from
-      EitherCodec u c1 c2 -> case u of
+      EitherCodec u c1 c2 -> coerce $ case u of
         PossiblyJointUnion ->
           case goSingleValue t c1 of
             Right l -> pure (Left l)
@@ -226,16 +228,16 @@ fromMultipartVia = flip go
                   ]
       CommentCodec _ c -> goSingleValue t c
       ReferenceCodec _ vc -> goSingleValue t vc
-      NullCodec -> case t of
+      NullCodec -> coerce $ case t of
         "null" -> Right ()
         _ -> Left $ "not 'null': " <> show t
-      BoolCodec _ -> case t of
+      BoolCodec _ -> coerce $ case t of
         "false" -> Right False
         "False" -> Right False
         "true" -> Right True
         "True" -> Right True
         _ -> Left $ "Unknown bool: " <> show t
-      StringCodec _ -> Right t
+      StringCodec _ -> Right (coerce t)
       vc -> case JSON.parseEither (parseJSONVia vc) (JSON.String t) of
         Right a -> Right a
         Left _ -> do

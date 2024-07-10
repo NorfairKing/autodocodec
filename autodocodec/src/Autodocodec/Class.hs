@@ -1,9 +1,12 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 -- Because Eq is a superclass of Hashable in newer versions.
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
@@ -16,13 +19,17 @@ import Numeric.Natural
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 #endif
+import Data.Functor.Const (Const (Const))
 import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
 import Data.Hashable (Hashable)
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import Data.Semigroup (Dual (Dual))
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -52,7 +59,7 @@ class HasCodec value where
   {-# MINIMAL codec #-}
 
 instance HasCodec Void where
-  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd ValueCodec
+  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd valueCodec
 
 instance HasCodec Bool where
   codec = boolCodec
@@ -117,10 +124,21 @@ instance HasCodec Natural where
   codec = naturalCodec
 
 instance HasCodec JSON.Value where
-  codec = ValueCodec
+  codec = valueCodec
 
-instance (HasCodec a) => HasCodec (Identity a) where
-  codec = dimapCodec runIdentity Identity codec
+deriving newtype instance (HasCodec a) => HasCodec (Identity a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Dual a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Semigroup.First a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Semigroup.Last a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Monoid.First a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Monoid.Last a)
+
+deriving newtype instance (HasCodec a) => HasCodec (Const a b)
 
 instance (HasCodec a) => HasCodec (Maybe a) where
   codec = maybeCodec codec
@@ -144,31 +162,30 @@ instance (Ord a, HasCodec a) => HasCodec (Set a) where
   codec = dimapCodec S.fromList S.toList codec
 
 instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) where
-  codec = MapCodec codec
+  codec = mapCodec codec
 
 instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
-  codec = HashMapCodec codec
+  codec = hashMapCodec codec
 
 #if MIN_VERSION_aeson(2,0,0)
 instance HasCodec v => HasCodec (KeyMap v) where
   codec = keyMapCodec codec
 #endif
 
--- TODO make these instances better once aeson exposes its @Data.Aeson.Parser.Time@ or @Data.Attoparsec.Time@ modules.
 instance HasCodec Day where
-  codec = codecViaAeson "Day"
+  codec = unsafeCodecViaAesonString "Day"
 
 instance HasCodec LocalTime where
-  codec = codecViaAeson "LocalTime"
+  codec = unsafeCodecViaAesonString "LocalTime"
 
 instance HasCodec UTCTime where
-  codec = codecViaAeson "LocalTime"
+  codec = unsafeCodecViaAesonString "UTCTime"
 
 instance HasCodec TimeOfDay where
-  codec = codecViaAeson "TimeOfDay"
+  codec = unsafeCodecViaAesonString "TimeOfDay"
 
 instance HasCodec ZonedTime where
-  codec = codecViaAeson "ZonedTime"
+  codec = unsafeCodecViaAesonString "ZonedTime"
 
 instance HasCodec NominalDiffTime where
   codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
@@ -276,7 +293,7 @@ optionalFieldOrNull ::
   -- | Documentation
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull key doc = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) (Just doc)
+optionalFieldOrNull key doc = orNullHelper $ optionalKeyCodec key (maybeCodec codec) (Just doc)
 
 -- | Like 'optionalFieldOrNull', but without documentation
 optionalFieldOrNull' ::
@@ -285,7 +302,7 @@ optionalFieldOrNull' ::
   -- | Key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull' key = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) Nothing
+optionalFieldOrNull' key = orNullHelper $ optionalKeyCodec key (maybeCodec codec) Nothing
 
 optionalFieldWithOmittedDefault ::
   (Eq output, HasCodec output) =>

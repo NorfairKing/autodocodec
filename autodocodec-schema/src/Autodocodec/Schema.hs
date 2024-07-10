@@ -377,7 +377,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       OptionalKeyWithDefaultCodec k c mr mdoc -> do
         s <- go c
         pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
-      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
+      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec k c defaultValue mDoc)
       BimapCodec _ _ c -> goObject c
       EitherCodec u oc1 oc2 -> do
         os1 <- goObject oc1

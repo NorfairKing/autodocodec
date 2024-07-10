@@ -12,6 +12,8 @@ import Autodocodec.Schema
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
@@ -21,7 +23,10 @@ import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import Data.Monoid (Dual)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -86,6 +91,14 @@ spec = do
   jsonSchemaSpec @War "war"
   jsonSchemaSpec @These "these"
   jsonSchemaSpec @Expression "expression"
+  jsonSchemaSpec @(Identity Text) "identity"
+  jsonSchemaSpec @(Dual Text) "dual"
+  jsonSchemaSpec @(Semigroup.First Text) "semigroup-first"
+  jsonSchemaSpec @(Semigroup.Last Text) "semigroup-last"
+  jsonSchemaSpec @(Monoid.First Text) "monoid-first"
+  jsonSchemaSpec @(Monoid.Last Text) "monoid-last"
+  jsonSchemaSpec @(Const Text Void) "const"
+
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
     xdescribe "does not hold because this property does not hold for Scientific values like -7.85483897507979979e17" $

@@ -25,6 +25,7 @@ import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encoding as JSON
+import Data.Coerce (coerce)
 import Data.HashMap.Strict (HashMap)
 import Data.Map (Map)
 import Data.Scientific
@@ -45,17 +46,17 @@ toJSONObjectVia = flip go
     go :: a -> ObjectCodec a void -> JSON.Object
     go a = \case
       RequiredKeyCodec k c _ -> Compat.toKey k JSON..= toJSONVia c a
-      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
+      OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> mempty
         Just b -> Compat.toKey k JSON..= toJSONVia c b
-      OptionalKeyWithDefaultCodec k c _ mdoc -> go (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithDefaultCodec k c _ mdoc -> go (Just a) (optionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
-        if a == defaultValue
+        if coerce a == defaultValue
           then mempty
-          else go a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
+          else go a (optionalKeyWithDefaultCodec k (coerce c) (coerce defaultValue) mdoc)
       BimapCodec _ g c -> go (g a) c
       PureCodec _ -> mempty
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       DiscriminatedUnionCodec propertyName mapping _ ->
@@ -73,17 +74,17 @@ toJSONVia = flip go
     go :: a -> ValueCodec a void -> JSON.Value
     go a = \case
       NullCodec -> JSON.Null
-      BoolCodec _ -> toJSON (a :: Bool)
-      StringCodec _ -> toJSON (a :: Text)
-      NumberCodec _ _ -> toJSON (a :: Scientific)
-      ArrayOfCodec _ c -> toJSON (fmap (`go` c) (a :: Vector _))
+      BoolCodec _ -> toJSON (coerce a :: Bool)
+      StringCodec _ -> toJSON (coerce a :: Text)
+      NumberCodec _ _ -> toJSON (coerce a :: Scientific)
+      ArrayOfCodec _ c -> toJSON (fmap (`go` c) (coerce a :: Vector _))
       ObjectOfCodec _ oc -> JSON.Object (toJSONObjectVia oc a)
-      HashMapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (a :: HashMap _ _)
-      MapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (a :: Map _ _)
-      ValueCodec -> (a :: JSON.Value)
+      HashMapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (coerce a :: HashMap _ _)
+      MapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (coerce a :: Map _ _)
+      ValueCodec -> (coerce a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
@@ -102,17 +103,17 @@ toSeriesVia = flip goObject
     goObject :: a -> ObjectCodec a void -> JSON.Series
     goObject a = \case
       RequiredKeyCodec k c _ -> JSON.pair (Compat.toKey k) (toEncodingVia c a)
-      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
+      OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> mempty :: JSON.Series
         Just b -> JSON.pair (Compat.toKey k) (toEncodingVia c b)
-      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (OptionalKeyCodec k c mdoc)
+      OptionalKeyWithDefaultCodec k c _ mdoc -> goObject (Just a) (optionalKeyCodec k c mdoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mdoc ->
-        if a == defaultValue
+        if coerce a == defaultValue
           then mempty
-          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mdoc)
+          else goObject a (optionalKeyWithDefaultCodec k (coerce c) (coerce defaultValue) mdoc)
       PureCodec _ -> mempty :: JSON.Series
       BimapCodec _ g c -> goObject (g a) c
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
       DiscriminatedUnionCodec propertyName mapping _ ->
@@ -128,17 +129,17 @@ toEncodingVia = flip go
     go :: a -> ValueCodec a void -> JSON.Encoding
     go a = \case
       NullCodec -> JSON.null_
-      BoolCodec _ -> JSON.bool (a :: Bool)
-      StringCodec _ -> JSON.text (a :: Text)
-      NumberCodec _ _ -> JSON.scientific (a :: Scientific)
-      ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (a :: Vector _))
+      BoolCodec _ -> JSON.bool (coerce a :: Bool)
+      StringCodec _ -> JSON.text (coerce a :: Text)
+      NumberCodec _ _ -> JSON.scientific (coerce a :: Scientific)
+      ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (coerce a :: Vector _))
       ObjectOfCodec _ oc -> JSON.pairs (toSeriesVia oc a)
-      HashMapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (a :: HashMap _ _)
-      MapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (a :: Map _ _)
-      ValueCodec -> JSON.value (a :: JSON.Value)
+      HashMapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (coerce a :: HashMap _ _)
+      MapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (coerce a :: Map _ _)
+      ValueCodec -> JSON.value (coerce a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c

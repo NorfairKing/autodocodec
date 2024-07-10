@@ -1,0 +1,16 @@
+{
+    "components": {
+        "schemas": {
+            "(Last Text)": {
+                "nullable": true,
+                "type": "string"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

@@ -39,13 +39,16 @@ extra-source-files:
     test_resources/json-schema/ainur.json
     test_resources/json-schema/bool.json
     test_resources/json-schema/char.json
+    test_resources/json-schema/const.json
     test_resources/json-schema/day.json
     test_resources/json-schema/difftime.json
+    test_resources/json-schema/dual.json
     test_resources/json-schema/either-bool-text.json
     test_resources/json-schema/either-either-bool-scientific-text.json
     test_resources/json-schema/example.json
     test_resources/json-schema/expression.json
     test_resources/json-schema/fruit.json
+    test_resources/json-schema/identity.json
     test_resources/json-schema/int.json
     test_resources/json-schema/int16.json
     test_resources/json-schema/int32.json
@@ -60,6 +63,8 @@ extra-source-files:
     test_resources/json-schema/local-time.json
     test_resources/json-schema/map-text-ind.json
     test_resources/json-schema/maybe-text.json
+    test_resources/json-schema/monoid-first.json
+    test_resources/json-schema/monoid-last.json
     test_resources/json-schema/mutually-recursive.json
     test_resources/json-schema/natural.json
     test_resources/json-schema/nominal-difftime.json
@@ -69,6 +74,8 @@ extra-source-files:
     test_resources/json-schema/ordering.json
     test_resources/json-schema/recursive.json
     test_resources/json-schema/scientific.json
+    test_resources/json-schema/semigroup-first.json
+    test_resources/json-schema/semigroup-last.json
     test_resources/json-schema/set-text.json
     test_resources/json-schema/string.json
     test_resources/json-schema/text.json
@@ -88,8 +95,10 @@ extra-source-files:
     test_resources/nix/ainur-type.nix
     test_resources/nix/bool-type.nix
     test_resources/nix/char-type.nix
+    test_resources/nix/const-type.nix
     test_resources/nix/day-type.nix
     test_resources/nix/difftime-type.nix
+    test_resources/nix/dual-type.nix
     test_resources/nix/either-bool-text-type.nix
     test_resources/nix/either-either-bool-scientific-text-type.nix
     test_resources/nix/example-options.nix
@@ -97,6 +106,7 @@ extra-source-files:
     test_resources/nix/expression-options.nix
     test_resources/nix/expression-type.nix
     test_resources/nix/fruit-type.nix
+    test_resources/nix/identity-type.nix
     test_resources/nix/int-type.nix
     test_resources/nix/int16-type.nix
     test_resources/nix/int32-type.nix
@@ -114,6 +124,8 @@ extra-source-files:
     test_resources/nix/local-time-type.nix
     test_resources/nix/map-text-ind-type.nix
     test_resources/nix/maybe-text-type.nix
+    test_resources/nix/monoid-first-type.nix
+    test_resources/nix/monoid-last-type.nix
     test_resources/nix/mutually-recursive-type.nix
     test_resources/nix/natural-type.nix
     test_resources/nix/nominal-difftime-type.nix
@@ -123,6 +135,8 @@ extra-source-files:
     test_resources/nix/ordering-type.nix
     test_resources/nix/recursive-type.nix
     test_resources/nix/scientific-type.nix
+    test_resources/nix/semigroup-first-type.nix
+    test_resources/nix/semigroup-last-type.nix
     test_resources/nix/set-text-type.nix
     test_resources/nix/string-type.nix
     test_resources/nix/text-type.nix
@@ -144,29 +158,39 @@ extra-source-files:
     test_resources/openapi-schema/ainur.json
     test_resources/openapi-schema/bool.json
     test_resources/openapi-schema/char.json
+    test_resources/openapi-schema/const.json
     test_resources/openapi-schema/day.json
     test_resources/openapi-schema/declareSchemaRef/ainur.json
+    test_resources/openapi-schema/declareSchemaRef/const.json
+    test_resources/openapi-schema/declareSchemaRef/dual.json
     test_resources/openapi-schema/declareSchemaRef/example.json
     test_resources/openapi-schema/declareSchemaRef/expression.json
     test_resources/openapi-schema/declareSchemaRef/fruit.json
+    test_resources/openapi-schema/declareSchemaRef/identity.json
     test_resources/openapi-schema/declareSchemaRef/legacy-object.json
     test_resources/openapi-schema/declareSchemaRef/legacy-value.json
     test_resources/openapi-schema/declareSchemaRef/lists-example.json
+    test_resources/openapi-schema/declareSchemaRef/monoid-first.json
+    test_resources/openapi-schema/declareSchemaRef/monoid-last.json
     test_resources/openapi-schema/declareSchemaRef/mutually-recursive.json
     test_resources/openapi-schema/declareSchemaRef/null.json
     test_resources/openapi-schema/declareSchemaRef/recursive.json
+    test_resources/openapi-schema/declareSchemaRef/semigroup-first.json
+    test_resources/openapi-schema/declareSchemaRef/semigroup-last.json
     test_resources/openapi-schema/declareSchemaRef/these.json
     test_resources/openapi-schema/declareSchemaRef/very-comment.json
     test_resources/openapi-schema/declareSchemaRef/via.json
     test_resources/openapi-schema/declareSchemaRef/void.json
     test_resources/openapi-schema/declareSchemaRef/war.json
     test_resources/openapi-schema/difftime.json
+    test_resources/openapi-schema/dual.json
     test_resources/openapi-schema/either-bool-text.json
     test_resources/openapi-schema/either-either-bool-scientific-text.json
     test_resources/openapi-schema/either-void-bool.json
     test_resources/openapi-schema/example.json
     test_resources/openapi-schema/expression.json
     test_resources/openapi-schema/fruit.json
+    test_resources/openapi-schema/identity.json
     test_resources/openapi-schema/int.json
     test_resources/openapi-schema/int16.json
     test_resources/openapi-schema/int32.json
@@ -181,6 +205,8 @@ extra-source-files:
     test_resources/openapi-schema/local-time.json
     test_resources/openapi-schema/map-text-int.json
     test_resources/openapi-schema/maybe-text.json
+    test_resources/openapi-schema/monoid-first.json
+    test_resources/openapi-schema/monoid-last.json
     test_resources/openapi-schema/mutually-recursive.json
     test_resources/openapi-schema/natural.json
     test_resources/openapi-schema/nominal-difftime.json
@@ -190,6 +216,8 @@ extra-source-files:
     test_resources/openapi-schema/ordering.json
     test_resources/openapi-schema/recursive.json
     test_resources/openapi-schema/scientific.json
+    test_resources/openapi-schema/semigroup-first.json
+    test_resources/openapi-schema/semigroup-last.json
     test_resources/openapi-schema/set-text.json
     test_resources/openapi-schema/string.json
     test_resources/openapi-schema/text.json
@@ -210,13 +238,16 @@ extra-source-files:
     test_resources/show-codec/ainur.txt
     test_resources/show-codec/bool.txt
     test_resources/show-codec/char.txt
+    test_resources/show-codec/const.txt
     test_resources/show-codec/day.txt
+    test_resources/show-codec/dual.txt
     test_resources/show-codec/either-bool-text.txt
     test_resources/show-codec/either-either-bool-scientific-text.txt
     test_resources/show-codec/either-void-bool.txt
     test_resources/show-codec/example.txt
     test_resources/show-codec/expression.txt
     test_resources/show-codec/fruit.txt
+    test_resources/show-codec/identity.txt
     test_resources/show-codec/int.txt
     test_resources/show-codec/int16.txt
     test_resources/show-codec/int32.txt
@@ -231,6 +262,8 @@ extra-source-files:
     test_resources/show-codec/local-time.txt
     test_resources/show-codec/map-text-int.txt
     test_resources/show-codec/maybe-text.txt
+    test_resources/show-codec/monoid-first.txt
+    test_resources/show-codec/monoid-last.txt
     test_resources/show-codec/mutually-recursive.txt
     test_resources/show-codec/natural.txt
     test_resources/show-codec/nonempty-text.txt
@@ -239,6 +272,8 @@ extra-source-files:
     test_resources/show-codec/ordering.txt
     test_resources/show-codec/recursive.txt
     test_resources/show-codec/scientific.txt
+    test_resources/show-codec/semigroup-first.txt
+    test_resources/show-codec/semigroup-last.txt
     test_resources/show-codec/set-text.txt
     test_resources/show-codec/string.txt
     test_resources/show-codec/text.txt
@@ -260,14 +295,17 @@ extra-source-files:
     test_resources/swagger-schema/ainur.json
     test_resources/swagger-schema/bool.json
     test_resources/swagger-schema/char.json
+    test_resources/swagger-schema/const.json
     test_resources/swagger-schema/day.json
     test_resources/swagger-schema/difftime.json
+    test_resources/swagger-schema/dual.json
     test_resources/swagger-schema/either-bool-text.json
     test_resources/swagger-schema/either-either-bool-scientific-text.json
     test_resources/swagger-schema/either-void-bool.json
     test_resources/swagger-schema/example.json
     test_resources/swagger-schema/expression.json
     test_resources/swagger-schema/fruit.json
+    test_resources/swagger-schema/identity.json
     test_resources/swagger-schema/int.json
     test_resources/swagger-schema/int16.json
     test_resources/swagger-schema/int32.json
@@ -282,6 +320,8 @@ extra-source-files:
     test_resources/swagger-schema/local-time.json
     test_resources/swagger-schema/map-text-int.json
     test_resources/swagger-schema/maybe-text.json
+    test_resources/swagger-schema/monoid-first.json
+    test_resources/swagger-schema/monoid-last.json
     test_resources/swagger-schema/mutually-recursive.json
     test_resources/swagger-schema/natural.json
     test_resources/swagger-schema/nominal-difftime.json
@@ -291,6 +331,8 @@ extra-source-files:
     test_resources/swagger-schema/ordering.json
     test_resources/swagger-schema/recursive.json
     test_resources/swagger-schema/scientific.json
+    test_resources/swagger-schema/semigroup-first.json
+    test_resources/swagger-schema/semigroup-last.json
     test_resources/swagger-schema/set-text.json
     test_resources/swagger-schema/string.json
     test_resources/swagger-schema/text.json

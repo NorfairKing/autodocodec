@@ -1,3 +1,4 @@
 {
-    "$comment": "TimeOfDay"
+    "$comment": "TimeOfDay",
+    "type": "string"
 }

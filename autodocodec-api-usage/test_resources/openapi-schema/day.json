@@ -2,8 +2,8 @@
     "components": {
         "schemas": {
             "Day": {
-                "additionalProperties": true,
-                "description": "Day"
+                "description": "Day",
+                "type": "string"
             }
         }
     },

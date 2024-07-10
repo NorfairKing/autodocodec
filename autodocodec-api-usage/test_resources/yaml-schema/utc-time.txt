@@ -1,2 +1,2 @@
-# LocalTime
-[33m<any>[m
+# UTCTime
+[33m<string>[m

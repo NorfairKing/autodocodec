@@ -11,7 +11,7 @@ packages:
 
 extra-deps:
 - github: NorfairKing/validity
-  commit: 57c4897ccfeb3de60489e0328113798f059ef140
+  commit: 6b06ec70bdd999f7450f88f4beea43f1607e3726
   subdirs:
     - validity
     - validity-aeson

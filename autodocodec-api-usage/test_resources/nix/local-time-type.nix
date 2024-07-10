@@ -1,1 +1,1 @@
-types.unspecified
+types.str

@@ -12,6 +12,8 @@ import Autodocodec.Swagger
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
@@ -22,7 +24,10 @@ import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Maybe
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import Data.Semigroup (Dual)
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Swagger (Swagger (..))
 import qualified Data.Swagger as Swagger
@@ -94,6 +99,13 @@ spec = do
   swaggerSchemaSpec @War "war"
   swaggerSchemaSpec @These "these"
   swaggerSchemaSpec @Expression "expression"
+  swaggerSchemaSpec @(Identity Text) "identity"
+  swaggerSchemaSpec @(Dual Text) "dual"
+  swaggerSchemaSpec @(Semigroup.First Text) "semigroup-first"
+  swaggerSchemaSpec @(Semigroup.Last Text) "semigroup-last"
+  swaggerSchemaSpec @(Monoid.First Text) "monoid-first"
+  swaggerSchemaSpec @(Monoid.Last Text) "monoid-last"
+  swaggerSchemaSpec @(Const Text Void) "const"
 
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =
