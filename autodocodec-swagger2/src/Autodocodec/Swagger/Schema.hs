@@ -160,7 +160,7 @@ declareNamedSchemaVia c' Proxy = go c'
                     }
               }
           ]
-      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
+      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
       EitherCodec u oc1 oc2 -> do
         ss1 <- goObject oc1

@@ -173,7 +173,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 _schemaType = Just OpenApiObject
               }
           ]
-      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (OptionalKeyWithDefaultCodec key vs defaultValue mDoc)
+      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
       PureCodec _ -> pure []
       EitherCodec u oc1 oc2 -> do
         s1s <- goObject oc1

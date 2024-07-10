@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -21,6 +22,7 @@ import Control.Monad.State
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
+import Data.Coerce (Coercible)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Hashable
@@ -73,22 +75,27 @@ import qualified Data.Aeson.KeyMap as KM
 -- * The @input@ parameter is used for the type that is used during encoding of a value, so it's the @input@ to the codec.
 -- * The @output@ parameter is used for the type that is used during decoding of a value, so it's the @output@ of the codec.
 -- * Both parameters are unused during documentation.
+type role Codec _ representational representational
+
 data Codec context input output where
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
-    ValueCodec () ()
+    (Coercible a (), Coercible b ()) =>
+    ValueCodec a b
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
+    (Coercible a Bool, Coercible b Bool) =>
     -- | Name of the @bool@, for error messages and documentation.
     Maybe Text ->
-    JSONCodec Bool
+    ValueCodec a b
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
+    (Coercible a Text, Coercible b Text) =>
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
-    JSONCodec Text
+    ValueCodec a b
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
   -- The number has optional 'NumberBounds'.
@@ -96,30 +103,33 @@ data Codec context input output where
   --
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
+    (Coercible a Scientific, Coercible b Scientific) =>
     -- | Name of the @number@, for error messages and documentation.
     Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Maybe NumberBounds ->
-    JSONCodec Scientific
+    ValueCodec a b
   -- | Encode a 'HashMap', and decode any 'HashMap'.
   HashMapCodec ::
-    (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
+    (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, Coercible a (HashMap k v), Coercible b (HashMap k v)) =>
     JSONCodec v ->
-    JSONCodec (HashMap k v)
+    ValueCodec a b
   -- | Encode a 'Map', and decode any 'Map'.
   MapCodec ::
-    (Ord k, FromJSONKey k, ToJSONKey k) =>
+    (Ord k, FromJSONKey k, ToJSONKey k, Coercible a (Map k v), Coercible b (Map k v)) =>
     JSONCodec v ->
-    JSONCodec (Map k v)
+    ValueCodec a b
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
-    JSONCodec JSON.Value
+    (Coercible JSON.Value a, Coercible JSON.Value b) =>
+    ValueCodec a b
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
+    (Coercible a (Vector input), Coercible b (Vector output)) =>
     -- | Name of the @array@, for error messages and documentation.
     Maybe Text ->
     ValueCodec input output ->
-    ValueCodec (Vector input) (Vector output)
+    ValueCodec a b
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
     -- | Name of the @object@, for error messages and documentation.
@@ -128,12 +138,12 @@ data Codec context input output where
     ValueCodec input output
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
-    (Show value, Eq value) =>
+    (Show value, Eq value, Coercible a value, Coercible b value) =>
     -- | Value to match
     value ->
     -- | Codec for the value
     JSONCodec value ->
-    JSONCodec value
+    ValueCodec a b
   -- | Map a codec in both directions.
   --
   -- This is not strictly dimap, because the decoding function is allowed to fail,
@@ -158,13 +168,14 @@ data Codec context input output where
   -- In particular, you should prefer using it for values rather than objects,
   -- because those docs are easier to generate.
   EitherCodec ::
+    (Coercible a (Either input1 input2), Coercible b (Either output1 output2)) =>
     -- | What type of union we encode and decode
     !Union ->
     -- | Codec for the 'Left' side
     Codec context input1 output1 ->
     -- | Codec for the 'Right' side
     Codec context input2 output2 ->
-    Codec context (Either input1 input2) (Either output1 output2)
+    Codec context a b
   -- | Encode/decode a discriminated union of objects
   --
   -- The type of object being encoded/decoded is discriminated by
@@ -219,14 +230,16 @@ data Codec context input output where
     Maybe Text ->
     ObjectCodec input output
   OptionalKeyCodec ::
+    (Coercible a (Maybe input), Coercible b (Maybe output)) =>
     -- | Key
     Text ->
     -- | Codec for the value
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec (Maybe input) (Maybe output)
+    ObjectCodec a b
   OptionalKeyWithDefaultCodec ::
+    (Coercible b value) =>
     -- | Key
     Text ->
     -- | Codec for the value
@@ -235,9 +248,9 @@ data Codec context input output where
     value ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec value value
+    ObjectCodec value b
   OptionalKeyWithOmittedDefaultCodec ::
-    (Eq value) =>
+    (Eq value, Coercible a value, Coercible b value) =>
     -- | Key
     Text ->
     -- | Codec for the value
@@ -246,7 +259,7 @@ data Codec context input output where
     value ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec value value
+    ObjectCodec a b
   -- | To implement 'pure' from 'Applicative'.
   --
   -- Pure is not available for non-object codecs because there is no 'mempty' for 'JSON.Value', which we would need during encoding.
@@ -271,6 +284,18 @@ data NumberBounds = NumberBounds
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity NumberBounds
+
+optionalKeyWithDefaultCodec ::
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  ValueCodec value value ->
+  -- | Default value
+  value ->
+  -- | Documentation
+  Maybe Text ->
+  ObjectCodec value value
+optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec
 
 -- | Check if a number falls within given 'NumberBounds'.
 checkNumberBounds :: NumberBounds -> Scientific -> Either String Scientific
@@ -832,6 +857,10 @@ vectorCodec = ArrayOfCodec Nothing
 -- This is the list version of 'vectorCodec'.
 listCodec :: ValueCodec input output -> ValueCodec [input] [output]
 listCodec = dimapCodec V.toList V.fromList . vectorCodec
+
+-- Some restricted constructors
+optionalKeyCodec :: Text -> ValueCodec input output -> Maybe Text -> ObjectCodec (Maybe input) (Maybe output)
+optionalKeyCodec = OptionalKeyCodec
 
 -- | Build a codec for nonempty lists of values from a codec for a single value.
 --

@@ -52,7 +52,7 @@ class HasCodec value where
   {-# MINIMAL codec #-}
 
 instance HasCodec Void where
-  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd ValueCodec
+  codec = bimapCodec (\_ -> Left "Cannot decode a Void.") absurd valueCodec
 
 instance HasCodec Bool where
   codec = boolCodec
@@ -117,7 +117,7 @@ instance HasCodec Natural where
   codec = naturalCodec
 
 instance HasCodec JSON.Value where
-  codec = ValueCodec
+  codec = valueCodec
 
 instance (HasCodec a) => HasCodec (Identity a) where
   codec = dimapCodec runIdentity Identity codec
@@ -144,10 +144,10 @@ instance (Ord a, HasCodec a) => HasCodec (Set a) where
   codec = dimapCodec S.fromList S.toList codec
 
 instance (Ord k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (Map k v) where
-  codec = MapCodec codec
+  codec = mapCodec codec
 
 instance (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, HasCodec v) => HasCodec (HashMap k v) where
-  codec = HashMapCodec codec
+  codec = hashMapCodec codec
 
 #if MIN_VERSION_aeson(2,0,0)
 instance HasCodec v => HasCodec (KeyMap v) where
@@ -276,7 +276,7 @@ optionalFieldOrNull ::
   -- | Documentation
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull key doc = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) (Just doc)
+optionalFieldOrNull key doc = orNullHelper $ optionalKeyCodec key (maybeCodec codec) (Just doc)
 
 -- | Like 'optionalFieldOrNull', but without documentation
 optionalFieldOrNull' ::
@@ -285,7 +285,7 @@ optionalFieldOrNull' ::
   -- | Key
   Text ->
   ObjectCodec (Maybe output) (Maybe output)
-optionalFieldOrNull' key = orNullHelper $ OptionalKeyCodec key (maybeCodec codec) Nothing
+optionalFieldOrNull' key = orNullHelper $ optionalKeyCodec key (maybeCodec codec) Nothing
 
 optionalFieldWithOmittedDefault ::
   (Eq output, HasCodec output) =>

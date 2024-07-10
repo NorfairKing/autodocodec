@@ -12,6 +12,7 @@ import Autodocodec.Class
 import Autodocodec.Codec
 import Autodocodec.DerivingVia
 import Control.Arrow (first)
+import Data.Coerce (coerce)
 import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -33,17 +34,17 @@ toYamlVia = flip go
     go :: a -> ValueCodec a void -> YamlBuilder
     go a = \case
       NullCodec -> Yaml.null
-      BoolCodec _ -> Yaml.bool (a :: Bool)
-      StringCodec _ -> Yaml.string (a :: Text)
-      NumberCodec _ _ -> yamlNumber (a :: Scientific)
-      ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (a :: Vector _)))
+      BoolCodec _ -> Yaml.bool (coerce a :: Bool)
+      StringCodec _ -> Yaml.string (coerce a :: Text)
+      NumberCodec _ _ -> yamlNumber (coerce a :: Scientific)
+      ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (coerce a :: Vector _)))
       ObjectOfCodec _ oc -> Yaml.mapping (goObject a oc)
-      HashMapCodec c -> go (toJSONVia (HashMapCodec c) a) ValueCodec -- This may be optimisable?
-      MapCodec c -> go (toJSONVia (MapCodec c) a) ValueCodec -- This may be optimisable?
-      ValueCodec -> yamlValue (a :: JSON.Value)
+      c@(HashMapCodec {}) -> go (toJSONVia c a) valueCodec -- This may be optimisable?
+      c@(MapCodec {}) -> go (toJSONVia c a) valueCodec -- This may be optimisable?
+      ValueCodec -> yamlValue (coerce a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
@@ -52,16 +53,16 @@ toYamlVia = flip go
     goObject :: a -> ObjectCodec a void -> [(Text, YamlBuilder)]
     goObject a = \case
       RequiredKeyCodec k c _ -> [(k, go a c)]
-      OptionalKeyCodec k c _ -> case (a :: Maybe _) of
+      OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> []
         Just b -> [k Yaml..= go b c]
-      OptionalKeyWithDefaultCodec k c _ mDoc -> goObject (Just a) (OptionalKeyCodec k c mDoc)
+      OptionalKeyWithDefaultCodec k c _ mDoc -> goObject (Just a) (optionalKeyCodec k c mDoc)
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc ->
-        if a == defaultValue
+        if coerce a == defaultValue
           then []
-          else goObject a (OptionalKeyWithDefaultCodec k c defaultValue mDoc)
+          else goObject a (optionalKeyWithDefaultCodec k (coerce c) (coerce defaultValue) mDoc)
       BimapCodec _ g c -> goObject (g a) c
-      EitherCodec _ c1 c2 -> case (a :: Either _ _) of
+      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
       DiscriminatedUnionCodec propertyName m _ ->
