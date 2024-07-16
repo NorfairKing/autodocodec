@@ -2,6 +2,14 @@
 
 ## [0.3.0.0] - 2024-06-16
 
+### Added
+
+* HasCodec instances for Const, (), Dual, Semigroup.First, Semigroup.Last, Monoid.First and Monoid.Last
+
+### Fixed
+
+* Infinitely looping `Identity` instance
+
 ### Changed
 
 * Refactored `Codec` so it's input and output parameters have a representative, not nominal role.

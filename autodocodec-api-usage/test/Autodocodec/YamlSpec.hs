@@ -10,6 +10,8 @@ import Autodocodec.Usage
 import Autodocodec.Yaml.Encode
 import qualified Data.Aeson as JSON
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
@@ -19,12 +21,16 @@ import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import Data.Semigroup (Dual)
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Vector (Vector)
+import Data.Void (Void)
 import Data.Word
 import Data.Yaml as Yaml
 import Data.Yaml.Builder as YamlBuilder
@@ -83,6 +89,13 @@ spec = do
   yamlCodecSpec @War
   yamlCodecSpec @These
   yamlCodecSpec @Expression
+  yamlCodecSpec @(Identity Text)
+  yamlCodecSpec @(Dual Text)
+  yamlCodecSpec @(Semigroup.First Text)
+  yamlCodecSpec @(Semigroup.Last Text)
+  yamlCodecSpec @(Monoid.First Text)
+  yamlCodecSpec @(Monoid.Last Text)
+  yamlCodecSpec @(Const Text Void)
 
 yamlCodecSpec ::
   forall a.

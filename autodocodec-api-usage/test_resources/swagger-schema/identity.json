@@ -1,0 +1,13 @@
+{
+    "definitions": {
+        "(Identity Text)": {
+            "type": "string"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

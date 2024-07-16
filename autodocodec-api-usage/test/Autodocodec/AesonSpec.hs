@@ -12,6 +12,8 @@ import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
@@ -21,12 +23,16 @@ import Data.GenValidity.Time ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
+import Data.Monoid (Dual)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 import Data.Time
 import Data.Vector (Vector)
+import Data.Void (Void)
 import Data.Word
 import Numeric.Natural
 import Test.Syd
@@ -103,6 +109,13 @@ spec = do
   aesonCodecSpec @War
   aesonCodecSpec @These
   aesonCodecSpec @Expression
+  aesonCodecSpec @(Identity Text)
+  aesonCodecSpec @(Dual Text)
+  aesonCodecSpec @(Semigroup.First Text)
+  aesonCodecSpec @(Semigroup.Last Text)
+  aesonCodecSpec @(Monoid.First Text)
+  aesonCodecSpec @(Monoid.Last Text)
+  aesonCodecSpec @(Const Text Void)
 
 aesonCodecErrorSpec ::
   forall a.

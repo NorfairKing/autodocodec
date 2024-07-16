@@ -1,0 +1,7 @@
+{
+    "definitions": {},
+    "reference": {
+        "nullable": true,
+        "type": "string"
+    }
+}

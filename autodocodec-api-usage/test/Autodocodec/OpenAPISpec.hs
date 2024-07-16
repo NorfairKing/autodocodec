@@ -12,6 +12,8 @@ import Autodocodec.OpenAPI
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Scientific ()
@@ -21,10 +23,13 @@ import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Maybe
+import qualified Data.Monoid as Monoid
 import Data.OpenApi (Components (..), OpenApi (..))
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.OpenApi.Declare as OpenAPI
 import Data.Scientific
+import Data.Semigroup (Dual)
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -37,6 +42,11 @@ import Numeric.Natural
 import Test.Syd
 import Test.Syd.Aeson
 import Test.Syd.Validity.Utils
+
+openAPISchemaSpecAndViaDeclareSchemaRef :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
+openAPISchemaSpecAndViaDeclareSchemaRef filePath = do
+  openAPISchemaSpec @a filePath
+  openAPISchemaSpecViaDeclareSchemaRef @a filePath
 
 spec :: Spec
 spec = do
@@ -107,6 +117,13 @@ spec = do
   openAPISchemaSpecViaDeclareSchemaRef @These "these"
   openAPISchemaSpec @Expression "expression"
   openAPISchemaSpecViaDeclareSchemaRef @Expression "expression"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Identity Text) "identity"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Dual Text) "dual"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Semigroup.First Text) "semigroup-first"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Semigroup.Last Text) "semigroup-last"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Monoid.First Text) "monoid-first"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Monoid.Last Text) "monoid-last"
+  openAPISchemaSpecAndViaDeclareSchemaRef @(Const Text Void) "const"
 
 openAPISchemaSpec :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =

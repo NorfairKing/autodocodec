@@ -23,6 +23,7 @@ import Control.Applicative
 import Control.DeepSeq
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
+import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
@@ -30,8 +31,10 @@ import Data.GenValidity.Text ()
 import qualified Data.HashMap.Strict as HashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe
+import qualified Data.Monoid as Monoid
 import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
+import qualified Data.Semigroup as Semigroup
 import qualified Data.Swagger as Swagger
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -708,3 +711,21 @@ instance HasObjectCodec Expression where
             ("sum", ("SumExpression", mapToDecoder (uncurry SumExpression) lrFieldsCodec)),
             ("product", ("ProductExpression", mapToDecoder (uncurry ProductExpression) lrFieldsCodec))
           ]
+
+identityCodec :: (HasCodec a) => JSONCodec (Identity a)
+identityCodec = codec
+
+semigroupFirstCodec :: (HasCodec a) => JSONCodec (Semigroup.First a)
+semigroupFirstCodec = codec
+
+semigroupLastCodec :: (HasCodec a) => JSONCodec (Semigroup.Last a)
+semigroupLastCodec = codec
+
+monoidFirstCodec :: (HasCodec a) => JSONCodec (Monoid.First a)
+monoidFirstCodec = codec
+
+monoidLastCodec :: (HasCodec a) => JSONCodec (Monoid.Last a)
+monoidLastCodec = codec
+
+constCodec :: (HasCodec a) => JSONCodec (Const a b)
+constCodec = codec

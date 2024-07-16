@@ -9,10 +9,15 @@ import Autodocodec
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
+import Data.Functor.Const (Const)
+import Data.Functor.Identity (Identity)
 import Data.Int
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
+import qualified Data.Monoid as Monoid
 import Data.Scientific
+import Data.Semigroup (Dual)
+import qualified Data.Semigroup as Semigroup
 import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -77,6 +82,13 @@ spec = do
   showCodecSpec @War "war"
   showCodecSpec @These "these"
   showCodecSpec @Expression "expression"
+  showCodecSpec @(Identity Text) "identity"
+  showCodecSpec @(Dual Text) "dual"
+  showCodecSpec @(Semigroup.First Text) "semigroup-first"
+  showCodecSpec @(Semigroup.Last Text) "semigroup-last"
+  showCodecSpec @(Monoid.First Text) "monoid-first"
+  showCodecSpec @(Monoid.Last Text) "monoid-last"
+  showCodecSpec @(Const Text Void) "const"
 
 showCodecSpec ::
   forall a.
