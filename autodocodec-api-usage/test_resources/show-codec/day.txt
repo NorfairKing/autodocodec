@@ -1,1 +1,1 @@
-CommentCodec "Day" (BimapCodec _ _ ValueCodec)
+CommentCodec "Day" (BimapCodec _ _ (StringCodec Nothing))

@@ -1,8 +1,8 @@
 {
     "definitions": {
         "LocalTime": {
-            "additionalProperties": true,
-            "description": "LocalTime"
+            "description": "LocalTime",
+            "type": "string"
         }
     },
     "info": {

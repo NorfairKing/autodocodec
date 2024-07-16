@@ -1,1 +1,1 @@
-CommentCodec "LocalTime" (BimapCodec _ _ ValueCodec)
+CommentCodec "UTCTime" (BimapCodec _ _ (StringCodec Nothing))

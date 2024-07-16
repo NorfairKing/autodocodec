@@ -1,8 +1,8 @@
 {
     "definitions": {
         "ZonedTime": {
-            "additionalProperties": true,
-            "description": "ZonedTime"
+            "description": "ZonedTime",
+            "type": "string"
         }
     },
     "info": {

@@ -1,9 +1,11 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
@@ -1909,3 +1911,36 @@ codecViaAeson ::
   Text ->
   JSONCodec a
 codecViaAeson doc = bimapCodec (JSON.parseEither JSON.parseJSON) JSON.toJSON valueCodec <?> doc
+
+-- Could get this from https://hackage.haskell.org/package/either-result-0.3.1.0/docs/Control-Monad-Result.html#t:Result
+-- but just reimplementing here to avoid a dependency, as it's not exported anyway
+-- (well it is actually, until we give this module an explicit export list).
+-- We need to do this because `Either String a` doesn't have a `MonadFail` instance,
+-- but `Time.iso8601ParseM` expects it's return value to have a `MonadFail` instance.
+newtype Result a = Result {runResult :: Either String a}
+  deriving newtype (Functor, Applicative, Monad)
+
+instance MonadFail Result where
+  fail = Result . Left
+
+-- TODO 'aeson' has it's own custom datetime serialising code in the module @Data.Aeson.Encoding.Builder@:
+-- The core function here is `Data.Aeson.Encoding.Builder.timeOfDay64`.
+-- However, this module is private.
+-- There is @Data.Aeson.Encoding.Internal@, which interestingly isn't private, but it's only exposed functions
+-- wrap the return bytestring in a quotes. Only for the quotes to be removed in `Data.Aeson.Types.ToJSON.stringEncoding`
+-- This all seems a bit silly.
+-- I think `aeson` should just expose @Data.Aeson.Encoding.Builder@ and it's datetime instances should just take those builders,
+-- convert them to Text and be done with it.
+-- I plan to submit a PR to 'aeson' to do this.
+-- In the meantime, I think the best way to ensure we are exactly behaving as 'aeson' is just to _assume_ aeson is returning a string
+-- This is a correct assumption for any of the datetime types, but using this function generally is unsafe.
+unsafeCodecViaAesonString ::
+  (FromJSON a, ToJSON a) =>
+  -- | Name
+  Text ->
+  JSONCodec a
+unsafeCodecViaAesonString doc = bimapCodec (JSON.parseEither JSON.parseJSON . JSON.String) (unsafeAesonValueToString . JSON.toJSON) textCodec <?> doc
+  where
+    unsafeAesonValueToString v = case v of
+      JSON.String s -> s
+      _ -> error $ "unsafeAesonValueToString failed.\n " ++ show v ++ "\n is not a JSON string."

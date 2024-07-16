@@ -1,1 +1,1 @@
-CommentCodec "ZonedTime" (BimapCodec _ _ ValueCodec)
+CommentCodec "ZonedTime" (BimapCodec _ _ (StringCodec Nothing))

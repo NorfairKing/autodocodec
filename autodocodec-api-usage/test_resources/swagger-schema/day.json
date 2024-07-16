@@ -1,8 +1,8 @@
 {
     "definitions": {
         "Day": {
-            "additionalProperties": true,
-            "description": "Day"
+            "description": "Day",
+            "type": "string"
         }
     },
     "info": {

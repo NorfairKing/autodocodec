@@ -1,8 +1,8 @@
 {
     "definitions": {
         "UTCTime": {
-            "additionalProperties": true,
-            "description": "LocalTime"
+            "description": "UTCTime",
+            "type": "string"
         }
     },
     "info": {
