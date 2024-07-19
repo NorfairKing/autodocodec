@@ -1,21 +1,22 @@
-types.oneOf  [
-  ( types.submodule  {
+{ lib}:
+lib.types.oneOf  [
+  ( lib.types.submodule  {
     options = {
       domain = mkOption  {
         description = "Domain which the Valar rules over";
-        type = types.str;
+        type = lib.types.str;
       };
       name = mkOption  {
         description = "Name of the Valar";
-        type = types.str;
+        type = lib.types.str;
       };
     };
   })
-  ( types.submodule  {
+  ( lib.types.submodule  {
     options = {
       name = mkOption  {
         description = "Name of the Maiar";
-        type = types.str;
+        type = lib.types.str;
       };
     };
   })

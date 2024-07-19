@@ -1,1 +1,2 @@
-types.u8
+{ lib}:
+lib.types.u8

@@ -1,13 +1,14 @@
-types.submodule  {
+{ lib}:
+lib.types.submodule  {
   options = {
     int = mkOption  {
-      type = types.s64;
+      type = lib.types.s64;
     };
     text = mkOption  {
-      type = types.str;
+      type = lib.types.str;
     };
     type = mkOption  {
-      type = types.oneOf  [
+      type = lib.types.oneOf  [
         "that"
         "both"
         "this"

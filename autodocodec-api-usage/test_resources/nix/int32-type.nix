@@ -1,1 +1,2 @@
-types.s32
+{ lib}:
+lib.types.s32

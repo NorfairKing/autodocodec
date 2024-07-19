@@ -1,18 +1,19 @@
+{ lib}:
 {
   left = mkOption  {
-    type = types.anything;
+    type = lib.types.anything;
   };
   right = mkOption  {
-    type = types.anything;
+    type = lib.types.anything;
   };
   type = mkOption  {
-    type = types.oneOf  [
+    type = lib.types.oneOf  [
       "sum"
       "product"
       "literal"
     ];
   };
   value = mkOption  {
-    type = types.s64;
+    type = lib.types.s64;
   };
 }

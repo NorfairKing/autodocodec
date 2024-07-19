@@ -48,7 +48,7 @@ renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
   renderOptionType
     . simplifyOptionType
-    . fromMaybe (OptionTypeSimple "types.anything")
+    . fromMaybe (OptionTypeSimple "lib.types.anything")
     . valueCodecNixOptionType
 
 renderNixOptionsVia :: ObjectCodec input output -> Text
@@ -60,21 +60,21 @@ renderNixOptionsVia =
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
 valueCodecNixOptionType = go
   where
-    mTyp = fromMaybe $ OptionTypeSimple "types.anything"
+    mTyp = fromMaybe $ OptionTypeSimple "lib.types.anything"
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
       NullCodec -> Nothing
-      BoolCodec _ -> Just $ OptionTypeSimple "types.bool"
-      StringCodec _ -> Just $ OptionTypeSimple "types.str"
+      BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
+      StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
       NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
-        Nothing -> "types.number"
+        Nothing -> "lib.types.number"
         Just bounds -> case guessNumberBoundsSymbolic bounds of
-          BitUInt w -> T.pack $ "types.u" <> show w -- TODO this will not exist for u7
-          BitSInt w -> T.pack $ "types.s" <> show w -- TODO this will not exist for s7
-          OtherNumberBounds _ _ -> "types.number" -- TODO
+          BitUInt w -> T.pack $ "lib.types.u" <> show w -- TODO this will not exist for u7
+          BitSInt w -> T.pack $ "lib.types.s" <> show w -- TODO this will not exist for s7
+          OtherNumberBounds _ _ -> "lib.types.number" -- TODO
       HashMapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
-      ValueCodec -> Just (OptionTypeSimple "types.unspecified")
+      ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
       ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
       ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOption oc))
       EqCodec _ _ -> Nothing -- TODO
@@ -99,7 +99,7 @@ objectCodecNixOption = go
           $ M.unionsWith
             ( \t1 t2 ->
                 Option
-                  { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "types.anything") . optionType) [t1, t2],
+                  { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "lib.types.anything") . optionType) [t1, t2],
                     optionDescription = Nothing -- TODO
                   }
             )
@@ -193,9 +193,7 @@ renderOptionType :: OptionType -> Text
 renderOptionType = renderExpr . withNixArgs . optionTypeExpr
 
 withNixArgs :: Expr -> Expr
-withNixArgs =
-  -- This is cheating a bit..
-  ExprAp (ExprVar "{ lib }:\nwith lib;\nwith types;\n")
+withNixArgs = ExprFun ["lib"]
 
 optionExpr :: Option -> Expr
 optionExpr Option {..} =
@@ -219,19 +217,19 @@ optionTypeExpr = go
       OptionTypeSimple s -> ExprVar s
       OptionTypeListOf ot ->
         ExprAp
-          (ExprVar "types.listOf")
+          (ExprVar "lib.types.listOf")
           (go ot)
       OptionTypeAttrsOf ot ->
         ExprAp
-          (ExprVar "types.attrsOf")
+          (ExprVar "lib.types.attrsOf")
           (go ot)
       OptionTypeOneOf os ->
         ExprAp
-          (ExprVar "types.oneOf")
+          (ExprVar "lib.types.oneOf")
           (ExprLitList (map go os))
       OptionTypeSubmodule os ->
         ExprAp
-          (ExprVar "types.submodule")
+          (ExprVar "lib.types.submodule")
           (ExprAttrSet (M.singleton "options" (optionsExpr os)))
 
 data Expr
@@ -240,6 +238,8 @@ data Expr
   | ExprVar !Text
   | ExprAttrSet (Map Text Expr)
   | ExprAp !Expr !Expr
+  | ExprFun ![Text] !Expr
+  | ExprWith !Text !Expr
 
 renderExpr :: Expr -> Text
 renderExpr = T.unlines . go 0
@@ -261,6 +261,13 @@ renderExpr = T.unlines . go 0
       ExprAp e1 e2 ->
         parensWhen (d > 10) $
           go 11 e1 `apply` go 11 e2
+      ExprFun args e ->
+        parensWhen (d > 10) $
+          surround "{" "}:" [T.intercalate ", " args]
+            ++ go 0 e
+      ExprWith t e ->
+        parensWhen (d > 10) $
+          ("with " <> t <> ";") : go 0 e
     goBind key e =
       surround (key <> " =") ";" $
         go 0 e

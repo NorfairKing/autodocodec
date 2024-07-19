@@ -1,1 +1,2 @@
-types.s64
+{ lib}:
+lib.types.s64

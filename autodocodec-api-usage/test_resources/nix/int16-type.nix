@@ -1,1 +1,2 @@
-types.s16
+{ lib}:
+lib.types.s16
