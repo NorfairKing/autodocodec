@@ -1,1 +1,2 @@
-types.str
+{ lib }:
+lib.types.str

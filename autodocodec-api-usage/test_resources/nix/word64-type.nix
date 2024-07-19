@@ -1,1 +1,2 @@
-types.u64
+{ lib }:
+lib.types.u64

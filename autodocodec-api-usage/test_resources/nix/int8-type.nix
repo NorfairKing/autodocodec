@@ -1,1 +1,2 @@
-types.s8
+{ lib }:
+lib.types.s8

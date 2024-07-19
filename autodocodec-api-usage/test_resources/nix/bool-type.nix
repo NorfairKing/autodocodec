@@ -1,1 +1,2 @@
-types.bool
+{ lib }:
+lib.types.bool

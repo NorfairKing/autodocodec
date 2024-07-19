@@ -1,1 +1,2 @@
-types.anything
+{ lib }:
+lib.types.anything

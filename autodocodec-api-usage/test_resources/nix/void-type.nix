@@ -1,1 +1,2 @@
-types.unspecified
+{ lib }:
+lib.types.unspecified

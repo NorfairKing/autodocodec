@@ -1,1 +1,2 @@
-types.number
+{ lib }:
+lib.types.number

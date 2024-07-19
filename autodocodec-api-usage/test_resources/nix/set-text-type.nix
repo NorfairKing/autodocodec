@@ -1,1 +1,2 @@
-types.listOf types.str
+{ lib }:
+lib.types.listOf lib.types.str

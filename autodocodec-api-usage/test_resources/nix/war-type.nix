@@ -1,4 +1,5 @@
-types.oneOf  [
-  types.u8
-  types.str
+{ lib }:
+lib.types.oneOf [
+  lib.types.u8
+  lib.types.str
 ]

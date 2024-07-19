@@ -1,49 +1,53 @@
-types.submodule  {
+{ lib }:
+lib.types.submodule {
   options = {
-    bool = mkOption  {
+    bool = lib.mkOption {
+      default = null;
       description = "a bool";
-      type = types.bool;
+      type = lib.types.nullOr lib.types.bool;
     };
-    fruit = mkOption  {
+    fruit = lib.mkOption {
+      default = null;
       description = "fruit!!";
-      type = types.anything;
+      type = lib.types.nullOr lib.types.anything;
     };
-    maybe = mkOption  {
+    maybe = lib.mkOption {
+      default = null;
       description = "a maybe text";
-      type = types.oneOf  [
-        types.anything
-        types.str
-      ];
+      type = lib.types.nullOr lib.types.str;
     };
-    optional = mkOption  {
+    optional = lib.mkOption {
+      default = null;
       description = "an optional text";
-      type = types.str;
+      type = lib.types.nullOr lib.types.str;
     };
-    optional-or-null = mkOption  {
+    optional-or-null = lib.mkOption {
+      default = null;
       description = "an optional-or-null text";
-      type = types.oneOf  [
-        types.anything
-        types.str
-      ];
+      type = lib.types.nullOr lib.types.str;
     };
-    optional-with-default = mkOption  {
+    optional-with-default = lib.mkOption {
+      default = "foobar";
       description = "an optional text with a default";
-      type = types.str;
+      type = lib.types.str;
     };
-    optional-with-null-default = mkOption  {
+    optional-with-null-default = lib.mkOption {
+      default = [];
       description = "an optional list of texts with a default empty list where the empty list would be omitted";
-      type = types.listOf types.str;
+      type = lib.types.listOf lib.types.str;
     };
-    single-or-list = mkOption  {
+    single-or-list = lib.mkOption {
+      default = [];
       description = "an optional list that can also be specified as a single element";
-      type = types.oneOf  [
-        types.str
-        ( types.listOf types.str)
+      type = lib.types.oneOf [
+        lib.types.str
+        (lib.types.listOf lib.types.str)
       ];
     };
-    text = mkOption  {
+    text = lib.mkOption {
+      default = null;
       description = "a text";
-      type = types.str;
+      type = lib.types.nullOr lib.types.str;
     };
   };
 }

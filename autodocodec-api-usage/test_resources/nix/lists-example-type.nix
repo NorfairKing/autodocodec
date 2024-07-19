@@ -1,20 +1,25 @@
-types.submodule  {
+{ lib }:
+lib.types.submodule {
   options = {
-    optional-non-empty = mkOption  {
+    optional-non-empty = lib.mkOption {
+      default = null;
       description = "optional non-empty list";
-      type = types.listOf types.str;
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
     };
-    possibly-empty-with-default = mkOption  {
+    possibly-empty-with-default = lib.mkOption {
+      default = [];
       description = "possibly empty list with default empty list";
-      type = types.listOf types.s64;
+      type = lib.types.listOf lib.types.s64;
     };
-    possibly-empty-with-omitted-default = mkOption  {
+    possibly-empty-with-omitted-default = lib.mkOption {
+      default = [];
       description = "possibly empty list with omitted default empty list";
-      type = types.listOf types.s64;
+      type = lib.types.listOf lib.types.s64;
     };
-    required-non-empty = mkOption  {
+    required-non-empty = lib.mkOption {
+      default = null;
       description = "required non-empty list";
-      type = types.listOf types.str;
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
     };
   };
 }
