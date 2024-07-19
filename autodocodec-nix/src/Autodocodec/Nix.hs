@@ -19,6 +19,10 @@ module Autodocodec.Nix
     OptionType (..),
     renderOption,
     renderOptionType,
+    optionExpr,
+    optionsExpr,
+    optionTypeExpr,
+    renderExpr,
 
     -- * To makes sure we definitely export everything.
     module Autodocodec.Nix,
@@ -42,16 +46,14 @@ renderNixOptionsViaCodec = renderNixOptionsVia (objectCodec @a)
 
 renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
-  T.unlines
-    . renderOptionType
+  renderOptionType
     . simplifyOptionType
     . fromMaybe (OptionTypeSimple "types.anything")
     . valueCodecNixOptionType
 
 renderNixOptionsVia :: ObjectCodec input output -> Text
 renderNixOptionsVia =
-  T.unlines
-    . renderOptions
+  renderOptions
     . simplifyOptions
     . objectCodecNixOption
 
@@ -181,14 +183,19 @@ simplifyOptionType = go
 simplifyOptions :: Map Text Option -> Map Text Option
 simplifyOptions = M.map simplifyOption
 
-renderOption :: Option -> [Text]
-renderOption = renderExpr . optionExpr
+renderOption :: Option -> Text
+renderOption = renderExpr . withNixArgs . optionExpr
 
-renderOptions :: Map Text Option -> [Text]
-renderOptions = renderExpr . optionsExpr
+renderOptions :: Map Text Option -> Text
+renderOptions = renderExpr . withNixArgs . optionsExpr
 
-renderOptionType :: OptionType -> [Text]
-renderOptionType = renderExpr . optionTypeExpr
+renderOptionType :: OptionType -> Text
+renderOptionType = renderExpr . withNixArgs . optionTypeExpr
+
+withNixArgs :: Expr -> Expr
+withNixArgs =
+  -- This is cheating a bit..
+  ExprAp (ExprVar "{ lib }:\nwith lib;\nwith types;\n")
 
 optionExpr :: Option -> Expr
 optionExpr Option {..} =
@@ -234,8 +241,8 @@ data Expr
   | ExprAttrSet (Map Text Expr)
   | ExprAp !Expr !Expr
 
-renderExpr :: Expr -> [Text]
-renderExpr = go 0
+renderExpr :: Expr -> Text
+renderExpr = T.unlines . go 0
   where
     parensWhen b ts = if b then parens ts else ts
     go :: Int -> Expr -> [Text]
