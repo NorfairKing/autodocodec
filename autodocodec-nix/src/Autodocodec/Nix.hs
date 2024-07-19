@@ -235,29 +235,61 @@ data Expr
   | ExprAp !Expr !Expr
 
 renderExpr :: Expr -> [Text]
-renderExpr = go
+renderExpr = go 0
   where
-    go = \case
+    parensWhen b ts = if b then parens ts else ts
+    go :: Int -> Expr -> [Text]
+    go d = \case
       ExprLitString s -> [T.pack $ show s]
-      ExprLitList es -> "[" `prepend` concatMap (parens . go) es `append` "]"
+      ExprLitList es -> case es of
+        [] -> ["[]"]
+        [e] -> surround "[" "]" $ go 0 e
+        _ ->
+          -- If there is more than one list element, put them on separate lines.
+          "[" : indent (concatMap (go 11) es) ++ ["]"]
       ExprVar s -> [s]
-      ExprAttrSet m -> "{" `prepend` concatMap (uncurry goBind) (M.toList m) `append` "}"
-      ExprAp e1 e2 -> parens (renderExpr e1) ++ parens (renderExpr e2)
-
-    goBind key e = (key <> " = ") `prepend` go e `append` ";"
+      ExprAttrSet m ->
+        -- We always put "{" and "}" on separate lines.
+        "{" : indent (concatMap (uncurry goBind) (M.toList m)) ++ ["}"]
+      ExprAp e1 e2 ->
+        parensWhen (d > 10) $
+          go 11 e1 `apply` go 11 e2
+    goBind key e =
+      surround (key <> " =") ";" $
+        go 0 e
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)
 
 prepend :: Text -> [Text] -> [Text]
 prepend t = \case
-  [u] -> [t <> u]
-  u -> t : indent u
+  [] -> [t]
+  (u : us) -> (t <> " " <> u) : us
+
+apply :: [Text] -> [Text] -> [Text]
+apply ts1 ts2 = case (ts1, ts2) of
+  ([t1], [t2]) -> [t1 <> " " <> t2]
+  ([t1], _) -> (t1 <> " ") `prepend` ts2
+  (_, [t2]) -> ts1 `append` (" " <> t2)
+  _ -> go ts1
+    where
+      go = \case
+        [] -> ts2
+        [t] -> case ts2 of
+          [] -> [t]
+          (t2 : ts) -> (t <> t2) : ts
+        (t : ts) -> t : go ts
 
 append :: [Text] -> Text -> [Text]
-append ts u = case ts of
-  [t] -> [t <> u]
-  _ -> ts ++ [u]
+append ts u = go ts
+  where
+    go = \case
+      [] -> [u]
+      [t] -> [t <> u]
+      (t : ts') -> t : go ts'
 
 parens :: [Text] -> [Text]
-parens = prepend "(" . (`append` ")")
+parens = surround "(" ")"
+
+surround :: Text -> Text -> [Text] -> [Text]
+surround open close = prepend open . (`append` close)

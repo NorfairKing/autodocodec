@@ -1,2 +1,1 @@
-(types.attrsOf)
-(types.unspecified)
+types.attrsOf types.unspecified

@@ -1,7 +1,4 @@
-(types.oneOf)
-(
-  [
-    (types.u8)
-    (types.str)
-  ]
-  )
+types.oneOf  [
+  types.u8
+  types.str
+]

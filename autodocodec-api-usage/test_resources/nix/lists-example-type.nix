@@ -1,57 +1,20 @@
-(types.submodule)
-(
-  {
-    options = 
-      {
-        optional-non-empty = 
-          (mkOption)
-          (
-            {
-              description = "optional non-empty list";
-              type = 
-                (types.listOf)
-                (types.str)
-              ;
-            }
-            )
-        ;
-        possibly-empty-with-default = 
-          (mkOption)
-          (
-            {
-              description = "possibly empty list with default empty list";
-              type = 
-                (types.listOf)
-                (types.s64)
-              ;
-            }
-            )
-        ;
-        possibly-empty-with-omitted-default = 
-          (mkOption)
-          (
-            {
-              description = "possibly empty list with omitted default empty list";
-              type = 
-                (types.listOf)
-                (types.s64)
-              ;
-            }
-            )
-        ;
-        required-non-empty = 
-          (mkOption)
-          (
-            {
-              description = "required non-empty list";
-              type = 
-                (types.listOf)
-                (types.str)
-              ;
-            }
-            )
-        ;
-      }
-    ;
-  }
-  )
+types.submodule  {
+  options = {
+    optional-non-empty = mkOption  {
+      description = "optional non-empty list";
+      type = types.listOf types.str;
+    };
+    possibly-empty-with-default = mkOption  {
+      description = "possibly empty list with default empty list";
+      type = types.listOf types.s64;
+    };
+    possibly-empty-with-omitted-default = mkOption  {
+      description = "possibly empty list with omitted default empty list";
+      type = types.listOf types.s64;
+    };
+    required-non-empty = mkOption  {
+      description = "required non-empty list";
+      type = types.listOf types.str;
+    };
+  };
+}

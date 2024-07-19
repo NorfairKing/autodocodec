@@ -1,2 +1,1 @@
-(types.listOf)
-(types.str)
+types.listOf types.str
