@@ -11,13 +11,13 @@
   ;
   "type" =
     mkOption {
-      type = 
+      type =
         types.oneOf [
           ("that")
           ("both")
           ("this")
         ]
-        ;
+      ;
     }
   ;
 }

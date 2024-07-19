@@ -11,13 +11,13 @@
   ;
   "type" =
     mkOption {
-      type = 
+      type =
         types.oneOf [
           ("sum")
           ("product")
           ("literal")
         ]
-        ;
+      ;
     }
   ;
   "value" =

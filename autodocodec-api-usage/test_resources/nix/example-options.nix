@@ -13,12 +13,12 @@
   ;
   "maybe" =
     mkOption {
-      type = 
+      type =
         types.oneOf [
           (types.anything)
           (types.str)
         ]
-        ;
+      ;
       description = "a maybe text";
     }
   ;
@@ -30,12 +30,12 @@
   ;
   "optional-or-null" =
     mkOption {
-      type = 
+      type =
         types.oneOf [
           (types.anything)
           (types.str)
         ]
-        ;
+      ;
       description = "an optional-or-null text";
     }
   ;
@@ -53,12 +53,12 @@
   ;
   "single-or-list" =
     mkOption {
-      type = 
+      type =
         types.oneOf [
           (types.str)
           (types.listOf (types.str))
         ]
-        ;
+      ;
       description = "an optional list that can also be specified as a single element";
     }
   ;

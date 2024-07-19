@@ -8,9 +8,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
     nixpkgs-23_11.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
     nixpkgs-23_05.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
-    nixpkgs-22_11.url = "github:NixOS/nixpkgs?ref=nixos-22.11";
-    nixpkgs-22_05.url = "github:NixOS/nixpkgs?ref=nixos-22.05";
-    nixpkgs-21_11.url = "github:NixOS/nixpkgs?ref=nixos-21.11";
     horizon-advance.url = "git+https://gitlab.horizon-haskell.net/package-sets/horizon-advance";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     validity.url = "github:NorfairKing/validity";
@@ -28,9 +25,6 @@
     , nixpkgs
     , nixpkgs-23_11
     , nixpkgs-23_05
-    , nixpkgs-22_11
-    , nixpkgs-22_05
-    , nixpkgs-21_11
     , horizon-advance
     , pre-commit-hooks
     , validity
@@ -63,10 +57,7 @@
           allNixpkgs = {
             inherit
               nixpkgs-23_11
-              nixpkgs-23_05
-              nixpkgs-22_11
-              nixpkgs-21_11
-              nixpkgs-22_05;
+              nixpkgs-23_05;
           };
           backwardCompatibilityChecks = pkgs.lib.mapAttrs (_: nixpkgs: backwardCompatibilityCheckFor nixpkgs) allNixpkgs;
         in
@@ -94,7 +85,6 @@
         withHoogle = true;
         doBenchmark = true;
         buildInputs = with pkgs; [
-          niv
           zlib
           cabal-install
         ] ++ self.checks.${system}.pre-commit.enabledPackages;
