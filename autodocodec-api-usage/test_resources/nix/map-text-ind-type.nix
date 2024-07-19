@@ -1,1 +1,2 @@
-types.attrsOf (types.s64)
+(types.attrsOf)
+(types.s64)

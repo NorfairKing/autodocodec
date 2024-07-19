@@ -1,14 +1,20 @@
 {
-  "one" =
-    mkOption {
-      type = types.str;
-      description = "first field";
-    }
+  one = 
+    (mkOption)
+    (
+      {
+        description = "first field";
+        type = types.str;
+      }
+      )
   ;
-  "two" =
-    mkOption {
-      type = types.str;
-      description = "second field";
-    }
+  two = 
+    (mkOption)
+    (
+      {
+        description = "second field";
+        type = types.str;
+      }
+      )
   ;
 }

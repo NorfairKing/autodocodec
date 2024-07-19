@@ -152,22 +152,6 @@ emptyOption =
 simplifyOption :: Option -> Option
 simplifyOption o = o {optionType = simplifyOptionType <$> optionType o}
 
-renderOption :: Option -> [Text]
-renderOption Option {..} =
-  concat
-    [ ["mkOption {"],
-      indent $
-        concat
-          [ concat
-              [ prepend "type = " (renderOptionType typ `append` ";") | typ <- maybeToList optionType
-              ],
-            concat
-              [ prepend "description = " ([T.pack (show d)] `append` ";") | d <- maybeToList optionDescription
-              ]
-          ],
-      ["}"]
-    ]
-
 data OptionType
   = OptionTypeSimple !Text
   | OptionTypeListOf !OptionType
@@ -194,30 +178,73 @@ simplifyOptionType = go
       OptionTypeOneOf os -> concatMap goOr os
       o -> [o]
 
-renderOptionType :: OptionType -> [Text]
-renderOptionType = \case
-  OptionTypeSimple t -> [t]
-  OptionTypeListOf o -> prepend "types.listOf (" (renderOptionType o) `append` ")"
-  OptionTypeAttrsOf o -> prepend "types.attrsOf (" (renderOptionType o) `append` ")"
-  OptionTypeOneOf os -> prepend "types.oneOf [" (concatMap (parens . renderOptionType) os) `append` "]"
-  OptionTypeSubmodule obj ->
-    prepend
-      "types.submodule { options = "
-      (renderOptions obj)
-      `append` ";}"
-
 simplifyOptions :: Map Text Option -> Map Text Option
 simplifyOptions = M.map simplifyOption
 
+renderOption :: Option -> [Text]
+renderOption = renderExpr . optionExpr
+
 renderOptions :: Map Text Option -> [Text]
-renderOptions obj =
-  prepend
-    "{"
-    ( concatMap
-        (\(k, o) -> prepend (T.pack (show k <> " =")) (renderOption o) `append` ";")
-        (M.toList obj)
+renderOptions = renderExpr . optionsExpr
+
+renderOptionType :: OptionType -> [Text]
+renderOptionType = renderExpr . optionTypeExpr
+
+optionExpr :: Option -> Expr
+optionExpr Option {..} =
+  ExprAp
+    (ExprVar "mkOption")
+    ( ExprAttrSet $
+        M.fromList $
+          concat
+            [ [("type", optionTypeExpr typ) | typ <- maybeToList optionType],
+              [("description", ExprLitString $ T.unpack d) | d <- maybeToList optionDescription]
+            ]
     )
-    `append` "}"
+
+optionsExpr :: Map Text Option -> Expr
+optionsExpr = ExprAttrSet . M.map optionExpr
+
+optionTypeExpr :: OptionType -> Expr
+optionTypeExpr = go
+  where
+    go = \case
+      OptionTypeSimple s -> ExprVar s
+      OptionTypeListOf ot ->
+        ExprAp
+          (ExprVar "types.listOf")
+          (go ot)
+      OptionTypeAttrsOf ot ->
+        ExprAp
+          (ExprVar "types.attrsOf")
+          (go ot)
+      OptionTypeOneOf os ->
+        ExprAp
+          (ExprVar "types.oneOf")
+          (ExprLitList (map go os))
+      OptionTypeSubmodule os ->
+        ExprAp
+          (ExprVar "types.submodule")
+          (ExprAttrSet (M.singleton "options" (optionsExpr os)))
+
+data Expr
+  = ExprLitString !String
+  | ExprLitList [Expr]
+  | ExprVar !Text
+  | ExprAttrSet (Map Text Expr)
+  | ExprAp !Expr !Expr
+
+renderExpr :: Expr -> [Text]
+renderExpr = go
+  where
+    go = \case
+      ExprLitString s -> [T.pack $ show s]
+      ExprLitList es -> "[" `prepend` concatMap (parens . go) es `append` "]"
+      ExprVar s -> [s]
+      ExprAttrSet m -> "{" `prepend` concatMap (uncurry goBind) (M.toList m) `append` "}"
+      ExprAp e1 e2 -> parens (renderExpr e1) ++ parens (renderExpr e2)
+
+    goBind key e = (key <> " = ") `prepend` go e `append` ";"
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)

@@ -1,23 +1,27 @@
 {
-  "int" =
-    mkOption {
-      type = types.s64;
-    }
+  int = 
+    (mkOption)
+    ({type = types.s64;})
   ;
-  "text" =
-    mkOption {
-      type = types.str;
-    }
+  text = 
+    (mkOption)
+    ({type = types.str;})
   ;
-  "type" =
-    mkOption {
-      type =
-        types.oneOf [
-          ("that")
-          ("both")
-          ("this")
-        ]
-      ;
-    }
+  type = 
+    (mkOption)
+    (
+      {
+        type = 
+          (types.oneOf)
+          (
+            [
+              ("that")
+              ("both")
+              ("this")
+            ]
+            )
+        ;
+      }
+      )
   ;
 }

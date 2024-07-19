@@ -1,71 +1,113 @@
 {
-  "bool" =
-    mkOption {
-      type = types.bool;
-      description = "a bool";
-    }
+  bool = 
+    (mkOption)
+    (
+      {
+        description = "a bool";
+        type = types.bool;
+      }
+      )
   ;
-  "fruit" =
-    mkOption {
-      type = types.anything;
-      description = "fruit!!";
-    }
+  fruit = 
+    (mkOption)
+    (
+      {
+        description = "fruit!!";
+        type = types.anything;
+      }
+      )
   ;
-  "maybe" =
-    mkOption {
-      type =
-        types.oneOf [
-          (types.anything)
+  maybe = 
+    (mkOption)
+    (
+      {
+        description = "a maybe text";
+        type = 
+          (types.oneOf)
+          (
+            [
+              (types.anything)
+              (types.str)
+            ]
+            )
+        ;
+      }
+      )
+  ;
+  optional = 
+    (mkOption)
+    (
+      {
+        description = "an optional text";
+        type = types.str;
+      }
+      )
+  ;
+  optional-or-null = 
+    (mkOption)
+    (
+      {
+        description = "an optional-or-null text";
+        type = 
+          (types.oneOf)
+          (
+            [
+              (types.anything)
+              (types.str)
+            ]
+            )
+        ;
+      }
+      )
+  ;
+  optional-with-default = 
+    (mkOption)
+    (
+      {
+        description = "an optional text with a default";
+        type = types.str;
+      }
+      )
+  ;
+  optional-with-null-default = 
+    (mkOption)
+    (
+      {
+        description = "an optional list of texts with a default empty list where the empty list would be omitted";
+        type = 
+          (types.listOf)
           (types.str)
-        ]
-      ;
-      description = "a maybe text";
-    }
+        ;
+      }
+      )
   ;
-  "optional" =
-    mkOption {
-      type = types.str;
-      description = "an optional text";
-    }
+  single-or-list = 
+    (mkOption)
+    (
+      {
+        description = "an optional list that can also be specified as a single element";
+        type = 
+          (types.oneOf)
+          (
+            [
+              (types.str)
+              (
+                (types.listOf)
+                (types.str)
+                )
+            ]
+            )
+        ;
+      }
+      )
   ;
-  "optional-or-null" =
-    mkOption {
-      type =
-        types.oneOf [
-          (types.anything)
-          (types.str)
-        ]
-      ;
-      description = "an optional-or-null text";
-    }
-  ;
-  "optional-with-default" =
-    mkOption {
-      type = types.str;
-      description = "an optional text with a default";
-    }
-  ;
-  "optional-with-null-default" =
-    mkOption {
-      type = types.listOf (types.str);
-      description = "an optional list of texts with a default empty list where the empty list would be omitted";
-    }
-  ;
-  "single-or-list" =
-    mkOption {
-      type =
-        types.oneOf [
-          (types.str)
-          (types.listOf (types.str))
-        ]
-      ;
-      description = "an optional list that can also be specified as a single element";
-    }
-  ;
-  "text" =
-    mkOption {
-      type = types.str;
-      description = "a text";
-    }
+  text = 
+    (mkOption)
+    (
+      {
+        description = "a text";
+        type = types.str;
+      }
+      )
   ;
 }

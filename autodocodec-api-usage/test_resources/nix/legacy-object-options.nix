@@ -1,74 +1,110 @@
 {
-  "1" =
-    mkOption {
-      type = types.str;
-      description = "text 1";
-    }
+  1 = 
+    (mkOption)
+    (
+      {
+        description = "text 1";
+        type = types.str;
+      }
+      )
   ;
-  "1old" =
-    mkOption {
-      type = types.str;
-      description = "text 1";
-    }
+  1old = 
+    (mkOption)
+    (
+      {
+        description = "text 1";
+        type = types.str;
+      }
+      )
   ;
-  "2" =
-    mkOption {
-      type = types.str;
-      description = "text 2";
-    }
+  2 = 
+    (mkOption)
+    (
+      {
+        description = "text 2";
+        type = types.str;
+      }
+      )
   ;
-  "2old" =
-    mkOption {
-      type = types.str;
-      description = "text 2";
-    }
+  2old = 
+    (mkOption)
+    (
+      {
+        description = "text 2";
+        type = types.str;
+      }
+      )
   ;
-  "3" =
-    mkOption {
-      type = types.str;
-      description = "text 3";
-    }
+  3 = 
+    (mkOption)
+    (
+      {
+        description = "text 3";
+        type = types.str;
+      }
+      )
   ;
-  "3old" =
-    mkOption {
-      type = types.str;
-      description = "text 3";
-    }
+  3old = 
+    (mkOption)
+    (
+      {
+        description = "text 3";
+        type = types.str;
+      }
+      )
   ;
-  "new" =
-    mkOption {
-      type = types.str;
-      description = "new key";
-    }
+  new = 
+    (mkOption)
+    (
+      {
+        description = "new key";
+        type = types.str;
+      }
+      )
   ;
-  "newer" =
-    mkOption {
-      type = types.str;
-      description = "newer key";
-    }
+  newer = 
+    (mkOption)
+    (
+      {
+        description = "newer key";
+        type = types.str;
+      }
+      )
   ;
-  "newest" =
-    mkOption {
-      type = types.str;
-      description = "newest key";
-    }
+  newest = 
+    (mkOption)
+    (
+      {
+        description = "newest key";
+        type = types.str;
+      }
+      )
   ;
-  "old" =
-    mkOption {
-      type = types.str;
-      description = "old key";
-    }
+  old = 
+    (mkOption)
+    (
+      {
+        description = "old key";
+        type = types.str;
+      }
+      )
   ;
-  "older" =
-    mkOption {
-      type = types.str;
-      description = "older key";
-    }
+  older = 
+    (mkOption)
+    (
+      {
+        description = "older key";
+        type = types.str;
+      }
+      )
   ;
-  "oldest" =
-    mkOption {
-      type = types.str;
-      description = "oldest key";
-    }
+  oldest = 
+    (mkOption)
+    (
+      {
+        description = "oldest key";
+        type = types.str;
+      }
+      )
   ;
 }

@@ -1,53 +1,75 @@
-types.oneOf [
-  (
-    types.submodule {
-      options =
+(types.oneOf)
+(
+  [
+    (
+      (types.submodule)
+      (
         {
-          "Left" =
-            mkOption {
-              type =
-                types.oneOf [
-                  (
-                    types.submodule {
-                      options =
-                        {
-                          "Left" =
-                            mkOption {
-                              type = types.bool;
-                            }
-                          ;
-                        };
-                    }
+          options = 
+            {
+              Left = 
+                (mkOption)
+                (
+                  {
+                    type = 
+                      (types.oneOf)
+                      (
+                        [
+                          (
+                            (types.submodule)
+                            (
+                              {
+                                options = 
+                                  {
+                                    Left = 
+                                      (mkOption)
+                                      ({type = types.bool;})
+                                    ;
+                                  }
+                                ;
+                              }
+                              )
+                            )
+                          (
+                            (types.submodule)
+                            (
+                              {
+                                options = 
+                                  {
+                                    Right = 
+                                      (mkOption)
+                                      ({type = types.number;})
+                                    ;
+                                  }
+                                ;
+                              }
+                              )
+                            )
+                        ]
+                        )
+                    ;
+                  }
                   )
-                  (
-                    types.submodule {
-                      options =
-                        {
-                          "Right" =
-                            mkOption {
-                              type = types.number;
-                            }
-                          ;
-                        };
-                    }
-                  )
-                ]
               ;
             }
           ;
-        };
-    }
-  )
-  (
-    types.submodule {
-      options =
+        }
+        )
+      )
+    (
+      (types.submodule)
+      (
         {
-          "Right" =
-            mkOption {
-              type = types.str;
+          options = 
+            {
+              Right = 
+                (mkOption)
+                ({type = types.str;})
+              ;
             }
           ;
-        };
-    }
+        }
+        )
+      )
+  ]
   )
-]

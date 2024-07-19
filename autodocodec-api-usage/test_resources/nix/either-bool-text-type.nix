@@ -1,26 +1,35 @@
-types.oneOf [
-  (
-    types.submodule {
-      options =
+(types.oneOf)
+(
+  [
+    (
+      (types.submodule)
+      (
         {
-          "Left" =
-            mkOption {
-              type = types.bool;
+          options = 
+            {
+              Left = 
+                (mkOption)
+                ({type = types.bool;})
+              ;
             }
           ;
-        };
-    }
-  )
-  (
-    types.submodule {
-      options =
+        }
+        )
+      )
+    (
+      (types.submodule)
+      (
         {
-          "Right" =
-            mkOption {
-              type = types.str;
+          options = 
+            {
+              Right = 
+                (mkOption)
+                ({type = types.str;})
+              ;
             }
           ;
-        };
-    }
+        }
+        )
+      )
+  ]
   )
-]

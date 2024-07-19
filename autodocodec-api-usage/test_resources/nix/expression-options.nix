@@ -1,28 +1,31 @@
 {
-  "left" =
-    mkOption {
-      type = types.anything;
-    }
+  left = 
+    (mkOption)
+    ({type = types.anything;})
   ;
-  "right" =
-    mkOption {
-      type = types.anything;
-    }
+  right = 
+    (mkOption)
+    ({type = types.anything;})
   ;
-  "type" =
-    mkOption {
-      type =
-        types.oneOf [
-          ("sum")
-          ("product")
-          ("literal")
-        ]
-      ;
-    }
+  type = 
+    (mkOption)
+    (
+      {
+        type = 
+          (types.oneOf)
+          (
+            [
+              ("sum")
+              ("product")
+              ("literal")
+            ]
+            )
+        ;
+      }
+      )
   ;
-  "value" =
-    mkOption {
-      type = types.s64;
-    }
+  value = 
+    (mkOption)
+    ({type = types.s64;})
   ;
 }

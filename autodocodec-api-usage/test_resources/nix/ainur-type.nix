@@ -1,34 +1,54 @@
-types.oneOf [
-  (
-    types.submodule {
-      options =
+(types.oneOf)
+(
+  [
+    (
+      (types.submodule)
+      (
         {
-          "domain" =
-            mkOption {
-              type = types.str;
-              description = "Domain which the Valar rules over";
+          options = 
+            {
+              domain = 
+                (mkOption)
+                (
+                  {
+                    description = "Domain which the Valar rules over";
+                    type = types.str;
+                  }
+                  )
+              ;
+              name = 
+                (mkOption)
+                (
+                  {
+                    description = "Name of the Valar";
+                    type = types.str;
+                  }
+                  )
+              ;
             }
           ;
-          "name" =
-            mkOption {
-              type = types.str;
-              description = "Name of the Valar";
-            }
-          ;
-        };
-    }
-  )
-  (
-    types.submodule {
-      options =
+        }
+        )
+      )
+    (
+      (types.submodule)
+      (
         {
-          "name" =
-            mkOption {
-              type = types.str;
-              description = "Name of the Maiar";
+          options = 
+            {
+              name = 
+                (mkOption)
+                (
+                  {
+                    description = "Name of the Maiar";
+                    type = types.str;
+                  }
+                  )
+              ;
             }
           ;
-        };
-    }
+        }
+        )
+      )
+  ]
   )
-]
