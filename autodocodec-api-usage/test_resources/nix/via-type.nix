@@ -1,11 +1,11 @@
 { lib}:
-lib.types.submodule  {
+lib.types.submodule {
   options = {
-    one = mkOption  {
+    one = mkOption {
       description = "first field";
       type = lib.types.str;
     };
-    two = mkOption  {
+    two = mkOption {
       description = "second field";
       type = lib.types.str;
     };

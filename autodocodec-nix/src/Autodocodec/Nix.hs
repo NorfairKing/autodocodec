@@ -263,35 +263,36 @@ renderExpr = T.unlines . go 0
           go 11 e1 `apply` go 11 e2
       ExprFun args e ->
         parensWhen (d > 10) $
-          surround "{" "}:" [T.intercalate ", " args]
+          surroundWith " " "{" "}:" [T.intercalate ", " args]
             ++ go 0 e
       ExprWith t e ->
         parensWhen (d > 10) $
           ("with " <> t <> ";") : go 0 e
     goBind key e =
-      surround (key <> " =") ";" $
+      surroundWith " " (key <> " =") ";" $
         go 0 e
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)
 
 prepend :: Text -> [Text] -> [Text]
-prepend t = \case
+prepend = prependWith T.empty
+
+prependWith :: Text -> Text -> [Text] -> [Text]
+prependWith spacer t = \case
   [] -> [t]
-  (u : us) -> (t <> " " <> u) : us
+  (u : us) -> (t <> spacer <> u) : us
 
 apply :: [Text] -> [Text] -> [Text]
 apply ts1 ts2 = case (ts1, ts2) of
   ([t1], [t2]) -> [t1 <> " " <> t2]
-  ([t1], _) -> (t1 <> " ") `prepend` ts2
-  (_, [t2]) -> ts1 `append` (" " <> t2)
+  ([t1], _) -> prependWith " " t1 ts2
+  (_, [t2]) -> ts1 `append` t2
   _ -> go ts1
     where
       go = \case
         [] -> ts2
-        [t] -> case ts2 of
-          [] -> [t]
-          (t2 : ts) -> (t <> t2) : ts
+        [t] -> prependWith " " t ts2
         (t : ts) -> t : go ts
 
 append :: [Text] -> Text -> [Text]
@@ -306,4 +307,7 @@ parens :: [Text] -> [Text]
 parens = surround "(" ")"
 
 surround :: Text -> Text -> [Text] -> [Text]
-surround open close = prepend open . (`append` close)
+surround = surroundWith T.empty
+
+surroundWith :: Text -> Text -> Text -> [Text] -> [Text]
+surroundWith spacer open close = prependWith spacer open . (`append` close)
