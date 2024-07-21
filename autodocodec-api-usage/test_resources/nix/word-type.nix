@@ -1,2 +1,2 @@
 { lib }:
-lib.types.u64
+lib.types.numbers.unsigned
