@@ -35,6 +35,8 @@ library
     , autodocodec >=0.2.3.0
     , base >=4.7 && <5
     , containers
+    , scientific
     , text
     , unordered-containers
+    , vector
   default-language: Haskell2010

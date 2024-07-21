@@ -31,13 +31,17 @@ where
 
 import Autodocodec
 import Data.Aeson as JSON
+import qualified Data.Aeson.Key as Key
+import qualified Data.Aeson.KeyMap as KeyMap
 import Data.Containers.ListUtils
 import qualified Data.HashMap.Strict as HM
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Maybe
+import Data.Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Vector as V
 
 renderNixOptionTypeViaCodec :: forall a. (HasCodec a) => Text
 renderNixOptionTypeViaCodec = renderNixOptionTypeVia (codec @a)
@@ -64,7 +68,7 @@ valueCodecNixOptionType = go
     mTyp = fromMaybe $ OptionTypeSimple "lib.types.anything"
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
-      NullCodec -> Just $ OptionTypeSimple "lib.types.null"
+      NullCodec -> Just OptionTypeNull
       BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
       StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
       NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
@@ -129,23 +133,21 @@ objectCodecNixOption = go
               optionDescription = mDesc,
               optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
             }
-      OptionalKeyWithDefaultCodec key o _ mDesc ->
-        -- TODO set the default
+      OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
         M.singleton
           key
           Option
-            { optionType = valueCodecNixOptionType o,
+            { optionType = valueCodecNixOptionType c,
               optionDescription = mDesc,
-              optionDefault = Nothing
+              optionDefault = Just $ toJSONVia c defaultValue
             }
-      OptionalKeyWithOmittedDefaultCodec key o _ mDesc ->
-        -- TODO set the default
+      OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
         M.singleton
           key
           Option
-            { optionType = valueCodecNixOptionType o,
+            { optionType = valueCodecNixOptionType c,
               optionDescription = mDesc,
-              optionDefault = Nothing
+              optionDefault = Just $ toJSONVia c defaultValue
             }
       PureCodec _ -> M.empty
       ApCodec c1 c2 -> M.union (go c1) (go c2)
@@ -157,7 +159,7 @@ data Option = Option
     optionDescription :: !(Maybe Text),
     optionDefault :: !(Maybe JSON.Value)
   }
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
 emptyOption :: Option
 emptyOption =
@@ -178,7 +180,7 @@ data OptionType
   | OptionTypeAttrsOf !OptionType
   | OptionTypeOneOf ![OptionType]
   | OptionTypeSubmodule !(Map Text Option)
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
 simplifyOptionType :: OptionType -> OptionType
 simplifyOptionType = go
@@ -187,7 +189,9 @@ simplifyOptionType = go
       OptionTypeNull -> OptionTypeNull
       OptionTypeSimple t -> OptionTypeSimple t
       OptionTypeNullOr t -> case t of
+        OptionTypeNull -> OptionTypeNull
         OptionTypeNullOr t' -> go $ OptionTypeNullOr t'
+        OptionTypeOneOf os -> OptionTypeNullOr $ go $ OptionTypeOneOf $ filter (/= OptionTypeNull) $ map go os
         _ -> OptionTypeNullOr $ go t
       OptionTypeListOf o -> OptionTypeListOf $ go o
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
@@ -225,7 +229,7 @@ optionExpr Option {..} =
         M.fromList $
           concat
             [ [("type", optionTypeExpr typ) | typ <- maybeToList optionType],
-              [("description", ExprLitString $ T.unpack d) | d <- maybeToList optionDescription],
+              [("description", ExprLitString d) | d <- maybeToList optionDescription],
               [("default", jsonValueExpr d) | d <- maybeToList optionDefault]
             ]
     )
@@ -260,14 +264,20 @@ optionTypeExpr = go
 jsonValueExpr :: JSON.Value -> Expr
 jsonValueExpr = \case
   JSON.Null -> ExprNull
-  _ -> undefined -- TODO
+  JSON.Bool b -> ExprLitBool b
+  JSON.String s -> ExprLitString s
+  JSON.Number n -> ExprLitNumber n
+  JSON.Array v -> ExprLitList $ map jsonValueExpr $ V.toList v
+  JSON.Object vs -> ExprAttrSet $ M.mapKeysMonotonic Key.toText $ KeyMap.toMap $ KeyMap.map jsonValueExpr vs
 
 data Expr
   = ExprNull
-  | ExprLitString !String
-  | ExprLitList [Expr]
+  | ExprLitBool !Bool
+  | ExprLitString !Text
+  | ExprLitNumber !Scientific
+  | ExprLitList ![Expr]
   | ExprVar !Text
-  | ExprAttrSet (Map Text Expr)
+  | ExprAttrSet !(Map Text Expr)
   | ExprAp !Expr !Expr
   | ExprFun ![Text] !Expr
   | ExprWith !Text !Expr
@@ -279,7 +289,13 @@ renderExpr = T.unlines . go 0
     go :: Int -> Expr -> [Text]
     go d = \case
       ExprNull -> ["null"]
-      ExprLitString s -> [T.pack $ show s]
+      ExprLitBool b -> [if b then "true" else "false"]
+      ExprLitString s -> [T.pack $ show $ T.unpack s]
+      ExprLitNumber s ->
+        [ case floatingOrInteger s of
+            Left f -> T.pack $ show (f :: Double)
+            Right i -> T.pack $ show (i :: Integer)
+        ]
       ExprLitList es -> case es of
         [] -> ["[]"]
         [e] -> surround "[" "]" $ go 0 e

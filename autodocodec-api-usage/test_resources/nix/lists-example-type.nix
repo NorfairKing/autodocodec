@@ -7,10 +7,12 @@ lib.types.submodule {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
     };
     possibly-empty-with-default = mkOption {
+      default = [];
       description = "possibly empty list with default empty list";
       type = lib.types.listOf lib.types.s64;
     };
     possibly-empty-with-omitted-default = mkOption {
+      default = [];
       description = "possibly empty list with omitted default empty list";
       type = lib.types.listOf lib.types.s64;
     };

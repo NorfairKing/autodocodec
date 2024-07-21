@@ -20,5 +20,7 @@ library:
   - aeson
   - autodocodec >= 0.2.3.0
   - containers
+  - scientific
   - text
   - unordered-containers
+  - vector
