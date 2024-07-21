@@ -31,7 +31,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      autodocodec >=0.2.3.0
+      aeson
+    , autodocodec >=0.2.3.0
     , base >=4.7 && <5
     , containers
     , text

@@ -1,4 +1,4 @@
-{ mkDerivation, autodocodec, base, containers, lib, text
+{ mkDerivation, aeson, autodocodec, base, containers, lib, text
 , unordered-containers
 }:
 mkDerivation {
@@ -6,7 +6,7 @@ mkDerivation {
   version = "0.0.0.0";
   src = ./.;
   libraryHaskellDepends = [
-    autodocodec base containers text unordered-containers
+    aeson autodocodec base containers text unordered-containers
   ];
   homepage = "https://github.com/NorfairKing/autodocodec#readme";
   description = "Autodocodec interpreters for nix";

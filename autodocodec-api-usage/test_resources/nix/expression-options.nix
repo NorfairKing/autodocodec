@@ -14,6 +14,7 @@
     ];
   };
   value = mkOption {
-    type = lib.types.s64;
+    default = null;
+    type = lib.types.nullOr lib.types.s64;
   };
 }

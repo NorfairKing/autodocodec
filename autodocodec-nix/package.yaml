@@ -17,6 +17,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - aeson
   - autodocodec >= 0.2.3.0
   - containers
   - text

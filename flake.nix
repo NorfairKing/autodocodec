@@ -76,6 +76,7 @@
                 "autodocodec-api-usage/test_resources/nix/.*.nix"
               ];
               cabal2nix.enable = true;
+              tagref.enable = true;
             };
           };
         };

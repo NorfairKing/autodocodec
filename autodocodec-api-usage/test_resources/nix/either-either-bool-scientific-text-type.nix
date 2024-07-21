@@ -3,29 +3,33 @@ lib.types.oneOf [
   (lib.types.submodule {
     options = {
       Left = mkOption {
-        type = lib.types.oneOf [
+        default = null;
+        type = lib.types.nullOr (lib.types.oneOf [
           (lib.types.submodule {
             options = {
               Left = mkOption {
-                type = lib.types.bool;
+                default = null;
+                type = lib.types.nullOr lib.types.bool;
               };
             };
           })
           (lib.types.submodule {
             options = {
               Right = mkOption {
-                type = lib.types.number;
+                default = null;
+                type = lib.types.nullOr lib.types.number;
               };
             };
           })
-        ];
+        ]);
       };
     };
   })
   (lib.types.submodule {
     options = {
       Right = mkOption {
-        type = lib.types.str;
+        default = null;
+        type = lib.types.nullOr lib.types.str;
       };
     };
   })

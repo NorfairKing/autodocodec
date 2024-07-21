@@ -1,30 +1,35 @@
 { lib}:
 {
   bool = mkOption {
+    default = null;
     description = "a bool";
-    type = lib.types.bool;
+    type = lib.types.nullOr lib.types.bool;
   };
   fruit = mkOption {
+    default = null;
     description = "fruit!!";
-    type = lib.types.anything;
+    type = lib.types.nullOr lib.types.anything;
   };
   maybe = mkOption {
+    default = null;
     description = "a maybe text";
-    type = lib.types.oneOf [
+    type = lib.types.nullOr (lib.types.oneOf [
       lib.types.anything
       lib.types.str
-    ];
+    ]);
   };
   optional = mkOption {
+    default = null;
     description = "an optional text";
-    type = lib.types.str;
+    type = lib.types.nullOr lib.types.str;
   };
   optional-or-null = mkOption {
+    default = null;
     description = "an optional-or-null text";
-    type = lib.types.oneOf [
+    type = lib.types.nullOr (lib.types.oneOf [
       lib.types.anything
       lib.types.str
-    ];
+    ]);
   };
   optional-with-default = mkOption {
     description = "an optional text with a default";
@@ -42,7 +47,8 @@
     ];
   };
   text = mkOption {
+    default = null;
     description = "a text";
-    type = lib.types.str;
+    type = lib.types.nullOr lib.types.str;
   };
 }
