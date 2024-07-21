@@ -14,7 +14,7 @@
     default = null;
     description = "a maybe text";
     type = lib.types.nullOr (lib.types.oneOf [
-      lib.types.anything
+      lib.types.null
       lib.types.str
     ]);
   };
@@ -27,7 +27,7 @@
     default = null;
     description = "an optional-or-null text";
     type = lib.types.nullOr (lib.types.oneOf [
-      lib.types.anything
+      lib.types.null
       lib.types.str
     ]);
   };

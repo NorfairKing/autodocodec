@@ -15,7 +15,7 @@ lib.types.submodule {
       default = null;
       description = "a maybe text";
       type = lib.types.nullOr (lib.types.oneOf [
-        lib.types.anything
+        lib.types.null
         lib.types.str
       ]);
     };
@@ -28,7 +28,7 @@ lib.types.submodule {
       default = null;
       description = "an optional-or-null text";
       type = lib.types.nullOr (lib.types.oneOf [
-        lib.types.anything
+        lib.types.null
         lib.types.str
       ]);
     };

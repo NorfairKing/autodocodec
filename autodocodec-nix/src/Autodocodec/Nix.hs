@@ -64,7 +64,7 @@ valueCodecNixOptionType = go
     mTyp = fromMaybe $ OptionTypeSimple "lib.types.anything"
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
-      NullCodec -> Nothing
+      NullCodec -> Just $ OptionTypeSimple "lib.types.null"
       BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
       StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
       NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
@@ -171,7 +171,8 @@ simplifyOption :: Option -> Option
 simplifyOption o = o {optionType = simplifyOptionType <$> optionType o}
 
 data OptionType
-  = OptionTypeSimple !Text
+  = OptionTypeNull
+  | OptionTypeSimple !Text
   | OptionTypeNullOr !OptionType
   | OptionTypeListOf !OptionType
   | OptionTypeAttrsOf !OptionType
@@ -183,6 +184,7 @@ simplifyOptionType :: OptionType -> OptionType
 simplifyOptionType = go
   where
     go = \case
+      OptionTypeNull -> OptionTypeNull
       OptionTypeSimple t -> OptionTypeSimple t
       OptionTypeNullOr t -> case t of
         OptionTypeNullOr t' -> go $ OptionTypeNullOr t'
@@ -235,6 +237,7 @@ optionTypeExpr :: OptionType -> Expr
 optionTypeExpr = go
   where
     go = \case
+      OptionTypeNull -> ExprVar "lib.types.null"
       OptionTypeSimple s -> ExprVar s
       OptionTypeNullOr ot -> ExprAp (ExprVar "lib.types.nullOr") (go ot)
       OptionTypeListOf ot ->
