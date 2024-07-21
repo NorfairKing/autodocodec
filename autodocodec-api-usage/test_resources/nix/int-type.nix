@@ -1,2 +1,2 @@
 { lib }:
-lib.types.s64
+lib.types.int

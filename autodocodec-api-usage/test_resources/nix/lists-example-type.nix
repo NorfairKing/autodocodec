@@ -9,12 +9,12 @@ lib.types.submodule {
     possibly-empty-with-default = lib.mkOption {
       default = [];
       description = "possibly empty list with default empty list";
-      type = lib.types.listOf lib.types.s64;
+      type = lib.types.listOf lib.types.int;
     };
     possibly-empty-with-omitted-default = lib.mkOption {
       default = [];
       description = "possibly empty list with omitted default empty list";
-      type = lib.types.listOf lib.types.s64;
+      type = lib.types.listOf lib.types.int;
     };
     required-non-empty = lib.mkOption {
       default = null;

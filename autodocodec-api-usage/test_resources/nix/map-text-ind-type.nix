@@ -1,2 +1,2 @@
 { lib }:
-lib.types.attrsOf lib.types.s64
+lib.types.attrsOf lib.types.int

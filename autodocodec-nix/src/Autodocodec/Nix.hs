@@ -308,7 +308,7 @@ renderExpr = T.unlines . go 0
           -- If there is more than one list element, put them on separate lines.
           "[" : indent (concatMap (go 11) es) ++ ["]"]
       ExprVar s -> [s]
-      ExprAttrSet m | null m -> ["{}"]
+      ExprAttrSet m | null m -> ["{ }"]
       ExprAttrSet m ->
         -- We always put "{" and "}" on separate lines.
         "{" : indent (concatMap (uncurry goBind) (M.toList m)) ++ ["}"]

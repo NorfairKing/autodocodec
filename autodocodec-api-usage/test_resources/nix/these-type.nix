@@ -2,7 +2,7 @@
 lib.types.submodule {
   options = {
     int = lib.mkOption {
-      type = lib.types.nullOr lib.types.s64;
+      type = lib.types.nullOr lib.types.int;
     };
     text = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
