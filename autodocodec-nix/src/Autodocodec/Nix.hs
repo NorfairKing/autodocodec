@@ -73,7 +73,9 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
         Nothing -> "lib.types.number"
         Just bounds -> case guessNumberBoundsSymbolic bounds of
           BitUInt w -> T.pack $ "lib.types.u" <> show w -- TODO this will not exist for u7
-          BitSInt w -> T.pack $ "lib.types.s" <> show w -- TODO this will not exist for s7
+          BitSInt w -> case w of
+            64 -> "lib.types.int"
+            _ -> T.pack $ "lib.types.s" <> show w -- TODO this will not exist for s7
           OtherNumberBounds _ _ -> "lib.types.number" -- TODO
       HashMapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
@@ -228,7 +230,12 @@ optionExpr Option {..} =
           concat
             [ [("type", optionTypeExpr typ) | typ <- maybeToList optionType],
               [("description", ExprLitString d) | d <- maybeToList optionDescription],
-              [("default", jsonValueExpr d) | d <- maybeToList optionDefault]
+              case optionDefault of
+                Nothing -> case optionType of
+                  -- Automatically give submodule options a default of the empty set.
+                  Just (OptionTypeSubmodule _) -> [("default", ExprAttrSet M.empty)]
+                  _ -> []
+                Just d -> [("default", jsonValueExpr d)]
             ]
     )
 
@@ -301,6 +308,7 @@ renderExpr = T.unlines . go 0
           -- If there is more than one list element, put them on separate lines.
           "[" : indent (concatMap (go 11) es) ++ ["]"]
       ExprVar s -> [s]
+      ExprAttrSet m | null m -> ["{}"]
       ExprAttrSet m ->
         -- We always put "{" and "}" on separate lines.
         "{" : indent (concatMap (uncurry goBind) (M.toList m)) ++ ["}"]
