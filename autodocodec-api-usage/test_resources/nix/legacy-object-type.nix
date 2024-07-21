@@ -1,62 +1,62 @@
-{ lib}:
+{ lib }:
 lib.types.submodule {
   options = {
-    1 = mkOption {
+    1 = lib.mkOption {
       default = null;
       description = "text 1";
       type = lib.types.nullOr lib.types.str;
     };
-    1old = mkOption {
+    1old = lib.mkOption {
       default = null;
       description = "text 1";
       type = lib.types.nullOr lib.types.str;
     };
-    2 = mkOption {
+    2 = lib.mkOption {
       default = null;
       description = "text 2";
       type = lib.types.nullOr lib.types.str;
     };
-    2old = mkOption {
+    2old = lib.mkOption {
       default = null;
       description = "text 2";
       type = lib.types.nullOr lib.types.str;
     };
-    3 = mkOption {
+    3 = lib.mkOption {
       default = null;
       description = "text 3";
       type = lib.types.nullOr lib.types.str;
     };
-    3old = mkOption {
+    3old = lib.mkOption {
       default = null;
       description = "text 3";
       type = lib.types.nullOr lib.types.str;
     };
-    new = mkOption {
+    new = lib.mkOption {
       default = null;
       description = "new key";
       type = lib.types.nullOr lib.types.str;
     };
-    newer = mkOption {
+    newer = lib.mkOption {
       default = null;
       description = "newer key";
       type = lib.types.nullOr lib.types.str;
     };
-    newest = mkOption {
+    newest = lib.mkOption {
       default = null;
       description = "newest key";
       type = lib.types.nullOr lib.types.str;
     };
-    old = mkOption {
+    old = lib.mkOption {
       default = null;
       description = "old key";
       type = lib.types.nullOr lib.types.str;
     };
-    older = mkOption {
+    older = lib.mkOption {
       default = null;
       description = "older key";
       type = lib.types.nullOr lib.types.str;
     };
-    oldest = mkOption {
+    oldest = lib.mkOption {
       default = null;
       description = "oldest key";
       type = lib.types.nullOr lib.types.str;

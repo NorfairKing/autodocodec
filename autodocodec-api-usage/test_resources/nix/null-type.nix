@@ -1,2 +1,2 @@
-{ lib}:
+{ lib }:
 lib.types.null

@@ -14,7 +14,7 @@ module Autodocodec.Nix
     renderNixOptionTypeVia,
     renderNixOptionsVia,
     valueCodecNixOptionType,
-    objectCodecNixOption,
+    objectCodecNixOptions,
     Option (..),
     OptionType (..),
     renderOption,
@@ -52,18 +52,16 @@ renderNixOptionsViaCodec = renderNixOptionsVia (objectCodec @a)
 renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
   renderOptionType
-    . simplifyOptionType
     . fromMaybe (OptionTypeSimple "lib.types.anything")
     . valueCodecNixOptionType
 
 renderNixOptionsVia :: ObjectCodec input output -> Text
 renderNixOptionsVia =
   renderOptions
-    . simplifyOptions
-    . objectCodecNixOption
+    . objectCodecNixOptions
 
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
-valueCodecNixOptionType = go
+valueCodecNixOptionType = fmap simplifyOptionType . go
   where
     mTyp = fromMaybe $ OptionTypeSimple "lib.types.anything"
     go :: ValueCodec input output -> Maybe OptionType
@@ -81,7 +79,7 @@ valueCodecNixOptionType = go
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
       ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
-      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOption oc))
+      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
       EqCodec _ _ -> Nothing -- TODO
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
@@ -95,8 +93,8 @@ valueCodecNixOptionType = go
 -- optional fields and nullable fields.
 -- If Nix options ever figure out how to do optional fields, we'll use that
 -- instead.
-objectCodecNixOption :: ObjectCodec input output -> Map Text Option
-objectCodecNixOption = go
+objectCodecNixOptions :: ObjectCodec input output -> Map Text Option
+objectCodecNixOptions = simplifyOptions . go
   where
     go :: ObjectCodec input output -> Map Text Option
     go = \case
@@ -224,7 +222,7 @@ withNixArgs = ExprFun ["lib"]
 optionExpr :: Option -> Expr
 optionExpr Option {..} =
   ExprAp
-    (ExprVar "mkOption")
+    (ExprVar "lib.mkOption")
     ( ExprAttrSet $
         M.fromList $
           concat
@@ -317,8 +315,9 @@ renderExpr = T.unlines . go 0
         parensWhen (d > 10) $
           ("with " <> t <> ";") : go 0 e
     goBind key e =
-      surroundWith " " (key <> " =") ";" $
-        go 0 e
+      prependWith " " (key <> " =") $
+        (`append` ";") $
+          go 0 e
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)
@@ -330,6 +329,17 @@ prependWith :: Text -> Text -> [Text] -> [Text]
 prependWith spacer t = \case
   [] -> [t]
   (u : us) -> (t <> spacer <> u) : us
+
+append :: [Text] -> Text -> [Text]
+append = appendWith T.empty
+
+appendWith :: Text -> [Text] -> Text -> [Text]
+appendWith spacer ts u = go ts
+  where
+    go = \case
+      [] -> [u]
+      [t] -> [t <> spacer <> u]
+      (t : ts') -> t : go ts'
 
 apply :: [Text] -> [Text] -> [Text]
 apply ts1 ts2 = case (ts1, ts2) of
@@ -343,14 +353,6 @@ apply ts1 ts2 = case (ts1, ts2) of
         [t] -> prependWith " " t ts2
         (t : ts) -> t : go ts
 
-append :: [Text] -> Text -> [Text]
-append ts u = go ts
-  where
-    go = \case
-      [] -> [u]
-      [t] -> [t <> u]
-      (t : ts') -> t : go ts'
-
 parens :: [Text] -> [Text]
 parens = surround "(" ")"
 
@@ -358,4 +360,4 @@ surround :: Text -> Text -> [Text] -> [Text]
 surround = surroundWith T.empty
 
 surroundWith :: Text -> Text -> Text -> [Text] -> [Text]
-surroundWith spacer open close = prependWith spacer open . (`append` close)
+surroundWith spacer open close = prependWith spacer open . (\t -> appendWith spacer t close)

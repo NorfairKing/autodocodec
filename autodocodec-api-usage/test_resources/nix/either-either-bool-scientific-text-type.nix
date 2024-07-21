@@ -1,13 +1,13 @@
-{ lib}:
+{ lib }:
 lib.types.oneOf [
   (lib.types.submodule {
     options = {
-      Left = mkOption {
+      Left = lib.mkOption {
         default = null;
         type = lib.types.nullOr (lib.types.oneOf [
           (lib.types.submodule {
             options = {
-              Left = mkOption {
+              Left = lib.mkOption {
                 default = null;
                 type = lib.types.nullOr lib.types.bool;
               };
@@ -15,7 +15,7 @@ lib.types.oneOf [
           })
           (lib.types.submodule {
             options = {
-              Right = mkOption {
+              Right = lib.mkOption {
                 default = null;
                 type = lib.types.nullOr lib.types.number;
               };
@@ -27,7 +27,7 @@ lib.types.oneOf [
   })
   (lib.types.submodule {
     options = {
-      Right = mkOption {
+      Right = lib.mkOption {
         default = null;
         type = lib.types.nullOr lib.types.str;
       };

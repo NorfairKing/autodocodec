@@ -1,12 +1,12 @@
-{ lib}:
+{ lib }:
 {
-  int = mkOption {
+  int = lib.mkOption {
     type = lib.types.nullOr lib.types.s64;
   };
-  text = mkOption {
+  text = lib.mkOption {
     type = lib.types.nullOr lib.types.str;
   };
-  type = mkOption {
+  type = lib.mkOption {
     type = lib.types.oneOf [
       "that"
       "both"
