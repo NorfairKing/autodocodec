@@ -1,5 +1,5 @@
 name: autodocodec-schema
-version: 0.1.0.4
+version: 0.1.0.5
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -18,7 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
-  - autodocodec >=0.2.0.0
+  - autodocodec >=0.3.0.0
   - containers
   - mtl
   - text
