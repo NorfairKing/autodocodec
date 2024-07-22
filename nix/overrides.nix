@@ -29,7 +29,7 @@ let
       testTarget = (old.testTarget or "") + " --show-details=direct";
       # Turn off tests for anything but the current GHC's because different
       # versions make for different outputs sometimes.
-      doCheck = self.ghc.version == "9.2.7";
+      doCheck = self.ghc.version == "9.6.5";
     }));
 
   autodocodecPackages = {
