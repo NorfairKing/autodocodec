@@ -1,5 +1,18 @@
 # Changelog
 
+
+## [0.2.0.0] - 2024-07-26
+
+* Support for `autodocodec >=0.4`.
+
+### Added
+
+* The `IntegerSchema` constructor
+
+### Changed
+
+* The `NumberSchema` now contains `Bounds Scientific`.
+
 ## [0.1.0.4] - 2024-06-23
 
 ### Added

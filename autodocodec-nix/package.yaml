@@ -1,5 +1,5 @@
 name: autodocodec-nix
-version: 0.0.0.0
+version: 0.0.0.1
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -18,7 +18,7 @@ library:
   source-dirs: src
   dependencies:
   - aeson
-  - autodocodec >= 0.2.3.0
+  - autodocodec >= 0.4.0.0
   - containers
   - scientific
   - text

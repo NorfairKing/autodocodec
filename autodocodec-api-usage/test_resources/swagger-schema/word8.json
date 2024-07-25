@@ -3,7 +3,7 @@
         "Word8": {
             "maximum": 255,
             "minimum": 0,
-            "type": "number"
+            "type": "integer"
         }
     },
     "info": {

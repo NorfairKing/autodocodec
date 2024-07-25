@@ -74,14 +74,20 @@ module Autodocodec
     boolCodec,
     textCodec,
     stringCodec,
+    integerCodec,
+    integerWithBoundsCodec,
     scientificCodec,
     scientificWithBoundsCodec,
     valueCodec,
 
+    -- *** Bounds
+    Bounds (..),
+    emptyBounds,
+    boundedBounds,
+    checkBounds,
+
     -- *** Integral codecs
     boundedIntegralCodec,
-    boundedIntegralNumberBounds,
-    integerCodec,
     unsafeUnboundedIntegerCodec,
     naturalCodec,
     unsafeUnboundedNaturalCodec,

@@ -2,9 +2,8 @@
     "components": {
         "schemas": {
             "Natural": {
-                "maximum": 1.0e1024,
                 "minimum": 0,
-                "type": "number"
+                "type": "integer"
             }
         }
     },

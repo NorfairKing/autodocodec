@@ -1,7 +1,7 @@
 [36mdef: recursive[m
 # [32many of[m
 [ # base case
-  [33m<number>[m # [32m64 bit signed integer[m
+  [33m<integer>[m # [32m64 bit signed integer[m
 , # Recurse
   [37mrecurse[m: # [31mrequired[m
     # recursive case

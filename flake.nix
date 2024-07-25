@@ -82,7 +82,7 @@
         };
       devShells.${system}.default = haskellPackages.shellFor {
         name = "autodocodec-shell";
-        packages = p: builtins.attrValues p.autodocodecPackages;
+        packages = p: [ ]; # builtins.attrValues p.autodocodecPackages;
         withHoogle = true;
         doBenchmark = true;
         buildInputs = with pkgs; [

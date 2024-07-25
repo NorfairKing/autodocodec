@@ -3,7 +3,7 @@
 }:
 mkDerivation {
   pname = "autodocodec-nix";
-  version = "0.0.0.0";
+  version = "0.0.0.1";
   src = ./.;
   libraryHaskellDepends = [
     aeson autodocodec base containers scientific text

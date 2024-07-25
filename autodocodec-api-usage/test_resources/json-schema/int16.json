@@ -1,5 +1,5 @@
 {
     "maximum": 32767,
     "minimum": -32768,
-    "type": "number"
+    "type": "integer"
 }

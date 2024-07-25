@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-schema
-version:        0.1.0.5
+version:        0.2.0.0
 synopsis:       Autodocodec interpreters for JSON Schema
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -32,10 +32,11 @@ library
       src
   build-depends:
       aeson
-    , autodocodec >=0.3.0.0
+    , autodocodec >=0.4.0.0
     , base >=4.7 && <5
     , containers
     , mtl
+    , scientific
     , text
     , unordered-containers
     , validity

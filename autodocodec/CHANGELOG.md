@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0.0] - 2024-07-26
+
+This is technically a breaking change but it's unlikely that you'll need to
+change any of your codecs.
+
+### Changed
+
+* Changed `NumberBounds` to `Bounds` and made both bounds optional.
+* Added `IntegerCodec` as distinct from `NumberCodec` to represent integers
+  effectively in documentation.
+
 ## [0.3.0.0] - 2024-07-19
 
 ### Added

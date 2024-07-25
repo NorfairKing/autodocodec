@@ -1,2 +1,2 @@
 { lib }:
-lib.types.s32
+lib.types.ints.s32

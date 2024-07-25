@@ -22,6 +22,8 @@ import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Maybe
+import Data.Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -44,7 +46,8 @@ data JSONSchema
   | NullSchema
   | BoolSchema
   | StringSchema
-  | NumberSchema !(Maybe NumberBounds)
+  | IntegerSchema !(Bounds Integer)
+  | NumberSchema !(Bounds Scientific)
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
   | -- | This needs to be a list because keys should stay in their original ordering.
@@ -79,10 +82,18 @@ instance ToJSON JSONSchema where
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
         StringSchema -> ["type" JSON..= ("string" :: Text)]
-        NumberSchema mBounds ->
-          ("type" JSON..= ("number" :: Text)) : case mBounds of
-            Nothing -> []
-            Just NumberBounds {..} -> ["minimum" JSON..= numberBoundsLower, "maximum" JSON..= numberBoundsUpper]
+        IntegerSchema Bounds {..} ->
+          catMaybes
+            [ Just ("type" JSON..= ("integer" :: Text)),
+              ("minimum" JSON..=) <$> boundsLower,
+              ("maximum" JSON..=) <$> boundsUpper
+            ]
+        NumberSchema Bounds {..} ->
+          catMaybes
+            [ Just ("type" JSON..= ("number" :: Text)),
+              ("minimum" JSON..=) <$> boundsLower,
+              ("maximum" JSON..=) <$> boundsUpper
+            ]
         ArraySchema s ->
           let itemSchemaVal = go s
            in ["type" JSON..= ("array" :: Text), ("items", JSON.object itemSchemaVal)]
@@ -123,13 +134,14 @@ instance FromJSON JSONSchema where
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
       Just "string" -> pure StringSchema
+      Just "integer" -> do
+        boundsLower <- o JSON..:? "minimum"
+        boundsUpper <- o JSON..:? "maximum"
+        pure $ IntegerSchema Bounds {..}
       Just "number" -> do
-        mLower <- o JSON..:? "minimum"
-        mUpper <- o JSON..:? "maximum"
-        pure $
-          NumberSchema $ case (,) <$> mLower <*> mUpper of
-            Nothing -> Nothing
-            Just (numberBoundsLower, numberBoundsUpper) -> Just NumberBounds {..}
+        boundsLower <- o JSON..:? "minimum"
+        boundsUpper <- o JSON..:? "maximum"
+        pure $ NumberSchema Bounds {..}
       Just "array" -> do
         mI <- o JSON..:? "items"
         case mI of
@@ -159,7 +171,7 @@ instance FromJSON JSONSchema where
                         Just name -> RefSchema name
                         Nothing -> AnySchema
                       Nothing -> AnySchema
-      t -> fail $ "unknown schema type:" <> show t
+      t -> fail $ "unknown schema type: " <> show t
 
 data ObjectSchema
   = ObjectKeySchema !Text !KeyRequirement !JSONSchema !(Maybe Text)
@@ -274,8 +286,13 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       StringSchema -> pure $ case value of
         JSON.String _ -> True
         _ -> False
-      NumberSchema mBounds -> pure $ case value of
-        JSON.Number s -> case maybe Right checkNumberBounds mBounds s of
+      IntegerSchema bounds -> pure $ case value of
+        JSON.Number s -> case checkBounds (fromInteger <$> bounds) s of
+          Left _ -> False
+          Right _ -> True
+        _ -> False
+      NumberSchema bounds -> pure $ case value of
+        JSON.Number s -> case checkBounds bounds s of
           Left _ -> False
           Right _ -> True
         _ -> False
@@ -319,6 +336,7 @@ jsonSchemaVia = (`evalState` S.empty) . go
       NullCodec -> pure NullSchema
       BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
       StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
+      IntegerCodec mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
       NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
       ArrayOfCodec mname c -> do
         s <- go c

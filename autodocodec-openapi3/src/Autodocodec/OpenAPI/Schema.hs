@@ -45,14 +45,22 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               }
       BoolCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      IntegerCodec mname mBounds -> do
+        s <- lift $ declareSchema (Proxy :: Proxy Integer)
+        let addNumberBounds Bounds {..} s_ =
+              s_
+                { _schemaMinimum = fromInteger <$> boundsLower,
+                  _schemaMaximum = fromInteger <$> boundsUpper
+                }
+        pure $ NamedSchema mname $ addNumberBounds mBounds s
       NumberCodec mname mBounds -> do
         s <- lift $ declareSchema (Proxy :: Proxy Scientific)
-        let addNumberBounds NumberBounds {..} s_ =
+        let addNumberBounds Bounds {..} s_ =
               s_
-                { _schemaMinimum = Just numberBoundsLower,
-                  _schemaMaximum = Just numberBoundsUpper
+                { _schemaMinimum = boundsLower,
+                  _schemaMaximum = boundsUpper
                 }
-        pure $ NamedSchema mname $ maybe id addNumberBounds mBounds s
+        pure $ NamedSchema mname $ addNumberBounds mBounds s
       ArrayOfCodec mname c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema

@@ -76,6 +76,7 @@ toJSONVia = flip go
       NullCodec -> JSON.Null
       BoolCodec _ -> toJSON (coerce a :: Bool)
       StringCodec _ -> toJSON (coerce a :: Text)
+      IntegerCodec _ _ -> toJSON (coerce a :: Integer)
       NumberCodec _ _ -> toJSON (coerce a :: Scientific)
       ArrayOfCodec _ c -> toJSON (fmap (`go` c) (coerce a :: Vector _))
       ObjectOfCodec _ oc -> JSON.Object (toJSONObjectVia oc a)
@@ -131,6 +132,7 @@ toEncodingVia = flip go
       NullCodec -> JSON.null_
       BoolCodec _ -> JSON.bool (coerce a :: Bool)
       StringCodec _ -> JSON.text (coerce a :: Text)
+      IntegerCodec _ _ -> JSON.scientific (fromInteger (coerce a :: Integer) :: Scientific)
       NumberCodec _ _ -> JSON.scientific (coerce a :: Scientific)
       ArrayOfCodec _ c -> JSON.list (`go` c) (V.toList (coerce a :: Vector _))
       ObjectOfCodec _ oc -> JSON.pairs (toSeriesVia oc a)

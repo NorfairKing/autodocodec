@@ -135,6 +135,7 @@ instance GenValid JSONSchema where
     NullSchema -> [AnySchema]
     BoolSchema -> [AnySchema]
     StringSchema -> [AnySchema]
+    IntegerSchema mBounds -> AnySchema : (IntegerSchema <$> shrinkValid mBounds)
     NumberSchema mBounds -> AnySchema : (NumberSchema <$> shrinkValid mBounds)
     MapSchema s -> AnySchema : s : (MapSchema <$> shrinkValid s)
     ArraySchema s -> AnySchema : s : (ArraySchema <$> shrinkValid s)
@@ -156,7 +157,8 @@ instance GenValid JSONSchema where
       then elements [AnySchema, NullSchema, BoolSchema, StringSchema]
       else
         oneof
-          [ NumberSchema <$> genValid,
+          [ IntegerSchema <$> genValid,
+            NumberSchema <$> genValid,
             ArraySchema <$> resize (n - 1) genValid,
             MapSchema <$> resize (n - 1) genValid,
             (ObjectSchema <$> resize (n - 1) genValid) `suchThat` isValid,
@@ -203,7 +205,7 @@ instance GenValid ObjectSchema where
             ObjectAllOfSchema <$> genValid
           ]
 
-instance GenValid NumberBounds where
+instance (GenValid a) => GenValid (Bounds a) where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 

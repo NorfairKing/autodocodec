@@ -42,17 +42,28 @@ declareNamedSchemaVia c' Proxy = go c'
               }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
       StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
-      NumberCodec mname mBounds -> do
-        s <- declareSchema (Proxy :: Proxy Scientific)
-        let addNumberBounds NumberBounds {..} s_ =
+      IntegerCodec mname mBounds -> do
+        s <- declareSchema (Proxy :: Proxy Integer)
+        let addNumberBounds Bounds {..} s_ =
               s_
                 { _schemaParamSchema =
                     (_schemaParamSchema s_)
-                      { _paramSchemaMinimum = Just numberBoundsLower,
-                        _paramSchemaMaximum = Just numberBoundsUpper
+                      { _paramSchemaMinimum = fromInteger <$> boundsLower,
+                        _paramSchemaMaximum = fromInteger <$> boundsUpper
                       }
                 }
-        pure $ NamedSchema mname $ maybe id addNumberBounds mBounds s
+        pure $ NamedSchema mname $ addNumberBounds mBounds s
+      NumberCodec mname mBounds -> do
+        s <- declareSchema (Proxy :: Proxy Scientific)
+        let addNumberBounds Bounds {..} s_ =
+              s_
+                { _schemaParamSchema =
+                    (_schemaParamSchema s_)
+                      { _paramSchemaMinimum = boundsLower,
+                        _paramSchemaMaximum = boundsUpper
+                      }
+                }
+        pure $ NamedSchema mname $ addNumberBounds mBounds s
       HashMapCodec c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema

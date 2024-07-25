@@ -50,6 +50,7 @@ in
     symlinkJoin {
       name = "autodocodec-release";
       paths = attrValues self.autodocodecPackages;
+      passthru = self.autodocodecPackages;
     };
 
   openapi3 =

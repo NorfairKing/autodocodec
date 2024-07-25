@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.1.3] - 2024-07-26
+
+* Support for `autodocodec >=0.4`.
+
 ## [0.0.1.1] - 2022-07-21
 
 ### Added

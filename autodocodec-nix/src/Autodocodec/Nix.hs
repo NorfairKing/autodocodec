@@ -69,22 +69,23 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       NullCodec -> Just OptionTypeNull
       BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
       StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
-      NumberCodec _ mBounds -> Just $ OptionTypeSimple $ case mBounds of
-        Nothing -> "lib.types.number"
-        Just bounds -> case guessNumberBoundsSymbolic bounds of
-          BitUInt w -> case w of
-            64 -> "lib.types.numbers.unsigned"
-            32 -> "lib.types.u32"
-            16 -> "lib.types.u16"
-            8 -> "lib.types.u8"
-            _ -> "lib.types.number" -- TODO bounds?
-          BitSInt w -> case w of
-            64 -> "lib.types.int"
-            32 -> "lib.types.s32"
-            16 -> "lib.types.s16"
-            8 -> "lib.types.s8"
-            _ -> "lib.types.number" -- TODO bounds?
-          OtherNumberBounds _ _ -> "lib.types.number" -- TODO bounds?
+      IntegerCodec _ bounds -> Just $
+        OptionTypeSimple $
+          case guessIntegerBoundsSymbolic bounds of
+            BitUInt w -> case w of
+              64 -> "lib.types.numbers.unsigned"
+              32 -> "lib.types.ints.u32"
+              16 -> "lib.types.ints.u16"
+              8 -> "lib.types.ints.u8"
+              _ -> "lib.types.int" -- TODO bounds?
+            BitSInt w -> case w of
+              64 -> "lib.types.int"
+              32 -> "lib.types.ints.s32"
+              16 -> "lib.types.ints.s16"
+              8 -> "lib.types.ints.s8"
+              _ -> "lib.types.int" -- TODO bounds?
+            OtherIntegerBounds _ _ -> "lib.types.int" -- TODO bounds?
+      NumberCodec _ _ -> Just $ OptionTypeSimple "lib.types.number"
       HashMapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")

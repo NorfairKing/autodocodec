@@ -1,5 +1,5 @@
 name: autodocodec
-version: 0.3.0.0
+version: 0.4.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -22,6 +22,7 @@ library:
   - containers
   - hashable
   - mtl
+  - scientific
   - scientific
   - text
   - time

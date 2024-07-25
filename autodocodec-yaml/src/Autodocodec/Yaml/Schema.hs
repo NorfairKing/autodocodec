@@ -98,9 +98,8 @@ jsonSchemaChunkLines = go
       NullSchema -> [[fore yellow "null"]]
       BoolSchema -> [[fore yellow "<boolean>"]]
       StringSchema -> [[fore yellow "<string>"]]
-      NumberSchema mBounds -> case mBounds of
-        Nothing -> [[fore yellow "<number>"]]
-        Just nb -> numberBoundsChunks nb
+      IntegerSchema bounds -> integerBoundsChunks bounds
+      NumberSchema _ -> [[fore yellow "<number>"]] -- TODO bounds?
       ArraySchema s ->
         let addListMarker = addInFrontOfFirstInList ["- "]
          in addListMarker $ go s
@@ -144,28 +143,33 @@ jsonSchemaChunkLines = go
       ObjectAnyOfSchema ne -> anyOfChunks $ NE.map goObject ne
       ObjectOneOfSchema ne -> oneOfChunks $ NE.map goObject ne
 
-    numberBoundsChunks :: NumberBounds -> [[Chunk]]
-    numberBoundsChunks nb =
-      [ [fore yellow "<number>", " # "] ++ case guessNumberBoundsSymbolic nb of
+    integerBoundsChunks :: Bounds Integer -> [[Chunk]]
+    integerBoundsChunks nb =
+      [ fore yellow "<integer>" : case guessIntegerBoundsSymbolic nb of
           BitUInt w ->
-            [ fore green $ chunk $ T.pack $ show w <> " bit unsigned integer"
+            [ " # ",
+              fore green $ chunk $ T.pack $ show w <> " bit unsigned integer"
             ]
           BitSInt w ->
-            [ fore green $ chunk $ T.pack $ show w <> " bit signed integer"
+            [ " # ",
+              fore green $ chunk $ T.pack $ show w <> " bit signed integer"
             ]
-          OtherNumberBounds l u ->
-            [ "between ",
-              fore green $ scientificChunk l,
-              " and ",
-              fore green $ scientificChunk u
-            ]
+          OtherIntegerBounds ml mu -> case (ml, mu) of
+            (Nothing, Nothing) -> []
+            (Just l, Nothing) -> [fore green $ integerChunk l, " or more"]
+            (Nothing, Just l) -> [fore green $ integerChunk l, " or less"]
+            (Just l, Just u) ->
+              [ "between ",
+                fore green $ integerChunk l,
+                " and ",
+                fore green $ integerChunk u
+              ]
       ]
       where
-        scientificChunk = \case
+        integerChunk = \case
           Zero -> "0"
           PowerOf2 w -> chunk $ T.pack $ "2^" <> show w
           PowerOf2MinusOne w -> chunk $ T.pack $ "2^" <> show w <> "-1"
           MinusPowerOf2 w -> chunk $ T.pack $ "-2^" <> show w
           MinusPowerOf2MinusOne w -> chunk $ T.pack $ "- (2^" <> show w <> "-1)"
           OtherInteger i -> chunk $ T.pack $ show i
-          OtherDouble d -> chunk $ T.pack $ show d

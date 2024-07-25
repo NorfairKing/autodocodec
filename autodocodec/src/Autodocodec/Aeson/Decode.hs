@@ -29,6 +29,7 @@ import Data.Coerce (coerce)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Map (Map)
+import Data.Scientific as Scientific
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Vector (Vector)
@@ -69,13 +70,36 @@ parseJSONContextVia codec_ context_ =
       StringCodec mname -> case mname of
         Nothing -> coerce (parseJSON value :: JSON.Parser Text)
         Just name -> coerce $ withText (T.unpack name) pure value
-      NumberCodec mname mBounds ->
+      IntegerCodec mname bounds ->
+        coerce $
+          ( \f -> do
+              let safetyBounds =
+                    Bounds
+                      { boundsLower = Just $ scientific (-1) 1024,
+                        boundsUpper = Just $ scientific 1 1024
+                      }
+                  checkSafetyBounds s =
+                    case checkBounds safetyBounds s of
+                      Left err -> fail err
+                      Right i' -> pure i'
+              s <- case mname of
+                Nothing -> parseJSON value >>= checkSafetyBounds
+                Just name -> withScientific (T.unpack name) checkSafetyBounds value
+              case Scientific.floatingOrInteger s :: Either Double Integer of
+                Left _ -> fail $ "Number was not integer: " <> show s
+                Right i -> f (i :: Integer)
+          )
+            ( \i -> case checkBounds bounds i of
+                Left err -> fail err
+                Right i' -> pure i'
+            )
+      NumberCodec mname bounds ->
         coerce $
           ( \f -> case mname of
               Nothing -> parseJSON value >>= f
               Just name -> withScientific (T.unpack name) f value
           )
-            ( \s -> case maybe Right checkNumberBounds mBounds s of
+            ( \s -> case checkBounds bounds s of
                 Left err -> fail err
                 Right s' -> pure s'
             )

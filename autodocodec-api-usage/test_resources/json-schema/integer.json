@@ -1,5 +1,3 @@
 {
-    "maximum": 1.0e1024,
-    "minimum": -1.0e1024,
-    "type": "number"
+    "type": "integer"
 }

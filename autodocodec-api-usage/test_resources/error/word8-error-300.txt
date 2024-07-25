@@ -1,1 +1,1 @@
-Error in $: Number 300.0 is bigger than the upper bound 255.0
+Error in $: Number 300 is bigger than the upper bound 255

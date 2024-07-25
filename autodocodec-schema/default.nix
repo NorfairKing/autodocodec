@@ -1,14 +1,15 @@
 { mkDerivation, aeson, autodocodec, base, containers, lib, mtl
-, text, unordered-containers, validity, validity-aeson
+, scientific, text, unordered-containers, validity, validity-aeson
 , validity-containers, validity-text
 }:
 mkDerivation {
   pname = "autodocodec-schema";
-  version = "0.1.0.5";
+  version = "0.2.0.0";
   src = ./.;
   libraryHaskellDepends = [
-    aeson autodocodec base containers mtl text unordered-containers
-    validity validity-aeson validity-containers validity-text
+    aeson autodocodec base containers mtl scientific text
+    unordered-containers validity validity-aeson validity-containers
+    validity-text
   ];
   homepage = "https://github.com/NorfairKing/autodocodec#readme";
   description = "Autodocodec interpreters for JSON Schema";

@@ -1,10 +1,9 @@
 BimapCodec
   _
   _
-  (NumberCodec
+  (IntegerCodec
      Nothing
-     (Just
-        NumberBounds
-          { numberBoundsLower = -2.147483648e9
-          , numberBoundsUpper = 2.147483647e9
-          }))
+     Bounds
+       { boundsLower = Just (-2147483648)
+       , boundsUpper = Just 2147483647
+       })

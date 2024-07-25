@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -98,9 +99,24 @@ data Codec context input output where
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
     ValueCodec a b
+  -- | Encode 'Integer' to a @number@ value, and decode a @number@ value as an 'Integer'.
+  --
+  -- The number has 'Bounds Integer'.
+  -- These are only enforced at decoding time, not at encoding-time.
+  --
+  -- NOTE: Decoding 'Integer's is dangerous so decoding may fail for enormous numbers.
+  -- API NOTE: This is separate from 'NumberCodec' so that we can produce
+  -- more precise documentation about whether the numbers are integers.
+  IntegerCodec ::
+    (Coercible a Integer, Coercible b Integer) =>
+    -- | Name of the @integer@, for error messages and documentation.
+    Maybe Text ->
+    -- | Bounds for the integer, these are checked and documented
+    Bounds Integer ->
+    ValueCodec a b
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
-  -- The number has optional 'NumberBounds'.
+  -- The number has 'Bounds Scientific'.
   -- These are only enforced at decoding time, not at encoding-time.
   --
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
@@ -109,7 +125,7 @@ data Codec context input output where
     -- | Name of the @number@, for error messages and documentation.
     Maybe Text ->
     -- | Bounds for the number, these are checked and documented
-    Maybe NumberBounds ->
+    Bounds Scientific ->
     ValueCodec a b
   -- | Encode a 'HashMap', and decode any 'HashMap'.
   HashMapCodec ::
@@ -279,72 +295,68 @@ data Codec context input output where
     ObjectCodec input output ->
     ObjectCodec input newOutput
 
-data NumberBounds = NumberBounds
-  { numberBoundsLower :: !Scientific,
-    numberBoundsUpper :: !Scientific
+data Bounds a = Bounds
+  { -- | Lower bound, inclusive
+    boundsLower :: !(Maybe a),
+    -- Upper bound, inclusive
+    boundsUpper :: !(Maybe a)
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Ord, Generic, Functor)
 
-instance Validity NumberBounds
+instance (Validity a) => Validity (Bounds a)
 
-optionalKeyWithDefaultCodec ::
-  -- | Key
-  Text ->
-  -- | Codec for the value
-  ValueCodec value value ->
-  -- | Default value
-  value ->
-  -- | Documentation
-  Maybe Text ->
-  ObjectCodec value value
-optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec
+emptyBounds :: Bounds a
+emptyBounds = Bounds Nothing Nothing
+
+boundedBounds :: (Bounded a) => Bounds a
+boundedBounds =
+  Bounds
+    { boundsLower = Just minBound,
+      boundsUpper = Just maxBound
+    }
 
 -- | Check if a number falls within given 'NumberBounds'.
-checkNumberBounds :: NumberBounds -> Scientific -> Either String Scientific
-checkNumberBounds NumberBounds {..} s =
-  if numberBoundsLower <= s
-    then
-      if s <= numberBoundsUpper
-        then Right s
-        else Left $ unwords ["Number", show s, "is bigger than the upper bound", show numberBoundsUpper]
-    else Left $ unwords ["Number", show s, "is smaller than the lower bound", show numberBoundsUpper]
+checkBounds :: (Show a, Ord a) => Bounds a -> a -> Either String a
+checkBounds Bounds {..} s =
+  case boundsLower of
+    Just lo | s < lo -> Left $ unwords ["Number", show s, "is smaller than the lower bound", show lo]
+    _ -> case boundsUpper of
+      Just hi | s > hi -> Left $ unwords ["Number", show s, "is bigger than the upper bound", show hi]
+      _ -> Right s
 
-data NumberBoundsSymbolic
+data IntegerBoundsSymbolic
   = BitUInt !Word8 -- w bit unsigned int
   | BitSInt !Word8 -- w bit signed int
-  | OtherNumberBounds !ScientificSymbolic !ScientificSymbolic
+  | OtherIntegerBounds !(Maybe IntegerSymbolic) !(Maybe IntegerSymbolic)
 
-guessNumberBoundsSymbolic :: NumberBounds -> NumberBoundsSymbolic
-guessNumberBoundsSymbolic NumberBounds {..} =
-  case (guessScientificSymbolic numberBoundsLower, guessScientificSymbolic numberBoundsUpper) of
-    (Zero, PowerOf2MinusOne w) -> BitUInt w
-    (MinusPowerOf2 w1, PowerOf2MinusOne w2) | w1 == w2 -> BitSInt (succ w1)
-    (l, u) -> OtherNumberBounds l u
+guessIntegerBoundsSymbolic :: Bounds Integer -> IntegerBoundsSymbolic
+guessIntegerBoundsSymbolic Bounds {..} =
+  case (guessIntegerSymbolic <$> boundsLower, guessIntegerSymbolic <$> boundsUpper) of
+    (Just Zero, Just (PowerOf2MinusOne w)) -> BitUInt w
+    (Just (MinusPowerOf2 w1), Just (PowerOf2MinusOne w2)) | w1 == w2 -> BitSInt (succ w1)
+    (l, u) -> OtherIntegerBounds l u
 
-data ScientificSymbolic
+data IntegerSymbolic
   = Zero
   | PowerOf2 !Word8 -- 2^w
   | PowerOf2MinusOne !Word8 -- 2^w -1
   | MinusPowerOf2 !Word8 -- - 2^w
   | MinusPowerOf2MinusOne !Word8 -- - (2^w -1)
   | OtherInteger !Integer
-  | OtherDouble !Double
 
-guessScientificSymbolic :: Scientific -> ScientificSymbolic
-guessScientificSymbolic s = case floatingOrInteger s of
-  Left d -> OtherDouble d
-  Right i ->
-    let log2Rounded :: Word8
-        log2Rounded = round (logBase 2 (fromInteger (abs i)) :: Double)
-        guess :: Integer
-        guess = 2 ^ log2Rounded
-     in if
-          | i == 0 -> Zero
-          | guess == i -> PowerOf2 log2Rounded
-          | (guess - 1) == i -> PowerOf2MinusOne log2Rounded
-          | -guess == i -> MinusPowerOf2 log2Rounded
-          | -(guess - 1) == i -> MinusPowerOf2MinusOne log2Rounded
-          | otherwise -> OtherInteger i
+guessIntegerSymbolic :: Integer -> IntegerSymbolic
+guessIntegerSymbolic i =
+  let log2Rounded :: Word8
+      log2Rounded = round (logBase 2 (fromInteger (abs i)) :: Double)
+      guess :: Integer
+      guess = 2 ^ log2Rounded
+   in if
+        | i == 0 -> Zero
+        | guess == i -> PowerOf2 log2Rounded
+        | (guess - 1) == i -> PowerOf2MinusOne log2Rounded
+        | -guess == i -> MinusPowerOf2 log2Rounded
+        | -(guess - 1) == i -> MinusPowerOf2MinusOne log2Rounded
+        | otherwise -> OtherInteger i
 
 -- | What type of union the encoding uses
 data Union
@@ -398,6 +410,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
       StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
+      IntegerCodec mName mbs -> pure $ showParen (d > 10) $ showString "IntegerCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
@@ -864,6 +877,18 @@ listCodec = dimapCodec V.toList V.fromList . vectorCodec
 optionalKeyCodec :: Text -> ValueCodec input output -> Maybe Text -> ObjectCodec (Maybe input) (Maybe output)
 optionalKeyCodec = OptionalKeyCodec
 
+optionalKeyWithDefaultCodec ::
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  ValueCodec value value ->
+  -- | Default value
+  value ->
+  -- | Documentation
+  Maybe Text ->
+  ObjectCodec value value
+optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec
+
 -- | Build a codec for nonempty lists of values from a codec for a single value.
 --
 --
@@ -1319,14 +1344,67 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- > scientificCodec = NumberCodec Nothing Nothing
 scientificCodec :: JSONCodec Scientific
-scientificCodec = NumberCodec Nothing Nothing
+scientificCodec = NumberCodec Nothing emptyBounds
+
+-- | Codec for 'Integer' values
+--
+-- This codec does a bounds check for the range [-10^1024, 10^1024] it can safely parse very large numbers.
+--
+--
+-- === Example usage
+--
+-- >>> toJSONVia integerCodec 5
+-- Number 5.0
+-- >>> toJSONVia integerCodec (-1000000000000)
+-- Number (-1.0e12)
+-- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (-4.0))
+-- Just (-4)
+-- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (scientific 1 100000000))
+-- Nothing
+--
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'IntegerCodec' without a name.
+--
+-- > scientificCodec = IntegerCodec Nothing Nothing
+--
+-- For a codec without this protection, see 'unsafeUnboundedIntegerCodec'.
+integerCodec :: JSONCodec Integer
+integerCodec = IntegerCodec Nothing emptyBounds
+
+-- | A codec for 'Natural' values.
+--
+-- This codec does a bounds check for the range [0, 10^1024] it can safely parse very large numbers.
+--
+-- For a codec without this protection, see 'unsafeUnboundedNaturalCodec'.
+--
+-- === Example usage
+--
+-- >>> toJSONVia naturalCodec 5
+-- Number 5.0
+-- >>> toJSONVia naturalCodec (1000000000000)
+-- Number 1.0e12
+-- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number 4.0)
+-- Just 4
+-- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number (scientific 1 100000000))
+-- Nothing
+naturalCodec :: JSONCodec Natural
+naturalCodec =
+  dimapCodec fromIntegral fromIntegral $
+    integerWithBoundsCodec
+      ( Bounds
+          { boundsLower = Just 0,
+            boundsUpper = Nothing
+          }
+      )
 
 -- | Codec for 'Scientific' values with bounds
 --
 --
 -- === Example usage
 --
--- >>> let c = scientificWithBoundsCodec NumberBounds {numberBoundsLower = 2, numberBoundsUpper = 4}
+-- >>> let c = scientificWithBoundsCodec Bounds {boundsLower = Just 2, boundsUpper = Just 4}
 -- >>> toJSONVia c 3
 -- Number 3.0
 -- >>> toJSONVia c 5
@@ -1353,9 +1431,32 @@ scientificCodec = NumberCodec Nothing Nothing
 --
 -- This is a forward-compatible version of 'NumberCodec' without a name.
 --
--- > scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
-scientificWithBoundsCodec :: NumberBounds -> JSONCodec Scientific
-scientificWithBoundsCodec bounds = NumberCodec Nothing (Just bounds)
+-- > scientificWithBoundsCodec bounds = NumberCodec Nothing bounds
+scientificWithBoundsCodec :: Bounds Scientific -> JSONCodec Scientific
+scientificWithBoundsCodec bounds = NumberCodec Nothing bounds
+
+-- | Codec for 'Integer' values with bounds
+--
+--
+-- === Example usage
+--
+-- >>> let c = integerWithBoundsCodec Bounds {boundsLower = Just 2, boundsUpper = Just 4}
+-- >>> toJSONVia c 3
+-- Number 3.0
+-- >>> toJSONVia c 5
+-- Number 5.0
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 3)
+-- Just 3
+-- >>> JSON.parseMaybe (parseJSONVia c) (Number 5)
+-- Nothing
+--
+-- ==== API Note
+--
+-- This is a forward-compatible version of 'IntegerCodec' without a name.
+--
+-- > integerWithBoundsCodec bounds = IntegerCodec Nothing bounds
+integerWithBoundsCodec :: Bounds Integer -> JSONCodec Integer
+integerWithBoundsCodec bounds = IntegerCodec Nothing bounds
 
 -- | An object codec with a given name
 --
@@ -1396,51 +1497,13 @@ object name = ObjectOfCodec (Just name)
 -- Nothing
 boundedIntegralCodec :: forall i. (Integral i, Bounded i) => JSONCodec i
 boundedIntegralCodec =
-  bimapCodec go fromIntegral $ scientificWithBoundsCodec (boundedIntegralNumberBounds @i)
-  where
-    go s = case Scientific.toBoundedInteger s of
-      Nothing -> Left $ "Number did not fit into bounded integer: " <> show s
-      Just i -> Right i
+  dimapCodec fromIntegral fromIntegral $ integerWithBoundsCodec (boundedIntegralBounds @i)
 
 -- | 'NumberBounds' for a bounded integral type.
 --
--- You can call this using @TypeApplications@: @boundedIntegralNumberBounds @Word@
-boundedIntegralNumberBounds :: forall i. (Integral i, Bounded i) => NumberBounds
-boundedIntegralNumberBounds =
-  NumberBounds
-    { numberBoundsLower = fromIntegral (minBound :: i),
-      numberBoundsUpper = fromIntegral (maxBound :: i)
-    }
-
--- | A safe codec for 'Integer'.
---
--- This codec does a bounds check for the range [-10^1024, 10^1024] it can safely parse very large numbers.
---
--- For a codec without this protection, see 'unsafeUnboundedIntegerCodec'.
---
--- === Example usage
---
--- >>> toJSONVia integerCodec 5
--- Number 5.0
--- >>> toJSONVia integerCodec (-1000000000000)
--- Number (-1.0e12)
--- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (-4.0))
--- Just (-4)
--- >>> JSON.parseMaybe (parseJSONVia integerCodec) (Number (scientific 1 100000000))
--- Nothing
-integerCodec :: JSONCodec Integer
-integerCodec =
-  bimapCodec go fromIntegral $
-    scientificWithBoundsCodec
-      ( NumberBounds
-          { numberBoundsLower = scientific (-1) 1024,
-            numberBoundsUpper = scientific 1 1024
-          }
-      )
-  where
-    go s = case Scientific.floatingOrInteger s :: Either Float Integer of
-      Right i -> Right i
-      Left _ -> Left ("Number is not an integer: " <> show s)
+-- You can call this using @TypeApplications@: @boundedIntegralBounds @Word@
+boundedIntegralBounds :: forall i. (Integral i, Bounded i) => Bounds Integer
+boundedIntegralBounds = fromIntegral <$> boundedBounds @i
 
 -- | This is an unsafe (unchecked) version of 'integerCodec'.
 unsafeUnboundedIntegerCodec :: JSONCodec Integer
@@ -1448,36 +1511,6 @@ unsafeUnboundedIntegerCodec =
   bimapCodec go fromIntegral scientificCodec
   where
     go s = case Scientific.floatingOrInteger s :: Either Float Integer of
-      Right i -> Right i
-      Left _ -> Left ("Number is not an integer: " <> show s)
-
--- | A safe codec for 'Natural'.
---
--- This codec does a bounds check for the range [0, 10^1024] it can safely parse very large numbers.
---
--- For a codec without this protection, see 'unsafeUnboundedNaturalCodec'.
---
--- === Example usage
---
--- >>> toJSONVia naturalCodec 5
--- Number 5.0
--- >>> toJSONVia naturalCodec (1000000000000)
--- Number 1.0e12
--- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number 4.0)
--- Just 4
--- >>> JSON.parseMaybe (parseJSONVia naturalCodec) (Number (scientific 1 100000000))
--- Nothing
-naturalCodec :: JSONCodec Natural
-naturalCodec =
-  bimapCodec go fromIntegral $
-    scientificWithBoundsCodec
-      ( NumberBounds
-          { numberBoundsLower = scientific 0 0,
-            numberBoundsUpper = scientific 1 1024
-          }
-      )
-  where
-    go s = case Scientific.floatingOrInteger s :: Either Float Natural of
       Right i -> Right i
       Left _ -> Left ("Number is not an integer: " <> show s)
 

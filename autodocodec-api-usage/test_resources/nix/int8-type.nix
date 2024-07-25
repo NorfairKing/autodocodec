@@ -1,2 +1,2 @@
 { lib }:
-lib.types.s8
+lib.types.ints.s8

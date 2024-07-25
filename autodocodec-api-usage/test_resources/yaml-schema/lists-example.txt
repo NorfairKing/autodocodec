@@ -2,11 +2,11 @@
 [37mpossibly-empty-with-omitted-default[m: # [34moptional[m
   # default: [35m[][m
   # possibly empty list with omitted default empty list
-  - [33m<number>[m # [32m64 bit signed integer[m
+  - [33m<integer>[m # [32m64 bit signed integer[m
 [37mpossibly-empty-with-default[m: # [34moptional[m
   # default: [35m[][m
   # possibly empty list with default empty list
-  - [33m<number>[m # [32m64 bit signed integer[m
+  - [33m<integer>[m # [32m64 bit signed integer[m
 [37mrequired-non-empty[m: # [31mrequired[m
   # required non-empty list
   - [33m<string>[m

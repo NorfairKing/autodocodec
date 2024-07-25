@@ -1,1 +1,1 @@
-[33m<number>[m # [32m64 bit signed integer[m
+[33m<integer>[m # [32m64 bit signed integer[m

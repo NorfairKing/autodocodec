@@ -1,1 +1,2 @@
-NumberCodec Nothing Nothing
+NumberCodec
+  Nothing Bounds { boundsLower = Nothing , boundsUpper = Nothing }
