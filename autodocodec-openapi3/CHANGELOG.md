@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0.0] - 2024-07-29
+
+* Dropped support for orphan instances.
+
 ## [0.2.1.4] - 2024-07-29
 
 * Non-orphan version of the `ToSchema` deriving.

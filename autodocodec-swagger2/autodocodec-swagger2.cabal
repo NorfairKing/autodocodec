@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-swagger2
-version:        0.0.1.4
+version:        0.1.0.0
 synopsis:       Autodocodec interpreters for swagger2
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -27,7 +27,6 @@ library
   exposed-modules:
       Autodocodec.Swagger
       Autodocodec.Swagger.DerivingVia
-      Autodocodec.Swagger.DerivingVia.NonOrphan
       Autodocodec.Swagger.Schema
   other-modules:
       Paths_autodocodec_swagger2

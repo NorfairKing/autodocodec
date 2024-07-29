@@ -9,6 +9,7 @@ module Autodocodec.OpenAPISpec (spec) where
 
 import Autodocodec
 import Autodocodec.OpenAPI
+import Autodocodec.OpenAPI.DerivingVia
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.Data
@@ -146,7 +147,7 @@ openAPISchemaSpecViaDeclareSchemaRef ::
 openAPISchemaSpecViaDeclareSchemaRef filePath =
   describe ("openAPISchemaSpecViaDeclareSchemaRef @" <> nameOf @a) $ do
     it "outputs the same schema as before" $
-      let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy (Autodocodec a))) mempty
+      let (definitions, reference) = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy (AutodocodecOpenApi a))) mempty
           json =
             JSON.object
               [ "definitions" JSON..= definitions,

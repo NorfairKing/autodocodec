@@ -19,9 +19,9 @@ import Autodocodec
 import Autodocodec.Aeson ()
 import Autodocodec.Multipart
 import Autodocodec.OpenAPI ()
-import Autodocodec.OpenAPI.DerivingVia.NonOrphan (AutodocodecOpenApi)
+import Autodocodec.OpenAPI.DerivingVia (AutodocodecOpenApi)
 import Autodocodec.Swagger ()
-import Autodocodec.Swagger.DerivingVia.NonOrphan (AutodocodecSwagger)
+import Autodocodec.Swagger.DerivingVia (AutodocodecSwagger)
 import Control.Applicative
 import Control.DeepSeq
 import Data.Aeson (FromJSON (..), ToJSON (..))
@@ -35,7 +35,6 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe
 import qualified Data.Monoid as Monoid
-import Data.OpenApi (ToSchema)
 import qualified Data.OpenApi as OpenAPI
 import qualified Data.Semigroup as Semigroup
 import qualified Data.Swagger as Swagger
@@ -50,7 +49,7 @@ import Test.QuickCheck
 -- | A type that's encoded as @null@.
 data NullUnit = NullUnit
   deriving (Show, Eq, Generic)
-  deriving (OpenAPI.ToSchema) via Autodocodec NullUnit
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi NullUnit
 
 instance Validity NullUnit
 
@@ -78,7 +77,7 @@ data Fruit
   | Banana
   | Melon
   deriving (Show, Eq, Generic, Enum, Bounded)
-  deriving (OpenAPI.ToSchema) via Autodocodec Fruit
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Fruit
 
 instance Validity Fruit
 
@@ -108,7 +107,7 @@ data Example = Example
     exampleFruit :: !Fruit
   }
   deriving (Show, Eq, Generic)
-  deriving (OpenAPI.ToSchema) via Autodocodec Example
+  deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi Example)
 
 instance Validity Example
 
@@ -231,12 +230,12 @@ data ListsExample = ListsExample
   }
   deriving (Show, Eq, Generic)
   deriving
-    ( OpenAPI.ToSchema,
-      Swagger.ToSchema,
-      Servant.FromMultipart tag,
+    ( Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via Autodocodec ListsExample
+  deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi ListsExample)
+  deriving (Swagger.ToSchema) via (AutodocodecSwagger ListsExample)
 
 instance Validity ListsExample
 
@@ -285,7 +284,8 @@ data Recursive
   = Base Int
   | Recurse Recursive
   deriving (Show, Eq, Generic)
-  deriving (ToSchema) via Autodocodec Recursive
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Recursive
+  deriving (Swagger.ToSchema) via AutodocodecSwagger Recursive
 
 instance Validity Recursive
 
@@ -330,7 +330,8 @@ instance HasCodec Recursive where
 data MutuallyRecursiveA = MutuallyRecursiveA
   {relationshipToB :: MutuallyRecursiveB}
   deriving stock (Show, Generic, Eq)
-  deriving (ToSchema) via Autodocodec MutuallyRecursiveA
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi MutuallyRecursiveA
+  deriving (Swagger.ToSchema) via AutodocodecSwagger MutuallyRecursiveA
 
 instance Validity MutuallyRecursiveA
 
@@ -384,12 +385,12 @@ data Via = Via
   deriving
     ( FromJSON,
       ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema,
       Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via (Autodocodec Via)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Via
+  deriving (Swagger.ToSchema) via AutodocodecSwagger Via
 
 instance HasCodec Via where
   codec = object "Via" objectCodec
@@ -413,11 +414,11 @@ data VeryComment = VeryComment
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
-      ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema
+      ToJSON
     )
     via (Autodocodec VeryComment)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi VeryComment
+  deriving (Swagger.ToSchema) via AutodocodecSwagger VeryComment
 
 instance Validity VeryComment
 
@@ -446,12 +447,12 @@ data LegacyValue = LegacyValue
   deriving
     ( FromJSON,
       ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema,
       Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via (Autodocodec LegacyValue)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi LegacyValue
+  deriving (Swagger.ToSchema) via AutodocodecSwagger LegacyValue
 
 instance Validity LegacyValue
 
@@ -488,12 +489,12 @@ data LegacyObject = LegacyObject
   deriving
     ( FromJSON,
       ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema,
       Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via (Autodocodec LegacyObject)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi LegacyObject
+  deriving (Swagger.ToSchema) via AutodocodecSwagger LegacyObject
 
 instance Validity LegacyObject
 
@@ -528,11 +529,11 @@ data Ainur
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
-      ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema
+      ToJSON
     )
     via (Autodocodec Ainur)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Ainur
+  deriving (Swagger.ToSchema) via AutodocodecSwagger Ainur
 
 instance Validity Ainur
 
@@ -566,11 +567,11 @@ data War
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
-      ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema
+      ToJSON
     )
     via (Autodocodec War)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi War
+  deriving (Swagger.ToSchema) via AutodocodecSwagger War
 
 instance Validity War
 
@@ -600,11 +601,11 @@ data MultilineDefault = MultilineDefault
   deriving stock (Show, Eq, Generic)
   deriving
     ( FromJSON,
-      ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema
+      ToJSON
     )
     via (Autodocodec MultilineDefault)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi MultilineDefault
+  deriving (Swagger.ToSchema) via AutodocodecSwagger MultilineDefault
 
 instance Validity MultilineDefault
 
@@ -628,12 +629,12 @@ data These
   deriving
     ( FromJSON,
       ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema,
       Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via (Autodocodec These)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi These
+  deriving (Swagger.ToSchema) via AutodocodecSwagger These
 
 instance Validity These
 
@@ -671,12 +672,12 @@ data Expression
   deriving
     ( FromJSON,
       ToJSON,
-      Swagger.ToSchema,
-      OpenAPI.ToSchema,
       Servant.FromMultipart tag,
       Servant.ToMultipart tag
     )
     via (Autodocodec Expression)
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Expression
+  deriving (Swagger.ToSchema) via AutodocodecSwagger Expression
 
 instance Validity Expression
 

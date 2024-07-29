@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-openapi3
-version:        0.2.1.4
+version:        0.3.0.0
 synopsis:       Autodocodec interpreters for openapi3
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -27,7 +27,6 @@ library
   exposed-modules:
       Autodocodec.OpenAPI
       Autodocodec.OpenAPI.DerivingVia
-      Autodocodec.OpenAPI.DerivingVia.NonOrphan
       Autodocodec.OpenAPI.Schema
   other-modules:
       Paths_autodocodec_openapi3
