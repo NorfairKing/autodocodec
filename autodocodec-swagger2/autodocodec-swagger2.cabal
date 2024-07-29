@@ -27,6 +27,7 @@ library
   exposed-modules:
       Autodocodec.Swagger
       Autodocodec.Swagger.DerivingVia
+      Autodocodec.Swagger.DerivingVia.NonOrphan
       Autodocodec.Swagger.Schema
   other-modules:
       Paths_autodocodec_swagger2

@@ -27,6 +27,7 @@ library
   exposed-modules:
       Autodocodec.OpenAPI
       Autodocodec.OpenAPI.DerivingVia
+      Autodocodec.OpenAPI.DerivingVia.NonOrphan
       Autodocodec.OpenAPI.Schema
   other-modules:
       Paths_autodocodec_openapi3
