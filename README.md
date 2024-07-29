@@ -88,7 +88,7 @@ While we don't provide any actual guarantees, we do have tests for the following
 * [Encoding and decoding roundtrips through JSON.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
 * [For standard types, encoding behaves in the same way that `aeson` does.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
 * [Error messages for decoding are still good.](./autodocodec-api-usage/test/Autodocodec/AesonSpec.hs)
-* [Generated Human-readible documentation looks good.](./autodocodec-api-usage/test/Autodocodec/Yaml/DocumentSpec.hs)
+* [Generated Human-readible documentation looks good.](./autodocodec-api-usage/test/Autodocodec/Yaml/SchemaSpec.hs)
 * [Generated JSON schemas look good.](./autodocodec-api-usage/test/Autodocodec/Aeson/SchemaSpec.hs)
 * [Generated Swagger schemas look good.](./autodocodec-api-usage/test/Autodocodec/SwaggerSpec.hs)
 * [Generated OpenAPI schemas look good.](./autodocodec-api-usage/test/Autodocodec/OpenAPISpec.hs)
