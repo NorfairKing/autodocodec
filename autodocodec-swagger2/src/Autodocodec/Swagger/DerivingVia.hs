@@ -3,13 +3,14 @@
 
 module Autodocodec.Swagger.DerivingVia where
 
-import Autodocodec
-import Autodocodec.Swagger.Schema
-import Data.Proxy
-import Data.Swagger as Swagger
+import Autodocodec (Autodocodec, HasCodec)
+import Autodocodec.Swagger.Schema (declareNamedSchemaViaCodec)
+import Data.Proxy (Proxy (..))
+import qualified Data.Swagger as Swagger
 
 -- | An instance for 'Autodocodec' that lets you use 'DerivingVia' to derive 'Swagger.ToSchema' if your type has a 'HasCodec' instance.
 --
 -- > deriving (Swagger.ToSchema) via (Autodocodec FooBar)
 instance (HasCodec a) => Swagger.ToSchema (Autodocodec a) where
-  declareNamedSchema (Proxy :: Proxy (Autodocodec a)) = declareNamedSchemaViaCodec (Proxy :: Proxy a)
+  -- See comments in 'Autodocodec.OpenAPI.DerivingVia' for the reason why this is defined like this.
+  declareNamedSchema = let schema = declareNamedSchemaViaCodec (Proxy :: Proxy a) in const schema

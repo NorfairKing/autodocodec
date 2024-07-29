@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -18,7 +19,9 @@ import Autodocodec
 import Autodocodec.Aeson ()
 import Autodocodec.Multipart
 import Autodocodec.OpenAPI ()
+import Autodocodec.OpenAPI.DerivingVia.NonOrphan (AutodocodecOpenApi)
 import Autodocodec.Swagger ()
+import Autodocodec.Swagger.DerivingVia.NonOrphan (AutodocodecSwagger)
 import Control.Applicative
 import Control.DeepSeq
 import Data.Aeson (FromJSON (..), ToJSON (..))
@@ -729,3 +732,9 @@ monoidLastCodec = codec
 
 constCodec :: (HasCodec a) => JSONCodec (Const a b)
 constCodec = codec
+
+-- Using the non-orphan instances for 'OpenAPI' and 'Swagger' 'ToSchema' instances
+newtype NonOrphanExample = NonOrphanExample Example
+  deriving newtype (HasCodec)
+  deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi NonOrphanExample)
+  deriving (Swagger.ToSchema) via (AutodocodecSwagger NonOrphanExample)

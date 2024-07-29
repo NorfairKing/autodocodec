@@ -77,7 +77,7 @@ text: # required
   <string>
 int: # required
   # documentation for the int field
-  <number> # between -9223372036854775808 and 9223372036854775807
+  <integer> # 64 bit int
 ```
  
 

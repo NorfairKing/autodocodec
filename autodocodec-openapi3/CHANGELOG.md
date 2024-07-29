@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1.4] - 2024-07-29
+
+* Non-orphan version of the `ToSchema` deriving.
+
 ## [0.2.1.3] - 2024-07-26
 
 * Support for `autodocodec >=0.4`.
