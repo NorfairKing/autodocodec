@@ -1,2 +1,6 @@
 { lib }:
-lib.types.anything
+lib.types.enum [
+  "LT"
+  "EQ"
+  "GT"
+]

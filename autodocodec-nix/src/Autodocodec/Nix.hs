@@ -30,6 +30,7 @@ module Autodocodec.Nix
 where
 
 import Autodocodec
+import Control.Applicative
 import Data.Aeson as JSON
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
@@ -91,7 +92,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
       ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
       ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
-      EqCodec _ _ -> Nothing -- TODO
+      EqCodec v c -> Just $ OptionTypeEnum [jsonValueExpr $ toJSONVia c v]
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
       CommentCodec _ c -> go c
@@ -122,7 +123,7 @@ objectCodecNixOptions = simplifyOptions . go
             ( \t1 t2 ->
                 Option
                   { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "lib.types.anything") . optionType) [t1, t2],
-                    optionDescription = Nothing, -- TODO
+                    optionDescription = optionDescription t1 <|> optionDescription t2, -- TODO
                     optionDefault = Nothing
                   }
             )
@@ -184,6 +185,7 @@ simplifyOption o = o {optionType = simplifyOptionType <$> optionType o}
 data OptionType
   = OptionTypeNull
   | OptionTypeSimple !Text
+  | OptionTypeEnum ![Expr]
   | OptionTypeNullOr !OptionType
   | OptionTypeListOf !OptionType
   | OptionTypeAttrsOf !OptionType
@@ -197,6 +199,7 @@ simplifyOptionType = go
     go = \case
       OptionTypeNull -> OptionTypeNull
       OptionTypeSimple t -> OptionTypeSimple t
+      OptionTypeEnum es -> OptionTypeEnum es
       OptionTypeNullOr t -> case t of
         OptionTypeNull -> OptionTypeNull
         OptionTypeNullOr t' -> go $ OptionTypeNullOr t'
@@ -204,10 +207,22 @@ simplifyOptionType = go
         _ -> OptionTypeNullOr $ go t
       OptionTypeListOf o -> OptionTypeListOf $ go o
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
-      OptionTypeOneOf os -> case nubOrd $ concatMap goOr os of
+      OptionTypeOneOf os -> case goEnums $ nubOrd $ concatMap goOr os of
         [ot] -> ot
         os' -> OptionTypeOneOf os'
       OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
+
+    goEnums :: [OptionType] -> [OptionType]
+    goEnums = goEnum []
+      where
+        goEnum :: [Expr] -> [OptionType] -> [OptionType]
+        goEnum es = \case
+          [] -> case es of
+            [] -> []
+            _ -> [OptionTypeEnum es]
+          (t : rest) -> case t of
+            OptionTypeEnum es' -> goEnum (es ++ es') rest
+            _ -> t : goEnum es rest
 
     goOpt o = o {optionType = go <$> optionType o}
 
@@ -257,6 +272,7 @@ optionTypeExpr = go
     go = \case
       OptionTypeNull -> ExprVar "lib.types.null"
       OptionTypeSimple s -> ExprVar s
+      OptionTypeEnum es -> ExprAp (ExprVar "lib.types.enum") (ExprLitList es)
       OptionTypeNullOr ot -> ExprAp (ExprVar "lib.types.nullOr") (go ot)
       OptionTypeListOf ot ->
         ExprAp
@@ -295,6 +311,7 @@ data Expr
   | ExprAp !Expr !Expr
   | ExprFun ![Text] !Expr
   | ExprWith !Text !Expr
+  deriving (Show, Eq, Ord)
 
 renderExpr :: Expr -> Text
 renderExpr = T.unlines . go 0

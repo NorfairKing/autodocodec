@@ -8,7 +8,12 @@
   fruit = lib.mkOption {
     default = null;
     description = "fruit!!";
-    type = lib.types.nullOr lib.types.anything;
+    type = lib.types.nullOr (lib.types.enum [
+      "Apple"
+      "Orange"
+      "Banana"
+      "Melon"
+    ]);
   };
   maybe = lib.mkOption {
     default = null;

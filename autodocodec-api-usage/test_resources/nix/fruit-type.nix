@@ -1,2 +1,7 @@
 { lib }:
-lib.types.anything
+lib.types.enum [
+  "Apple"
+  "Orange"
+  "Banana"
+  "Melon"
+]
