@@ -1,5 +1,10 @@
 module Autodocodec.DerivingVia where
 
+import Autodocodec.Aeson.Decode (parseJSONViaCodec)
+import Autodocodec.Aeson.Encode (toEncodingViaCodec, toJSONViaCodec)
+import Autodocodec.Class (HasCodec)
+import qualified Data.Aeson as JSON
+
 -- | 'Autodocodec' is a wrapper to provide codec-based deriving strategies.
 --
 -- === Example usage
@@ -15,3 +20,10 @@ module Autodocodec.DerivingVia where
 -- >         <$> requiredField "one" "first field" .= viaOne
 -- >         <*> requiredField "two" "second field" .= viaTwo
 newtype Autodocodec a = Autodocodec {unAutodocodec :: a}
+
+instance (HasCodec a) => JSON.ToJSON (Autodocodec a) where
+  toJSON = toJSONViaCodec . unAutodocodec
+  toEncoding = toEncodingViaCodec . unAutodocodec
+
+instance (HasCodec a) => JSON.FromJSON (Autodocodec a) where
+  parseJSON = fmap Autodocodec <$> parseJSONViaCodec

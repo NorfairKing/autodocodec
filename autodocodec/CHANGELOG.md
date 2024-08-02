@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.1.0] - 2024-08-03
+
+### Changed
+
+* Moved the `ToJSON (Autodocodec a)` and `FromJSON (Autodocodec a)` instances so they are no longer orphans.
+
 ## [0.4.0.0] - 2024-07-26
 
 This is technically a breaking change but it's unlikely that you'll need to

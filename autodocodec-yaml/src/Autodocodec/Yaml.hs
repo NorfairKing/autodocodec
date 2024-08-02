@@ -40,7 +40,7 @@ import qualified Data.Yaml.Builder as Yaml
 
 -- | Encode a value as a Yaml 'ByteString' via its type's 'codec'.
 encodeYamlViaCodec :: (HasCodec a) => a -> ByteString
-encodeYamlViaCodec = Yaml.toByteString . Autodocodec
+encodeYamlViaCodec = Yaml.toByteString . AutodocodecYaml
 
 -- | Parse a Yaml 'ByteString' using a type's 'codec'.
 eitherDecodeYamlViaCodec :: (HasCodec a) => ByteString -> Either Yaml.ParseException a
