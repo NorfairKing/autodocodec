@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Autodocodec.Yaml.Encode where
 
@@ -10,7 +10,6 @@ import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Aeson.Encode
 import Autodocodec.Class
 import Autodocodec.Codec
-import Autodocodec.DerivingVia
 import Control.Arrow (first)
 import Data.Coerce (coerce)
 import Data.Scientific
@@ -94,5 +93,7 @@ toYamlVia = flip go
       JSON.Object o -> yamlObject o
       JSON.Array v -> Yaml.array $ map yamlValue $ V.toList v
 
-instance (HasCodec a) => ToYaml (Autodocodec a) where
-  toYaml = toYamlViaCodec . unAutodocodec
+newtype AutodocodecYaml a = AutodocodecYaml {unAutodocodecYaml :: a}
+
+instance (HasCodec a) => ToYaml (AutodocodecYaml a) where
+  toYaml = toYamlViaCodec . unAutodocodecYaml

@@ -1,7 +1,13 @@
 # Changelog
 
-## [0.3.0.1] - 2024-07-26
+## [0.4.0.0] - 2024-08-03
 
+### Changed
+
+* Remove orphan `ToYaml (Autodocodec a)` instance, instead defining a `AutodocodecYaml` newtype 
+  and replacing the instance with a non-orphan `ToYaml (AutodocodecYaml a)` instance.
+
+## [0.3.0.1] - 2024-07-26
 
 * Support for `autodocodec >=0.4` and `autodocodec-schema >=0.2`.
 
