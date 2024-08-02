@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Autodocodec.Aeson.Encode
   ( -- * Encoding JSON Values
@@ -21,7 +21,6 @@ where
 import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
 import Autodocodec.Codec
-import Autodocodec.DerivingVia
 import Data.Aeson (toJSON)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encoding as JSON
@@ -146,7 +145,3 @@ toEncodingVia = flip go
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
-
-instance (HasCodec a) => JSON.ToJSON (Autodocodec a) where
-  toJSON = toJSONViaCodec . unAutodocodec
-  toEncoding = toEncodingViaCodec . unAutodocodec

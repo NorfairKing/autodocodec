@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Autodocodec.Aeson.Decode
   ( -- * Decoding JSON Values
@@ -21,7 +21,6 @@ where
 import qualified Autodocodec.Aeson.Compat as Compat
 import Autodocodec.Class
 import Autodocodec.Codec
-import Autodocodec.DerivingVia
 import Control.Monad
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
@@ -179,6 +178,3 @@ parseJSONContextVia codec_ context_ =
       OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec k c defaultValue mDoc
       PureCodec a -> pure a
       ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
-
-instance (HasCodec a) => JSON.FromJSON (Autodocodec a) where
-  parseJSON = fmap Autodocodec <$> parseJSONViaCodec
