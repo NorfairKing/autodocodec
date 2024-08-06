@@ -42,6 +42,7 @@ extra-source-files:
     test_resources/json-schema/const.json
     test_resources/json-schema/day.json
     test_resources/json-schema/difftime.json
+    test_resources/json-schema/dlist-text.json
     test_resources/json-schema/dual.json
     test_resources/json-schema/either-bool-text.json
     test_resources/json-schema/either-either-bool-scientific-text.json
@@ -98,6 +99,8 @@ extra-source-files:
     test_resources/nix/const-type.nix
     test_resources/nix/day-type.nix
     test_resources/nix/difftime-type.nix
+    test_resources/nix/dlist-text-type.nix
+    test_resources/nix/dnonempty-text-type.nix
     test_resources/nix/dual-type.nix
     test_resources/nix/either-bool-text-type.nix
     test_resources/nix/either-either-bool-scientific-text-type.nix
@@ -183,6 +186,8 @@ extra-source-files:
     test_resources/openapi-schema/declareSchemaRef/void.json
     test_resources/openapi-schema/declareSchemaRef/war.json
     test_resources/openapi-schema/difftime.json
+    test_resources/openapi-schema/dlist-text.json
+    test_resources/openapi-schema/dnonempty-text.json
     test_resources/openapi-schema/dual.json
     test_resources/openapi-schema/either-bool-text.json
     test_resources/openapi-schema/either-either-bool-scientific-text.json
@@ -240,6 +245,8 @@ extra-source-files:
     test_resources/show-codec/char.txt
     test_resources/show-codec/const.txt
     test_resources/show-codec/day.txt
+    test_resources/show-codec/dlist-text.txt
+    test_resources/show-codec/dnonempty-text.txt
     test_resources/show-codec/dual.txt
     test_resources/show-codec/either-bool-text.txt
     test_resources/show-codec/either-either-bool-scientific-text.txt
@@ -298,6 +305,8 @@ extra-source-files:
     test_resources/swagger-schema/const.json
     test_resources/swagger-schema/day.json
     test_resources/swagger-schema/difftime.json
+    test_resources/swagger-schema/dlist-text.json
+    test_resources/swagger-schema/dnonempty-text.json
     test_resources/swagger-schema/dual.json
     test_resources/swagger-schema/either-bool-text.json
     test_resources/swagger-schema/either-either-bool-scientific-text.json
@@ -474,9 +483,11 @@ test-suite autodocodec-api-usage-test
     , base >=4.7 && <5
     , bytestring
     , containers
+    , dlist
     , genvalidity
     , genvalidity-aeson
     , genvalidity-containers
+    , genvalidity-dlist
     , genvalidity-scientific
     , genvalidity-sydtest
     , genvalidity-sydtest-aeson

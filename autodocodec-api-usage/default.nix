@@ -2,13 +2,14 @@
 , autodocodec-openapi3, autodocodec-schema
 , autodocodec-servant-multipart, autodocodec-swagger2
 , autodocodec-yaml, base, bytestring, containers, criterion
-, deepseq, genvalidity, genvalidity-aeson, genvalidity-containers
-, genvalidity-criterion, genvalidity-scientific
-, genvalidity-sydtest, genvalidity-sydtest-aeson, genvalidity-text
-, genvalidity-time, lib, openapi3, pretty-show, QuickCheck
-, safe-coloured-text, scientific, servant-multipart
-, servant-multipart-api, swagger2, sydtest, sydtest-aeson
-, sydtest-discover, text, time, unordered-containers, vector, yaml
+, deepseq, dlist, genvalidity, genvalidity-aeson
+, genvalidity-containers, genvalidity-criterion, genvalidity-dlist
+, genvalidity-scientific, genvalidity-sydtest
+, genvalidity-sydtest-aeson, genvalidity-text, genvalidity-time
+, lib, openapi3, pretty-show, QuickCheck, safe-coloured-text
+, scientific, servant-multipart, servant-multipart-api, swagger2
+, sydtest, sydtest-aeson, sydtest-discover, text, time
+, unordered-containers, vector, yaml
 }:
 mkDerivation {
   pname = "autodocodec-api-usage";
@@ -26,8 +27,8 @@ mkDerivation {
     aeson autodocodec autodocodec-nix autodocodec-openapi3
     autodocodec-schema autodocodec-servant-multipart
     autodocodec-swagger2 autodocodec-yaml base bytestring containers
-    genvalidity genvalidity-aeson genvalidity-containers
-    genvalidity-scientific genvalidity-sydtest
+    dlist genvalidity genvalidity-aeson genvalidity-containers
+    genvalidity-dlist genvalidity-scientific genvalidity-sydtest
     genvalidity-sydtest-aeson genvalidity-text genvalidity-time
     openapi3 pretty-show QuickCheck safe-coloured-text scientific
     servant-multipart-api swagger2 sydtest sydtest-aeson text time

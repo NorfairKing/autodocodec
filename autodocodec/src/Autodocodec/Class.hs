@@ -19,6 +19,10 @@ import Numeric.Natural
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 #endif
+import Data.DList (DList)
+import qualified Data.DList as DList
+import Data.DList.DNonEmpty (DNonEmpty)
+import qualified Data.DList.DNonEmpty as DNonEmpty
 import Data.Functor.Const (Const (Const))
 import Data.Functor.Identity
 import Data.HashMap.Strict (HashMap)
@@ -155,8 +159,14 @@ instance (HasCodec a) => HasCodec (Vector a) where
 instance (HasCodec a) => HasCodec [a] where
   codec = listCodecForStringCompatibility
 
+instance (HasCodec a) => HasCodec (DList a) where
+  codec = dimapCodec DList.fromList DList.toList (codec :: JSONCodec [a])
+
 instance (HasCodec a) => HasCodec (NonEmpty a) where
   codec = nonEmptyCodec codec
+
+instance (HasCodec a) => HasCodec (DNonEmpty a) where
+  codec = dimapCodec DNonEmpty.fromNonEmpty DNonEmpty.toNonEmpty (codec :: JSONCodec (NonEmpty a))
 
 instance (Ord a, HasCodec a) => HasCodec (Set a) where
   codec = dimapCodec S.fromList S.toList codec

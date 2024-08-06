@@ -11,12 +11,16 @@ import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
+import Data.GenValidity.DList ()
+import Data.GenValidity.DNonEmpty ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
@@ -84,7 +88,9 @@ spec = do
   aesonCodecSpec @(Vector Text)
   aesonCodecSpec @[Text]
   aesonCodecErrorSpec @[Text] "list-text-error-string" "\"string\""
+  aesonCodecSpec @(DList Text)
   aesonCodecSpec @(NonEmpty Text)
+  aesonCodecSpec @(DNonEmpty Text)
   aesonCodecSpec @(Set Text)
   aesonCodecSpec @(Map Text Int)
   aesonCodecSpec @Day

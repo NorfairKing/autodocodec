@@ -8,6 +8,8 @@ module Autodocodec.ShowSpec (spec) where
 import Autodocodec
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
@@ -61,7 +63,9 @@ spec = do
   showCodecSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   showCodecSpec @(Vector Text) "vector-text"
   showCodecSpec @[Text] "list-text"
+  showCodecSpec @(DList Text) "dlist-text"
   showCodecSpec @(NonEmpty Text) "nonempty-text"
+  showCodecSpec @(DNonEmpty Text) "dnonempty-text"
   showCodecSpec @(Set Text) "set-text"
   showCodecSpec @(Map Text Int) "map-text-int"
   showCodecSpec @Day "day"

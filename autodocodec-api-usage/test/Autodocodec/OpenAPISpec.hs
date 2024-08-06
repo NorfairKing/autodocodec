@@ -11,6 +11,8 @@ import Autodocodec.OpenAPI
 import Autodocodec.OpenAPI.DerivingVia
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
@@ -81,7 +83,9 @@ spec = do
   openAPISchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   openAPISchemaSpec @(Vector Text) "vector-text"
   openAPISchemaSpec @[Text] "list-text"
+  openAPISchemaSpec @(DList Text) "dlist-text"
   openAPISchemaSpec @(NonEmpty Text) "nonempty-text"
+  openAPISchemaSpec @(DNonEmpty Text) "dnonempty-text"
   openAPISchemaSpec @(Set Text) "set-text"
   openAPISchemaSpec @(Map Text Int) "map-text-int"
   openAPISchemaSpec @Day "day"

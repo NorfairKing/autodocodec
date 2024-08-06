@@ -11,15 +11,17 @@ packages:
 
 extra-deps:
 - github: NorfairKing/validity
-  commit: 6b06ec70bdd999f7450f88f4beea43f1607e3726
+  commit: 51b8843b9bd5228160b99f653d3271147245d689
   subdirs:
     - validity
     - validity-aeson
     - validity-containers
+    - validity-dlist
     - validity-text
     - genvalidity
     - genvalidity-aeson
     - genvalidity-containers
+    - genvalidity-dlist
     - genvalidity-scientific
     - genvalidity-sydtest
     - genvalidity-sydtest-aeson

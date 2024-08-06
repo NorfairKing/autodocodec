@@ -11,12 +11,16 @@ import Autodocodec
 import Autodocodec.Schema
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
+import Data.GenValidity.DList ()
+import Data.GenValidity.DNonEmpty ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
@@ -69,7 +73,9 @@ spec = do
   jsonSchemaSpec @(Either Bool Text) "either-bool-text"
   jsonSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   jsonSchemaSpec @[Text] "list-text"
+  jsonSchemaSpec @(DList Text) "dlist-text"
   jsonSchemaSpec @(NonEmpty Text) "nonempty-text"
+  jsonSchemaSpec @(DNonEmpty Text) "nonempty-text"
   jsonSchemaSpec @(Set Text) "set-text"
   jsonSchemaSpec @(Map Text Int) "map-text-ind"
   jsonSchemaSpec @Day "day"

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2.0] - 2024-08-06
+
+### Added
+
+* `HasCodec` instances for `DList` and `DNonEmpty` from the `dlist` package.
+
 ## [0.4.1.0] - 2024-08-03
 
 ### Changed

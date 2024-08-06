@@ -1,5 +1,5 @@
 name: autodocodec
-version: 0.4.1.0
+version: 0.4.2.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -20,6 +20,7 @@ library:
   - aeson
   - bytestring
   - containers
+  - dlist
   - hashable
   - mtl
   - scientific

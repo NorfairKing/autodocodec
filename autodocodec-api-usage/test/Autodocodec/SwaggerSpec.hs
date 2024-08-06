@@ -10,12 +10,16 @@ import Autodocodec
 import Autodocodec.Swagger
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
+import Data.GenValidity.DList ()
+import Data.GenValidity.DNonEmpty ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
@@ -75,7 +79,9 @@ spec = do
   swaggerSchemaSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   swaggerSchemaSpec @(Vector Text) "vector-text"
   swaggerSchemaSpec @[Text] "list-text"
+  swaggerSchemaSpec @(DList Text) "dlist-text"
   swaggerSchemaSpec @(NonEmpty Text) "nonempty-text"
+  swaggerSchemaSpec @(DNonEmpty Text) "dnonempty-text"
   swaggerSchemaSpec @(Set Text) "set-text"
   swaggerSchemaSpec @(Map Text Int) "map-text-int"
   swaggerSchemaSpec @Day "day"

@@ -9,12 +9,16 @@ import Autodocodec
 import Autodocodec.Usage
 import Autodocodec.Yaml.Encode
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity
 import Data.GenValidity.Aeson ()
 import Data.GenValidity.Containers ()
+import Data.GenValidity.DList ()
+import Data.GenValidity.DNonEmpty ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
@@ -68,7 +72,9 @@ spec = do
   yamlCodecSpec @(Either (Either Bool [Text]) Text)
   yamlCodecSpec @(Vector Text)
   yamlCodecSpec @[Text]
+  yamlCodecSpec @(DList Text)
   yamlCodecSpec @(NonEmpty Text)
+  yamlCodecSpec @(DNonEmpty Text)
   yamlCodecSpec @(Set Text)
   yamlCodecSpec @(Map Text Int)
   yamlCodecSpec @Day

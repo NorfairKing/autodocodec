@@ -1,0 +1,16 @@
+{
+    "definitions": {
+        "(DList Text)": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

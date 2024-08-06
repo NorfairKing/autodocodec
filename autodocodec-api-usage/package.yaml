@@ -63,10 +63,12 @@ tests:
     - autodocodec-yaml
     - bytestring
     - containers
+    - dlist
     - genvalidity
     - autodocodec-nix
     - genvalidity-aeson
     - genvalidity-containers
+    - genvalidity-dlist
     - genvalidity-scientific
     - genvalidity-sydtest
     - genvalidity-sydtest-aeson

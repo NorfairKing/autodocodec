@@ -9,8 +9,12 @@ import Autodocodec
 import Autodocodec.Nix
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
+import Data.DList (DList)
+import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
+import Data.GenValidity.DList ()
+import Data.GenValidity.DNonEmpty ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
@@ -56,7 +60,9 @@ spec = do
   nixOptionTypeSpec @(Either Bool Text) "either-bool-text"
   nixOptionTypeSpec @(Either (Either Bool Scientific) Text) "either-either-bool-scientific-text"
   nixOptionTypeSpec @[Text] "list-text"
+  nixOptionTypeSpec @(DList Text) "dlist-text"
   nixOptionTypeSpec @(NonEmpty Text) "nonempty-text"
+  nixOptionTypeSpec @(DNonEmpty Text) "dnonempty-text"
   nixOptionTypeSpec @(Set Text) "set-text"
   nixOptionTypeSpec @(Map Text Int) "map-text-ind"
   nixOptionTypeSpec @Day "day"
