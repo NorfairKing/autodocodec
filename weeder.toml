@@ -1,0 +1,11 @@
+unused-types = true
+type-class-roots = false
+roots = [
+  "^Main.main",
+  # Generated
+  "Paths_",
+]
+root-instances = [
+#  {class = 'IsString'},
+#  {class = 'IsList'},
+]

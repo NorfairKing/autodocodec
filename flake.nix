@@ -18,6 +18,8 @@
     fast-myers-diff.flake = false;
     sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
+    weeder-nix.url = "github:NorfairKing/weeder-nix";
+    weeder-nix.flake = false;
   };
 
   outputs =
@@ -31,10 +33,16 @@
     , safe-coloured-text
     , fast-myers-diff
     , sydtest
+    , weeder-nix
     }:
     let
       system = "x86_64-linux";
-      nixpkgsFor = nixpkgs: import nixpkgs { inherit system; config.allowUnfree = true; };
+      nixpkgsFor = nixpkgs: import nixpkgs {
+        inherit system;
+        overlays = [
+          (import (weeder-nix + "/nix/overlay.nix"))
+        ];
+      };
       pkgs = nixpkgsFor nixpkgs;
       allOverrides = pkgs.lib.composeManyExtensions [
         (pkgs.callPackage (fast-myers-diff + "/nix/overrides.nix") { })
@@ -50,7 +58,7 @@
     {
       overrides.${system} = pkgs.callPackage ./nix/overrides.nix { };
       overlays.${system} = import ./nix/overlay.nix;
-      packages.${system} = haskellPackages.autodocodecPackages;
+      packages.${system}.default = haskellPackages.autodocodecRelease;
       checks.${system} =
         let
           backwardCompatibilityCheckFor = nixpkgs: (haskellPackagesFor nixpkgs).autodocodecRelease;
@@ -64,6 +72,20 @@
         backwardCompatibilityChecks // {
           forwardCompatibility = horizonPkgs.autodocodecRelease;
           release = haskellPackages.autodocodecRelease;
+          weeder-check = pkgs.weeder-nix.makeWeederCheck {
+            weederToml = ./weeder.toml;
+            packages = [
+              "autodocodec"
+              "autodocodec-api-usage"
+              "autodocodec-nix"
+              "autodocodec-openapi3"
+              "autodocodec-schema"
+              "autodocodec-servant-multipart"
+              "autodocodec-swagger2"
+              "autodocodec-yaml"
+            ];
+            inherit haskellPackages;
+          };
           pre-commit = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
