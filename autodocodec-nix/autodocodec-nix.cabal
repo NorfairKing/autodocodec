@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-nix
-version:        0.0.1.0
+version:        0.0.1.1
 synopsis:       Autodocodec interpreters for nix
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues

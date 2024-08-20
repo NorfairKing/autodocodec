@@ -74,7 +74,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
         OptionTypeSimple $
           case guessIntegerBoundsSymbolic bounds of
             BitUInt w -> case w of
-              64 -> "lib.types.numbers.unsigned"
+              64 -> "lib.types.ints.unsigned"
               32 -> "lib.types.ints.u32"
               16 -> "lib.types.ints.u16"
               8 -> "lib.types.ints.u8"
