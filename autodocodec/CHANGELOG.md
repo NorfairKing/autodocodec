@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.2.1] - 2024-08-21
+
+### Added
+
+* `optionalFieldOrNullWithDefault`
+* `optionalFieldOrNullWithDefaultWith`
+* `optionalFieldOrNullWithDefault'`
+* `optionalFieldOrNullWithDefaultWith'`
+
+
 ## [0.4.2.0] - 2024-08-06
 
 ### Added

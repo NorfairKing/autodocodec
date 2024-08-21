@@ -1062,6 +1062,43 @@ optionalFieldWithDefaultWith' ::
   ObjectCodec output output
 optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c defaultValue Nothing
 
+-- | Like 'optionalFieldWithDefaultWith', but also interpret @null@ as the
+-- default value.
+optionalFieldOrNullWithDefaultWith ::
+  (Eq output) =>
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  JSONCodec output ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldOrNullWithDefaultWith key c defaultValue doc = dimapCodec f g $ optionalFieldWithDefaultWith key (maybeCodec c) (Just defaultValue) doc
+  where
+    f = \case
+      Just v -> v
+      Nothing -> defaultValue
+    g v = if v == defaultValue then Nothing else Just v
+
+-- | Like 'optionalFieldOrNullWithDefaultWith', but without documentation.
+optionalFieldOrNullWithDefaultWith' ::
+  (Eq output) =>
+  -- | Key
+  Text ->
+  -- | Codec for the value
+  JSONCodec output ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldOrNullWithDefaultWith' key c defaultValue = dimapCodec f g $ optionalFieldWithDefaultWith' key (maybeCodec c) (Just defaultValue)
+  where
+    f = \case
+      Just v -> v
+      Nothing -> defaultValue
+    g v = if v == defaultValue then Nothing else Just v
+
 -- | An optional field with default value that can be omitted when encoding
 --
 -- During decoding, the field may be in the object. The default value will be parsed otherwise.

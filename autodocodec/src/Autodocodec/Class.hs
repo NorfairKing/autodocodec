@@ -289,6 +289,28 @@ optionalFieldWithDefault' ::
   ObjectCodec output output
 optionalFieldWithDefault' key defaultValue = optionalFieldWithDefaultWith' key codec defaultValue
 
+-- | Like 'optionalFieldOrNull', but also interpret @null@ as the default value.
+optionalFieldOrNullWithDefault ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  -- | Documentation
+  Text ->
+  ObjectCodec output output
+optionalFieldOrNullWithDefault key defaultValue doc = optionalFieldOrNullWithDefaultWith key codec defaultValue doc
+
+-- | Like 'optionalFieldOrNullWithDefault', but without documentation
+optionalFieldOrNullWithDefault' ::
+  (Eq output, HasCodec output) =>
+  -- | Key
+  Text ->
+  -- | Default value
+  output ->
+  ObjectCodec output output
+optionalFieldOrNullWithDefault' key defaultValue = optionalFieldOrNullWithDefaultWith' key codec defaultValue
+
 -- | An optional, or null, field
 --
 -- During decoding, the field may be in the object. 'Nothing' will be parsed if it is not.
