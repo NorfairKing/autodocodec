@@ -14,7 +14,6 @@
     ];
   };
   value = lib.mkOption {
-    default = null;
-    type = lib.types.nullOr lib.types.int;
+    type = lib.types.int;
   };
 }

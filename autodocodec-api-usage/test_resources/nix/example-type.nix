@@ -2,22 +2,19 @@
 lib.types.submodule {
   options = {
     bool = lib.mkOption {
-      default = null;
       description = "a bool";
-      type = lib.types.nullOr lib.types.bool;
+      type = lib.types.bool;
     };
     fruit = lib.mkOption {
-      default = null;
       description = "fruit!!";
-      type = lib.types.nullOr (lib.types.enum [
+      type = lib.types.enum [
         "Apple"
         "Orange"
         "Banana"
         "Melon"
-      ]);
+      ];
     };
     maybe = lib.mkOption {
-      default = null;
       description = "a maybe text";
       type = lib.types.nullOr lib.types.str;
     };
@@ -50,9 +47,8 @@ lib.types.submodule {
       ];
     };
     text = lib.mkOption {
-      default = null;
       description = "a text";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
   };
 }

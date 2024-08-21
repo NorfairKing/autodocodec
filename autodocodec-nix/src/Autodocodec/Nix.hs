@@ -132,10 +132,10 @@ objectCodecNixOptions = simplifyOptions . go
       RequiredKeyCodec key o mDesc ->
         M.singleton key $
           Option
-            { optionType = OptionTypeNullOr <$> valueCodecNixOptionType o,
+            { optionType = valueCodecNixOptionType o,
               optionDescription = mDesc,
-              optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
-            } -- TODO use the docs
+              optionDefault = Nothing -- [ref:NixOptionNullable]
+            }
       OptionalKeyCodec key o mDesc ->
         M.singleton key $
           Option

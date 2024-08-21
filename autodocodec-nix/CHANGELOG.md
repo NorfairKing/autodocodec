@@ -1,6 +1,14 @@
 # Changelog
 
-## [0.0.1.2] - 2024-08-20
+## [0.0.1.3] - 2024-08-22
+
+### Changed
+
+* Made required object codecs produce a required type.
+
+## [0.0.1.2] - 2024-08-21
+
+### Changed
 
 * Fixed the nix type that corresponds to `null`.
 * Fixed that some nix types were not being simplified enough.

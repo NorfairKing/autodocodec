@@ -17,9 +17,8 @@ lib.types.submodule {
       type = lib.types.listOf lib.types.int;
     };
     required-non-empty = lib.mkOption {
-      default = null;
       description = "required non-empty list";
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      type = lib.types.listOf lib.types.str;
     };
   };
 }
