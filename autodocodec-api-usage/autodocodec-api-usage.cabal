@@ -126,6 +126,9 @@ extra-source-files:
     test_resources/nix/lists-example-type.nix
     test_resources/nix/local-time-type.nix
     test_resources/nix/map-text-ind-type.nix
+    test_resources/nix/maybe-either-bool-text-type.nix
+    test_resources/nix/maybe-maybe-maybe-text-type.nix
+    test_resources/nix/maybe-maybe-text-type.nix
     test_resources/nix/maybe-text-type.nix
     test_resources/nix/monoid-first-type.nix
     test_resources/nix/monoid-last-type.nix

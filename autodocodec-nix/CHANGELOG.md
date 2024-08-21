@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.1.2] - 2024-08-20
+
+* Fixed the nix type that corresponds to `null`.
+* Fixed that some nix types were not being simplified enough.
+
 ## [0.0.1.1] - 2024-08-20
 
 ### Changed

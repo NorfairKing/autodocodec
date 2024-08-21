@@ -1,2 +1,2 @@
 { lib }:
-lib.types.null
+lib.types.enum [null]

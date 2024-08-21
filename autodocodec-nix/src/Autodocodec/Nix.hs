@@ -209,7 +209,12 @@ simplifyOptionType = go
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
       OptionTypeOneOf os -> case goEnums $ nubOrd $ concatMap goOr os of
         [ot] -> ot
-        os' -> OptionTypeOneOf os'
+        os' ->
+          if OptionTypeNull `elem` os'
+            then go $ OptionTypeNullOr $ case filter (/= OptionTypeNull) os' of
+              [t] -> t
+              ts' -> OptionTypeOneOf ts'
+            else OptionTypeOneOf os'
       OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
 
     goEnums :: [OptionType] -> [OptionType]
@@ -270,7 +275,7 @@ optionTypeExpr :: OptionType -> Expr
 optionTypeExpr = go
   where
     go = \case
-      OptionTypeNull -> ExprVar "lib.types.null"
+      OptionTypeNull -> ExprAp (ExprVar "lib.types.enum") (ExprLitList [ExprNull])
       OptionTypeSimple s -> ExprVar s
       OptionTypeEnum es -> ExprAp (ExprVar "lib.types.enum") (ExprLitList es)
       OptionTypeNullOr ot -> ExprAp (ExprVar "lib.types.nullOr") (go ot)
