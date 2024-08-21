@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.1.4] - 2024-08-22
+
+### Changed
+
+* More accurate support for `EitherCodec` in `ObjectCodec`s.
+
 ## [0.0.1.3] - 2024-08-22
 
 ### Changed

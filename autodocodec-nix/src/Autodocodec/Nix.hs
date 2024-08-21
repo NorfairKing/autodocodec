@@ -106,10 +106,11 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
 -- If Nix options ever figure out how to do optional fields, we'll use that
 -- instead.
 objectCodecNixOptions :: ObjectCodec input output -> Map Text Option
-objectCodecNixOptions = simplifyOptions . go
+objectCodecNixOptions = simplifyOptions . go False
   where
-    go :: ObjectCodec input output -> Map Text Option
-    go = \case
+    -- The bool means 'force optional'
+    go :: Bool -> ObjectCodec input output -> Map Text Option
+    go b = \case
       DiscriminatedUnionCodec k _ m ->
         M.insert
           k
@@ -127,14 +128,22 @@ objectCodecNixOptions = simplifyOptions . go
                     optionDefault = Nothing
                   }
             )
-          $ map (go . snd)
+          $ map (go b . snd)
           $ HM.elems m
       RequiredKeyCodec key o mDesc ->
         M.singleton key $
           Option
-            { optionType = valueCodecNixOptionType o,
+            { optionType =
+                ( if b
+                    then fmap OptionTypeNullOr
+                    else id
+                )
+                  $ valueCodecNixOptionType o,
               optionDescription = mDesc,
-              optionDefault = Nothing -- [ref:NixOptionNullable]
+              optionDefault =
+                if b
+                  then Just JSON.Null
+                  else Nothing -- [ref:NixOptionNullable]
             }
       OptionalKeyCodec key o mDesc ->
         M.singleton key $
@@ -160,9 +169,9 @@ objectCodecNixOptions = simplifyOptions . go
               optionDefault = Just $ toJSONVia c defaultValue
             }
       PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.union (go c1) (go c2)
-      BimapCodec _ _ c -> go c
-      EitherCodec _ c1 c2 -> M.union (go c1) (go c2) -- TODO use an or?
+      ApCodec c1 c2 -> M.union (go b c1) (go b c2)
+      BimapCodec _ _ c -> go b c
+      EitherCodec _ c1 c2 -> M.union (go True c1) (go True c2) -- TODO use a more accurate or?
 
 data Option = Option
   { optionType :: !(Maybe OptionType),
