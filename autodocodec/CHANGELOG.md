@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2.2] - 2024-08-27
+
+### Added
+
+* `Profunctor` instance for `Codec`
+
 ## [0.4.2.1] - 2024-08-21
 
 ### Added

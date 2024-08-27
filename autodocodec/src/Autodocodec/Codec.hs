@@ -33,6 +33,7 @@ import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
+import Data.Profunctor (Profunctor (dimap))
 import Data.Scientific as Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -304,6 +305,9 @@ data Bounds a = Bounds
   deriving (Show, Eq, Ord, Generic, Functor)
 
 instance (Validity a) => Validity (Bounds a)
+
+instance Profunctor (Codec context) where
+  dimap = flip dimapCodec
 
 emptyBounds :: Bounds a
 emptyBounds = Bounds Nothing Nothing
