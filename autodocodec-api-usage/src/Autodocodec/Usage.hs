@@ -94,6 +94,28 @@ instance FromJSON Fruit
 
 instance ToJSON Fruit
 
+data Shape
+  = ShapeCircle
+  | ShapeSquare
+  | ShapeRectangle
+  deriving (Show, Eq, Generic, Enum, Bounded)
+  deriving (FromJSON, ToJSON) via Autodocodec Shape
+  deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Shape
+
+instance Validity Shape
+
+instance NFData Shape
+
+instance GenValid Shape where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Shape where
+  codec = boundedEnumCodec $ \case
+    ShapeCircle -> "circle"
+    ShapeSquare -> "square"
+    ShapeRectangle -> "rectangle"
+
 -- | A complex example type
 data Example = Example
   { exampleText :: !Text,
@@ -104,7 +126,8 @@ data Example = Example
     exampleOptionalWithDefault :: !Text,
     exampleOptionalWithNullDefault :: ![Text],
     exampleSingleOrList :: ![Text],
-    exampleFruit :: !Fruit
+    exampleFruit :: !Fruit,
+    exampleShape :: !Shape
   }
   deriving (Show, Eq, Generic)
   deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi Example)
@@ -132,6 +155,7 @@ instance HasObjectCodec Example where
       <*> optionalFieldWithOmittedDefault "optional-with-null-default" [] "an optional list of texts with a default empty list where the empty list would be omitted" .= exampleOptionalWithNullDefault
       <*> optionalFieldWithOmittedDefaultWith "single-or-list" (singleOrListCodec codec) [] "an optional list that can also be specified as a single element" .= exampleSingleOrList
       <*> requiredField "fruit" "fruit!!" .= exampleFruit
+      <*> requiredField "shape" "shape!?" .= exampleShape
 
 instance ToJSON Example where
   toJSON Example {..} =
@@ -141,6 +165,7 @@ instance ToJSON Example where
             "bool" JSON..= exampleBool,
             "maybe" JSON..= exampleRequiredMaybe,
             "fruit" JSON..= exampleFruit,
+            "shape" JSON..= exampleShape,
             "optional-with-default" JSON..= exampleOptionalWithDefault
           ],
           [ "optional" JSON..= opt
@@ -173,6 +198,7 @@ instance FromJSON Example where
               <|> (o JSON..:? "single-or-list" JSON..!= [])
           )
       <*> o JSON..: "fruit"
+      <*> o JSON..: "shape"
 
 instance FromMultipart tag Example where
   fromMultipart form =
@@ -203,6 +229,12 @@ instance FromMultipart tag Example where
               "Melon" -> Right Melon
               _ -> Left "unknown fruit"
           )
+      <*> ( lookupInput "shape" form >>= \case
+              "circle" -> Right ShapeCircle
+              "square" -> Right ShapeSquare
+              "rectangle" -> Right ShapeRectangle
+              _ -> Left "unknown shape"
+          )
 
 instance ToMultipart tag Example where
   toMultipart Example {..} =
@@ -217,7 +249,12 @@ instance ToMultipart tag Example where
             [Input "optional-with-default" exampleOptionalWithDefault],
             map (Input "optional-with-null-default") exampleOptionalWithNullDefault,
             map (Input "single-or-list") exampleSingleOrList,
-            [Input "fruit" $ T.pack $ show exampleFruit]
+            [Input "fruit" $ T.pack $ show exampleFruit],
+            [ Input "shape" $ case exampleShape of
+                ShapeCircle -> "circle"
+                ShapeSquare -> "square"
+                ShapeRectangle -> "rectangle"
+            ]
           ]
       )
       []

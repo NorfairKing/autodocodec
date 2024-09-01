@@ -38,6 +38,14 @@ lib.types.submodule {
       description = "an optional list of texts with a default empty list where the empty list would be omitted";
       type = lib.types.listOf lib.types.str;
     };
+    shape = lib.mkOption {
+      description = "shape!?";
+      type = lib.types.enum [
+        "circle"
+        "square"
+        "rectangle"
+      ];
+    };
     single-or-list = lib.mkOption {
       default = [];
       description = "an optional list that can also be specified as a single element";

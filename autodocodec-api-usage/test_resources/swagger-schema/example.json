@@ -39,6 +39,14 @@
                     },
                     "type": "array"
                 },
+                "shape": {
+                    "description": "shape!?",
+                    "enum": [
+                        "circle",
+                        "square",
+                        "rectangle"
+                    ]
+                },
                 "single-or-list": {
                     "additionalProperties": true,
                     "description": "an optional list that can also be specified as a single element"
@@ -52,7 +60,8 @@
                 "text",
                 "bool",
                 "maybe",
-                "fruit"
+                "fruit",
+                "shape"
             ],
             "type": "object"
         }

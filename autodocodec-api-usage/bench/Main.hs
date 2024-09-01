@@ -74,6 +74,7 @@ main =
       comparisonBench @DiffTime,
       comparisonBench @NominalDiffTime,
       comparisonBench @Fruit,
+      comparisonBench @Shape,
       comparisonBench @Example,
       comparisonBench @Recursive,
       comparisonBench @Via,

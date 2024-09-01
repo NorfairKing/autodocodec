@@ -84,6 +84,7 @@ spec = do
   yamlCodecSpec @DiffTime
   yamlCodecSpec @NominalDiffTime
   yamlCodecSpec @Fruit
+  yamlCodecSpec @Shape
   yamlCodecSpec @Example
   yamlCodecSpec @Recursive
   yamlCodecSpec @MutuallyRecursiveA

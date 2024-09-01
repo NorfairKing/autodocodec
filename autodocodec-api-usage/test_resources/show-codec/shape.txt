@@ -1,0 +1,13 @@
+BimapCodec
+  _
+  _
+  (EitherCodec
+     DisjointUnion
+     (BimapCodec _ _ (EqCodec "circle" (StringCodec Nothing)))
+     (BimapCodec
+        _
+        _
+        (EitherCodec
+           DisjointUnion
+           (BimapCodec _ _ (EqCodec "square" (StringCodec Nothing)))
+           (BimapCodec _ _ (EqCodec "rectangle" (StringCodec Nothing))))))

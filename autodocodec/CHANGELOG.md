@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2.2] - 2024-09-01
+
+### Added
+
+* `boundedEnumCodec`
+
 ## [0.4.2.1] - 2024-08-21
 
 ### Added

@@ -97,6 +97,8 @@ spec = do
   openAPISchemaSpec @NominalDiffTime "nominal-difftime"
   openAPISchemaSpec @Fruit "fruit"
   openAPISchemaSpecViaDeclareSchemaRef @Fruit "fruit"
+  openAPISchemaSpec @Shape "shape"
+  openAPISchemaSpecViaDeclareSchemaRef @Shape "shape"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpecViaDeclareSchemaRef @Example "example"
   openAPISchemaSpec @ListsExample "lists-example"

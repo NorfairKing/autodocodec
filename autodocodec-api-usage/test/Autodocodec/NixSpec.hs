@@ -75,6 +75,7 @@ spec = do
   nixOptionTypeSpec @NominalDiffTime "nominal-difftime"
   nixOptionTypeSpec @DiffTime "difftime"
   nixOptionTypeSpec @Fruit "fruit"
+  nixOptionTypeSpec @Shape "shape"
   nixOptionTypeSpec @Example "example"
   nixOptionsSpec @Example "example"
   nixOptionTypeSpec @Recursive "recursive"

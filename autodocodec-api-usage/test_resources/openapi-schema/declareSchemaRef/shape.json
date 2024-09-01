@@ -1,0 +1,11 @@
+{
+    "definitions": {},
+    "reference": {
+        "enum": [
+            "circle",
+            "square",
+            "rectangle"
+        ],
+        "type": "string"
+    }
+}

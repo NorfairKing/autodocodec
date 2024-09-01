@@ -78,6 +78,7 @@ extra-source-files:
     test_resources/json-schema/semigroup-first.json
     test_resources/json-schema/semigroup-last.json
     test_resources/json-schema/set-text.json
+    test_resources/json-schema/shape.json
     test_resources/json-schema/string.json
     test_resources/json-schema/text.json
     test_resources/json-schema/these.json
@@ -144,6 +145,7 @@ extra-source-files:
     test_resources/nix/semigroup-first-type.nix
     test_resources/nix/semigroup-last-type.nix
     test_resources/nix/set-text-type.nix
+    test_resources/nix/shape-type.nix
     test_resources/nix/string-type.nix
     test_resources/nix/text-type.nix
     test_resources/nix/these-options.nix
@@ -183,6 +185,7 @@ extra-source-files:
     test_resources/openapi-schema/declareSchemaRef/recursive.json
     test_resources/openapi-schema/declareSchemaRef/semigroup-first.json
     test_resources/openapi-schema/declareSchemaRef/semigroup-last.json
+    test_resources/openapi-schema/declareSchemaRef/shape.json
     test_resources/openapi-schema/declareSchemaRef/these.json
     test_resources/openapi-schema/declareSchemaRef/very-comment.json
     test_resources/openapi-schema/declareSchemaRef/via.json
@@ -227,6 +230,7 @@ extra-source-files:
     test_resources/openapi-schema/semigroup-first.json
     test_resources/openapi-schema/semigroup-last.json
     test_resources/openapi-schema/set-text.json
+    test_resources/openapi-schema/shape.json
     test_resources/openapi-schema/string.json
     test_resources/openapi-schema/text.json
     test_resources/openapi-schema/these.json
@@ -285,6 +289,7 @@ extra-source-files:
     test_resources/show-codec/semigroup-first.txt
     test_resources/show-codec/semigroup-last.txt
     test_resources/show-codec/set-text.txt
+    test_resources/show-codec/shape.txt
     test_resources/show-codec/string.txt
     test_resources/show-codec/text.txt
     test_resources/show-codec/these.txt
@@ -346,6 +351,7 @@ extra-source-files:
     test_resources/swagger-schema/semigroup-first.json
     test_resources/swagger-schema/semigroup-last.json
     test_resources/swagger-schema/set-text.json
+    test_resources/swagger-schema/shape.json
     test_resources/swagger-schema/string.json
     test_resources/swagger-schema/text.json
     test_resources/swagger-schema/these.json
@@ -399,6 +405,7 @@ extra-source-files:
     test_resources/yaml-schema/recursive.txt
     test_resources/yaml-schema/scientific.txt
     test_resources/yaml-schema/set-text.txt
+    test_resources/yaml-schema/shape.txt
     test_resources/yaml-schema/string.txt
     test_resources/yaml-schema/text.txt
     test_resources/yaml-schema/these.txt

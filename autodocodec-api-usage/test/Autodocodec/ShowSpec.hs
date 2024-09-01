@@ -74,6 +74,7 @@ spec = do
   showCodecSpec @TimeOfDay "time-of-day"
   showCodecSpec @ZonedTime "zoned-time"
   showCodecSpec @Fruit "fruit"
+  showCodecSpec @Shape "shape"
   showCodecSpec @Example "example"
   showCodecSpec @Recursive "recursive"
   showCodecSpec @ListsExample "lists-example"
