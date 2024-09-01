@@ -1913,12 +1913,15 @@ stringConstCodec =
 -- === Example usage
 --
 -- >>> data Fruit = Apple | Orange deriving (Show, Eq, Enum, Bounded)
--- >>> let c = boundedEnumCodec $ \case
--- >>>       Apple -> "apple"
--- >>>       Orange -> "orange"
+-- >>> :{
+--   let c = boundedEnumCodec $ \case
+--         Apple -> "foo"
+--         Orange -> "bar"
+-- :}
+--
 -- >>> toJSONVia c Apple
--- String "apple"
--- >>> JSON.parseMaybe (parseJSONVia c) (String "orange") :: Maybe Fruit
+-- String "foo"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "bar") :: Maybe Fruit
 -- Just Orange
 boundedEnumCodec ::
   forall enum.
