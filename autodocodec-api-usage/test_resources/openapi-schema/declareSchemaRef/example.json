@@ -43,6 +43,15 @@
                     },
                     "type": "array"
                 },
+                "shape": {
+                    "description": "shape!?",
+                    "enum": [
+                        "circle",
+                        "square",
+                        "rectangle"
+                    ],
+                    "type": "string"
+                },
                 "single-or-list": {
                     "additionalProperties": true,
                     "anyOf": [
@@ -68,7 +77,8 @@
                 "text",
                 "bool",
                 "maybe",
-                "fruit"
+                "fruit",
+                "shape"
             ],
             "type": "object"
         }

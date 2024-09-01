@@ -102,6 +102,7 @@ module Autodocodec
 
     -- *** Enums
     shownBoundedEnumCodec,
+    boundedEnumCodec,
     stringConstCodec,
     enumCodec,
 

@@ -92,6 +92,7 @@ spec = do
   swaggerSchemaSpec @DiffTime "difftime"
   swaggerSchemaSpec @NominalDiffTime "nominal-difftime"
   swaggerSchemaSpec @Fruit "fruit"
+  swaggerSchemaSpec @Shape "shape"
   swaggerSchemaSpec @Example "example"
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @ListsExample "lists-example"

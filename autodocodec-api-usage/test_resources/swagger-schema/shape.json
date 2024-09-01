@@ -1,0 +1,17 @@
+{
+    "definitions": {
+        "Shape": {
+            "enum": [
+                "circle",
+                "square",
+                "rectangle"
+            ]
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

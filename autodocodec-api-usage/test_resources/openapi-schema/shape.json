@@ -1,0 +1,20 @@
+{
+    "components": {
+        "schemas": {
+            "Shape": {
+                "enum": [
+                    "circle",
+                    "square",
+                    "rectangle"
+                ],
+                "type": "string"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

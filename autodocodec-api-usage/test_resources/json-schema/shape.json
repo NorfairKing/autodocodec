@@ -1,0 +1,13 @@
+{
+    "oneOf": [
+        {
+            "const": "circle"
+        },
+        {
+            "const": "square"
+        },
+        {
+            "const": "rectangle"
+        }
+    ]
+}

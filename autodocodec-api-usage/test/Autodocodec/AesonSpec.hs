@@ -100,6 +100,7 @@ spec = do
   aesonCodecSpec @DiffTime
   aesonCodecSpec @NominalDiffTime
   aesonCodecSpec @Fruit
+  aesonCodecSpec @Shape
   aesonCodecSpec @Example
   aesonCodecErrorSpec @Example "example-error-bool-number" "{\"text\": \"hello\", \"bool\": 5}"
   aesonCodecErrorSpec @Example "example-error-fruit-number" "{\"text\": \"hello\", \"bool\": true, \"maybe\": null, \"fruit\": 5}"

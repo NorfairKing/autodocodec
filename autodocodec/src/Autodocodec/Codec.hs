@@ -1907,6 +1907,33 @@ stringConstCodec =
           )
       )
 
+-- | A codec for a 'Bounded' 'Enum' that uses the provided function to have the values correspond to literal 'Text' values.
+--
+--
+-- === Example usage
+--
+-- >>> data Fruit = Apple | Orange deriving (Show, Eq, Enum, Bounded)
+-- >>> :{
+--   let c = boundedEnumCodec $ \case
+--         Apple -> "foo"
+--         Orange -> "bar"
+-- :}
+--
+-- >>> toJSONVia c Apple
+-- String "foo"
+-- >>> JSON.parseMaybe (parseJSONVia c) (String "bar") :: Maybe Fruit
+-- Just Orange
+boundedEnumCodec ::
+  forall enum.
+  (Eq enum, Enum enum, Bounded enum) =>
+  (enum -> T.Text) ->
+  JSONCodec enum
+boundedEnumCodec showFunc =
+  let ls = [minBound .. maxBound]
+   in case NE.nonEmpty ls of
+        Nothing -> error "0 enum values ?!"
+        Just ne -> stringConstCodec (NE.map (\v -> (v, showFunc v)) ne)
+
 -- | A codec for a 'Bounded' 'Enum' that uses its 'Show' instance to have the values correspond to literal 'Text' values.
 --
 --
@@ -1922,11 +1949,7 @@ shownBoundedEnumCodec ::
   forall enum.
   (Show enum, Eq enum, Enum enum, Bounded enum) =>
   JSONCodec enum
-shownBoundedEnumCodec =
-  let ls = [minBound .. maxBound]
-   in case NE.nonEmpty ls of
-        Nothing -> error "0 enum values ?!"
-        Just ne -> stringConstCodec (NE.map (\v -> (v, T.pack (show v))) ne)
+shownBoundedEnumCodec = boundedEnumCodec (T.pack . show)
 
 -- | Helper function for 'optionalFieldOrNullWith' and 'optionalFieldOrNull'.
 --

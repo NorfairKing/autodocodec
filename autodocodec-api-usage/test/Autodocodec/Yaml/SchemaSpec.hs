@@ -66,6 +66,7 @@ spec = do
   yamlSchemaSpec @DiffTime "difftime"
   yamlSchemaSpec @NominalDiffTime "nominal-difftime"
   yamlSchemaSpec @Fruit "fruit"
+  yamlSchemaSpec @Shape "shape"
   yamlSchemaSpec @Example "example"
   yamlSchemaSpec @Recursive "recursive"
   yamlSchemaSpec @ListsExample "lists-example"

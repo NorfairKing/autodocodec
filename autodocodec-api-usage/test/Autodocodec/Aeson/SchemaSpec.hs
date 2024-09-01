@@ -85,6 +85,7 @@ spec = do
   jsonSchemaSpec @NominalDiffTime "nominal-difftime"
   jsonSchemaSpec @DiffTime "difftime"
   jsonSchemaSpec @Fruit "fruit"
+  jsonSchemaSpec @Shape "shape"
   jsonSchemaSpec @Example "example"
   jsonSchemaSpec @Recursive "recursive"
   jsonSchemaSpec @ListsExample "lists-example"

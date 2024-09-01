@@ -39,3 +39,10 @@
   , Banana
   , Melon
   ]
+[37mshape[m: # [31mrequired[m
+  # shape!?
+  # [32mone of[m
+  [ circle
+  , square
+  , rectangle
+  ]
