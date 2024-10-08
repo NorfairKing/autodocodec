@@ -1,0 +1,31 @@
+{
+    "components": {
+        "schemas": {
+            "(Text,Int,Bool)": {
+                "items": {
+                    "additionalProperties": true,
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "type": "integer"
+                        },
+                        {
+                            "type": "boolean"
+                        }
+                    ]
+                },
+                "type": "array"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

@@ -1,0 +1,28 @@
+{
+    "components": {
+        "schemas": {
+            "(Text,Int)": {
+                "items": {
+                    "additionalProperties": true,
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "type": "array"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

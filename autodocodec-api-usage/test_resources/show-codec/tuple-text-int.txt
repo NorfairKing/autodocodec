@@ -1,0 +1,17 @@
+BimapCodec
+  _
+  _
+  (ArrayOfCodec
+     Nothing
+     (EitherCodec
+        PossiblyJointUnion
+        (StringCodec Nothing)
+        (BimapCodec
+           _
+           _
+           (IntegerCodec
+              Nothing
+              Bounds
+                { boundsLower = Just (-9223372036854775808)
+                , boundsUpper = Just 9223372036854775807
+                }))))

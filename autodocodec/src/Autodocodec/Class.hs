@@ -182,6 +182,12 @@ instance HasCodec v => HasCodec (KeyMap v) where
   codec = keyMapCodec codec
 #endif
 
+instance (HasCodec t1, HasCodec t2) => HasCodec (t1, t2) where
+  codec = tupleCodec codec codec
+
+instance (HasCodec t1, HasCodec t2, HasCodec t3) => HasCodec (t1, t2, t3) where
+  codec = tripleCodec codec codec codec
+
 instance HasCodec Day where
   codec = unsafeCodecViaAesonString "Day"
 

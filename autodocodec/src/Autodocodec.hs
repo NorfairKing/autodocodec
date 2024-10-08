@@ -116,6 +116,10 @@ module Autodocodec
     mapToDecoder,
     discriminatedUnionCodec,
 
+    -- *** Tuple codecs
+    tupleCodec,
+    tripleCodec,
+
     -- *** Mapping
     dimapCodec,
     bimapCodec,

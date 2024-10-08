@@ -154,6 +154,24 @@ data Codec context input output where
     Maybe Text ->
     ObjectCodec input output ->
     ValueCodec input output
+  -- | Tuple codec
+  --
+  -- API Note:
+  -- Note that this cannot be implemented without a constructor just because
+  -- the two parts of the tuple can be the same codec, so something like this cannot work:
+  -- > tupleCodec c1 c2 = bimapCodec f g $ listCodec (eitherCodec c1 c2)
+  TupleCodec ::
+    (Coercible a (input1, input2), Coercible b (output1, output2)) =>
+    ValueCodec input1 output1 ->
+    ValueCodec input2 output2 ->
+    ValueCodec a b
+  -- | Triple codec
+  TripleCodec ::
+    (Coercible a (input1, input2, input3), Coercible b (output1, output2, output3)) =>
+    ValueCodec input1 output1 ->
+    ValueCodec input2 output2 ->
+    ValueCodec input3 output3 ->
+    ValueCodec a b
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
     (Show value, Eq value, Coercible a value, Coercible b value) =>
@@ -414,6 +432,8 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
       NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
       ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
+      TupleCodec c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "TupleCodec " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      TripleCodec c1 c2 c3 -> (\s1 s2 s3 -> showParen (d > 10) $ showString "TripleCodec " . s1 . showString " " . s2 . showString " " . s3) <$> go 11 c1 <*> go 11 c2 <*> go 11 c3
       ValueCodec -> pure $ showString "ValueCodec"
       MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
       HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
@@ -2037,3 +2057,11 @@ unsafeCodecViaAesonString doc = bimapCodec (JSON.parseEither JSON.parseJSON . JS
     unsafeAesonValueToString v = case v of
       JSON.String s -> s
       _ -> error $ "unsafeAesonValueToString failed.\n " ++ show v ++ "\n is not a JSON string."
+
+-- | Forward-compatible version of 'TupleCodec'
+tupleCodec :: JSONCodec t1 -> JSONCodec t2 -> JSONCodec (t1, t2)
+tupleCodec = TupleCodec
+
+-- | Forward-compatible version of 'TripleCodec'
+tripleCodec :: JSONCodec t1 -> JSONCodec t2 -> JSONCodec t3 -> JSONCodec (t1, t2, t3)
+tripleCodec = TripleCodec

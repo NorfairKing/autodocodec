@@ -82,6 +82,12 @@ toJSONVia = flip go
       HashMapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (coerce a :: HashMap _ _)
       MapCodec c -> Compat.liftToJSON (`go` c) (`go` listCodec c) (coerce a :: Map _ _)
       ValueCodec -> (coerce a :: JSON.Value)
+      TupleCodec c1 c2 ->
+        let (a1, a2) = coerce a :: (_, _)
+         in toJSON [go a1 c1, go a2 c2]
+      TripleCodec c1 c2 c3 ->
+        let (a1, a2, a3) = coerce a :: (_, _, _)
+         in toJSON [go a1 c1, go a2 c2, go a3 c3]
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
@@ -138,6 +144,12 @@ toEncodingVia = flip go
       HashMapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (coerce a :: HashMap _ _)
       MapCodec c -> Compat.liftToEncoding (`go` c) (`go` listCodec c) (coerce a :: Map _ _)
       ValueCodec -> JSON.value (coerce a :: JSON.Value)
+      TupleCodec c1 c2 ->
+        let (a1, a2) = coerce a :: (_, _)
+         in JSON.list id [go a1 c1, go a2 c2]
+      TripleCodec c1 c2 c3 ->
+        let (a1, a2, a3) = coerce a :: (_, _, _)
+         in JSON.list id [go a1 c1, go a2 c2, go a3 c3]
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
       EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of

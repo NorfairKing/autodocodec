@@ -107,6 +107,7 @@ jsonSchemaChunkLines = go
         addInFrontOfFirstInList [fore white "<key>", ": "] $ [] : go s
       ObjectSchema os -> goObject os
       ValueSchema v -> jsonValueChunks v
+      TupleSchema ss -> concatMap (addInFrontOfFirstInList ["- "] . go) ss
       AnyOfSchema ne -> case ne of
         (NullSchema :| [s]) -> orNullChunks s
         (s :| [NullSchema]) -> orNullChunks s

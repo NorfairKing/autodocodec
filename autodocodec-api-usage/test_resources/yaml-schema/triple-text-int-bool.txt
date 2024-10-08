@@ -1,0 +1,5 @@
+- # [32many of[m
+  [ [33m<string>[m
+  , [33m<integer>[m # [32m64 bit signed integer[m
+  , [33m<boolean>[m
+  ]

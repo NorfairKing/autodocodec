@@ -124,6 +124,16 @@ parseJSONContextVia codec_ context_ =
       HashMapCodec c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _))
       MapCodec c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _))
       ValueCodec -> pure $ coerce value
+      TupleCodec c1 c2 -> do
+        list <- parseJSON value
+        case list of
+          [v1, v2] -> coerce $ (,) <$> go v1 c1 <*> go v2 c2
+          _ -> fail $ unwords ["Expected a list of exactly 2 elements, but got:", show (length list)]
+      TripleCodec c1 c2 c3 -> do
+        list <- parseJSON value
+        case list of
+          [v1, v2, v3] -> coerce $ (,,) <$> go v1 c1 <*> go v2 c2 <*> go v3 c3
+          _ -> fail $ unwords ["Expected a list of exactly 3 elements, but got:", show (length list)]
       EqCodec expected c -> do
         actual <- go value c
         if expected == actual

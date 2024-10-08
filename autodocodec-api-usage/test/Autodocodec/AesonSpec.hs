@@ -93,6 +93,9 @@ spec = do
   aesonCodecSpec @(DNonEmpty Text)
   aesonCodecSpec @(Set Text)
   aesonCodecSpec @(Map Text Int)
+  aesonCodecSpec @(Int, Int)
+  aesonCodecSpec @(Text, Int)
+  aesonCodecSpec @(Text, Int, Bool)
   aesonCodecSpec @Day
   aesonCodecSpec @LocalTime
   aesonCodecSpec @UTCTime

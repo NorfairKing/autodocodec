@@ -62,7 +62,7 @@ extra-source-files:
     test_resources/json-schema/list-text.json
     test_resources/json-schema/lists-example.json
     test_resources/json-schema/local-time.json
-    test_resources/json-schema/map-text-ind.json
+    test_resources/json-schema/map-text-int.json
     test_resources/json-schema/maybe-text.json
     test_resources/json-schema/monoid-first.json
     test_resources/json-schema/monoid-last.json
@@ -83,6 +83,9 @@ extra-source-files:
     test_resources/json-schema/text.json
     test_resources/json-schema/these.json
     test_resources/json-schema/time-of-day.json
+    test_resources/json-schema/triple-text-int-bool.json
+    test_resources/json-schema/tuple-int-int.json
+    test_resources/json-schema/tuple-text-int.json
     test_resources/json-schema/utc-time.json
     test_resources/json-schema/value.json
     test_resources/json-schema/very-comment.json
@@ -126,7 +129,7 @@ extra-source-files:
     test_resources/nix/lists-example-options.nix
     test_resources/nix/lists-example-type.nix
     test_resources/nix/local-time-type.nix
-    test_resources/nix/map-text-ind-type.nix
+    test_resources/nix/map-text-int-type.nix
     test_resources/nix/maybe-either-bool-text-type.nix
     test_resources/nix/maybe-maybe-maybe-text-type.nix
     test_resources/nix/maybe-maybe-text-type.nix
@@ -151,6 +154,8 @@ extra-source-files:
     test_resources/nix/these-options.nix
     test_resources/nix/these-type.nix
     test_resources/nix/time-of-day-type.nix
+    test_resources/nix/triple-text-int-bool-type.nix
+    test_resources/nix/tuple-text-int-type.nix
     test_resources/nix/utc-time-type.nix
     test_resources/nix/value-type.nix
     test_resources/nix/very-comment-type.nix
@@ -235,6 +240,8 @@ extra-source-files:
     test_resources/openapi-schema/text.json
     test_resources/openapi-schema/these.json
     test_resources/openapi-schema/time-of-day.json
+    test_resources/openapi-schema/triple-text-int-bool.json
+    test_resources/openapi-schema/tuple-text-int.json
     test_resources/openapi-schema/utc-time.json
     test_resources/openapi-schema/value.json
     test_resources/openapi-schema/vector-text.json
@@ -294,6 +301,8 @@ extra-source-files:
     test_resources/show-codec/text.txt
     test_resources/show-codec/these.txt
     test_resources/show-codec/time-of-day.txt
+    test_resources/show-codec/triple-text-int-bool.txt
+    test_resources/show-codec/tuple-text-int.txt
     test_resources/show-codec/utc-time.txt
     test_resources/show-codec/value.txt
     test_resources/show-codec/vector-text.txt
@@ -356,6 +365,8 @@ extra-source-files:
     test_resources/swagger-schema/text.json
     test_resources/swagger-schema/these.json
     test_resources/swagger-schema/time-of-day.json
+    test_resources/swagger-schema/triple-text-int-bool.json
+    test_resources/swagger-schema/tuple-text-int.json
     test_resources/swagger-schema/utc-time.json
     test_resources/swagger-schema/value.json
     test_resources/swagger-schema/vector-text.json
@@ -410,6 +421,8 @@ extra-source-files:
     test_resources/yaml-schema/text.txt
     test_resources/yaml-schema/these.txt
     test_resources/yaml-schema/time-of-day.txt
+    test_resources/yaml-schema/triple-text-int-bool.txt
+    test_resources/yaml-schema/tuple-text-int.txt
     test_resources/yaml-schema/utc-time.txt
     test_resources/yaml-schema/value.txt
     test_resources/yaml-schema/very-comment.txt

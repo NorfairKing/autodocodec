@@ -77,6 +77,9 @@ spec = do
   yamlCodecSpec @(DNonEmpty Text)
   yamlCodecSpec @(Set Text)
   yamlCodecSpec @(Map Text Int)
+  yamlCodecSpec @(Int, Int)
+  yamlCodecSpec @(Text, Int)
+  yamlCodecSpec @(Text, Int, Bool)
   yamlCodecSpec @Day
   yamlCodecSpec @LocalTime
   yamlCodecSpec @UTCTime

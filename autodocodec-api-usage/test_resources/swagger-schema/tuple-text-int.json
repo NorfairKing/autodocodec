@@ -1,0 +1,16 @@
+{
+    "definitions": {
+        "(Text,Int)": {
+            "items": {
+                "additionalProperties": true
+            },
+            "type": "array"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

@@ -50,6 +50,7 @@ data JSONSchema
   | NumberSchema !(Bounds Scientific)
   | ArraySchema !JSONSchema
   | MapSchema !JSONSchema
+  | TupleSchema ![JSONSchema]
   | -- | This needs to be a list because keys should stay in their original ordering.
     ObjectSchema !ObjectSchema
   | ValueSchema !JSON.Value
@@ -105,6 +106,12 @@ instance ToJSON JSONSchema where
           case toJSON os of
             JSON.Object o -> Compat.toList o
             _ -> [] -- Should not happen.
+        TupleSchema ts ->
+          [ "type" JSON..= ("array" :: Text),
+            "items" JSON..= map go ts,
+            "minItems" JSON..= length ts,
+            "maxItems" JSON..= length ts
+          ]
         AnyOfSchema jcs ->
           let svals :: [JSON.Value]
               svals = map (JSON.object . go) (NE.toList jcs)
@@ -305,6 +312,13 @@ validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
       ObjectSchema os -> case value of
         JSON.Object obj -> goObject obj os
         _ -> pure False
+      TupleSchema ts -> case value of
+        JSON.Array v ->
+          let l = toList v
+           in if length l == length ts
+                then pure False
+                else and <$> mapM (uncurry go) (zip l ts)
+        _ -> pure False
       ValueSchema v -> pure $ v == value
       AnyOfSchema ss -> or <$> mapM (go value) ss
       OneOfSchema ss -> (== 1) . length . NE.filter id <$> mapM (go value) ss
@@ -347,6 +361,8 @@ jsonSchemaVia = (`evalState` S.empty) . go
       HashMapCodec c -> MapSchema <$> go c
       MapCodec c -> MapSchema <$> go c
       ValueCodec -> pure AnySchema
+      TupleCodec c1 c2 -> (\s1 s2 -> TupleSchema [s1, s2]) <$> go c1 <*> go c2
+      TripleCodec c1 c2 c3 -> (\s1 s2 s3 -> TupleSchema [s1, s2, s3]) <$> go c1 <*> go c2 <*> go c3
       EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
       EitherCodec u c1 c2 -> do
         s1 <- go c1
