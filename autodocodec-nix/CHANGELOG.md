@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1.5] - 2024-11-04
+
+### Changed
+
+* More accurate support for `EitherCodec` in `ObjectCodec`s.
+  Options' types in an object are now or-ed.
+
 ## [0.0.1.4] - 2024-08-22
 
 ### Changed
