@@ -169,9 +169,25 @@ objectCodecNixOptions = simplifyOptions . go False
               optionDefault = Just $ toJSONVia c defaultValue
             }
       PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.union (go b c1) (go b c2)
+      ApCodec c1 c2 -> M.unionWith mergeOption (go b c1) (go b c2)
       BimapCodec _ _ c -> go b c
-      EitherCodec _ c1 c2 -> M.union (go True c1) (go True c2) -- TODO use a more accurate or?
+      EitherCodec _ c1 c2 -> M.unionWith mergeOption (go True c1) (go True c2)
+    -- This throwing away of the description and the default is not ideal but
+    -- better than just taking the first option.
+    mergeOption :: Option -> Option -> Option
+    mergeOption o1 o2 =
+      o1
+        { optionType =
+            ( \ot1 ot2 ->
+                simplifyOptionType $
+                  OptionTypeOneOf
+                    [ ot1,
+                      ot2
+                    ]
+            )
+              <$> optionType o1
+              <*> optionType o2
+        }
 
 data Option = Option
   { optionType :: !(Maybe OptionType),
@@ -219,12 +235,24 @@ simplifyOptionType = go
       OptionTypeOneOf os -> case goEnums $ nubOrd $ concatMap goOr os of
         [ot] -> ot
         os' ->
-          if OptionTypeNull `elem` os'
-            then go $ OptionTypeNullOr $ case filter (/= OptionTypeNull) os' of
+          if any canBeNull os'
+            then go $ OptionTypeNullOr $ case mapMaybe stripNull os' of
               [t] -> t
               ts' -> OptionTypeOneOf ts'
             else OptionTypeOneOf os'
       OptionTypeSubmodule m -> OptionTypeSubmodule $ M.map goOpt m
+
+    canBeNull :: OptionType -> Bool
+    canBeNull = \case
+      OptionTypeNull -> True
+      OptionTypeNullOr _ -> True
+      _ -> False
+
+    stripNull :: OptionType -> Maybe OptionType
+    stripNull = \case
+      OptionTypeNull -> Nothing
+      OptionTypeNullOr t -> Just t
+      t -> Just t
 
     goEnums :: [OptionType] -> [OptionType]
     goEnums = goEnum []

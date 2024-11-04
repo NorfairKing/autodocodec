@@ -112,6 +112,7 @@ spec = do
   swaggerSchemaSpec @(Monoid.First Text) "monoid-first"
   swaggerSchemaSpec @(Monoid.Last Text) "monoid-last"
   swaggerSchemaSpec @(Const Text Void) "const"
+  xdescribe "does not hold because of overlap" $ swaggerSchemaSpec @Overlap "overlap"
 
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =

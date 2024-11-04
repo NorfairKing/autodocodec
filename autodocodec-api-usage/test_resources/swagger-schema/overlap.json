@@ -1,0 +1,33 @@
+{
+    "definitions": {
+        "Overlap": {
+            "properties": {
+                "int": {
+                    "description": "int for b",
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                },
+                "text": {
+                    "description": "text for a",
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "a"
+                    ]
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

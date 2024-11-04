@@ -1,1 +1,35 @@
-StringCodec Nothing
+BimapCodec
+  _
+  _
+  (EitherCodec
+     PossiblyJointUnion
+     (ObjectOfCodec
+        (Just "A")
+        (ApCodec
+           (BimapCodec
+              _
+              _
+              (RequiredKeyCodec
+                 "type" Nothing (EqCodec "a" (StringCodec Nothing))))
+           (RequiredKeyCodec
+              "text" (Just "text for a") (StringCodec Nothing))))
+     (ObjectOfCodec
+        (Just "B")
+        (ApCodec
+           (BimapCodec
+              _
+              _
+              (RequiredKeyCodec
+                 "type" Nothing (EqCodec "b" (StringCodec Nothing))))
+           (RequiredKeyCodec
+              "int"
+              (Just "int for b")
+              (BimapCodec
+                 _
+                 _
+                 (IntegerCodec
+                    Nothing
+                    Bounds
+                      { boundsLower = Just (-9223372036854775808)
+                      , boundsUpper = Just 9223372036854775807
+                      }))))))

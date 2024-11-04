@@ -123,6 +123,7 @@ spec = do
   aesonCodecSpec @(Monoid.First Text)
   aesonCodecSpec @(Monoid.Last Text)
   aesonCodecSpec @(Const Text Void)
+  aesonCodecSpec @Overlap
 
 aesonCodecErrorSpec ::
   forall a.

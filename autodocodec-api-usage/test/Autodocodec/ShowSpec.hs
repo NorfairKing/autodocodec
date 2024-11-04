@@ -94,6 +94,7 @@ spec = do
   showCodecSpec @(Monoid.First Text) "monoid-first"
   showCodecSpec @(Monoid.Last Text) "monoid-last"
   showCodecSpec @(Const Text Void) "const"
+  showCodecSpec @Overlap "overlap"
 
 showCodecSpec ::
   forall a.

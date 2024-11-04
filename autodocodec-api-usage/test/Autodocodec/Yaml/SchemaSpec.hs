@@ -80,6 +80,7 @@ spec = do
   yamlSchemaSpec @These "these"
   yamlSchemaSpec @Expression "expression"
   yamlSchemaSpec @MultilineDefault "multiline-default"
+  yamlSchemaSpec @Overlap "overlap"
 
 yamlSchemaSpec ::
   forall a.

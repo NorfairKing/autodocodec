@@ -1,0 +1,63 @@
+{
+    "components": {
+        "schemas": {
+            "A": {
+                "properties": {
+                    "text": {
+                        "description": "text for a",
+                        "type": "string"
+                    },
+                    "type": {
+                        "enum": [
+                            "a"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "text"
+                ],
+                "type": "object"
+            },
+            "B": {
+                "properties": {
+                    "int": {
+                        "description": "int for b",
+                        "maximum": 9223372036854775807,
+                        "minimum": -9223372036854775808,
+                        "type": "integer"
+                    },
+                    "type": {
+                        "enum": [
+                            "b"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "int"
+                ],
+                "type": "object"
+            },
+            "Overlap": {
+                "additionalProperties": true,
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/A"
+                    },
+                    {
+                        "$ref": "#/components/schemas/B"
+                    }
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}
