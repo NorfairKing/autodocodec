@@ -40,6 +40,7 @@ spec = do
   multipartCodecSpec @These
   multipartCodecSpec @Expression
   multipartCodecSpec @ListsExample
+  multipartCodecSpec @Overlap
 
 multipartCodecSpec ::
   forall a.

@@ -103,6 +103,7 @@ spec = do
   yamlCodecSpec @(Monoid.First Text)
   yamlCodecSpec @(Monoid.Last Text)
   yamlCodecSpec @(Const Text Void)
+  yamlCodecSpec @Overlap
 
 yamlCodecSpec ::
   forall a.

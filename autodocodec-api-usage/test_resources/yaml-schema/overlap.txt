@@ -1,0 +1,14 @@
+# [32many of[m
+[ # A
+  [37mtype[m: # [31mrequired[m
+    a
+  [37mtext[m: # [31mrequired[m
+    # text for a
+    [33m<string>[m
+, # B
+  [37mtype[m: # [31mrequired[m
+    b
+  [37mint[m: # [31mrequired[m
+    # int for b
+    [33m<integer>[m # [32m64 bit signed integer[m
+]

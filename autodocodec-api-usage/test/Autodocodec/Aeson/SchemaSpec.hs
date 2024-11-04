@@ -105,6 +105,7 @@ spec = do
   jsonSchemaSpec @(Monoid.First Text) "monoid-first"
   jsonSchemaSpec @(Monoid.Last Text) "monoid-last"
   jsonSchemaSpec @(Const Text Void) "const"
+  jsonSchemaSpec @Overlap "overlap"
 
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema

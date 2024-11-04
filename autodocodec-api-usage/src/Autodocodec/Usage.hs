@@ -776,3 +776,54 @@ newtype NonOrphanExample = NonOrphanExample Example
   deriving newtype (HasCodec)
   deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi NonOrphanExample)
   deriving (Swagger.ToSchema) via (AutodocodecSwagger NonOrphanExample)
+
+data Overlap
+  = OverlapA !Text
+  | OverlapB !Int
+  deriving (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via Autodocodec Overlap
+  deriving
+    ( Servant.FromMultipart tag,
+      Servant.ToMultipart tag
+    )
+    via Autodocodec Overlap
+  deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi Overlap)
+  deriving (Swagger.ToSchema) via (AutodocodecSwagger Overlap)
+
+instance Validity Overlap
+
+instance GenValid Overlap where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec Overlap where
+  codec =
+    dimapCodec f g $
+      eitherCodec
+        (object "A" (typeField "a" () *> requiredField "text" "text for a"))
+        (object "B" (typeField "b" () *> requiredField "int" "int for b"))
+    where
+      f = \case
+        Left s -> OverlapA s
+        Right i -> OverlapB i
+      g = \case
+        OverlapA s -> Left s
+        OverlapB i -> Right i
+
+instance HasObjectCodec Overlap where
+  objectCodec =
+    dimapCodec f g $
+      eitherCodec
+        (typeField "a" () *> requiredField "string" "string for a")
+        (typeField "b" () *> requiredField "int" "int for b")
+    where
+      f = \case
+        Left s -> OverlapA s
+        Right i -> OverlapB i
+      g = \case
+        OverlapA s -> Left s
+        OverlapB i -> Right i
+
+typeField :: Text -> a -> ObjectCodec b a
+typeField typeName a =
+  a <$ requiredFieldWith' "type" (literalTextCodec typeName) .= const typeName

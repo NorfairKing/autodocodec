@@ -102,6 +102,8 @@ spec = do
   nixOptionTypeSpec @(Monoid.First Text) "monoid-first"
   nixOptionTypeSpec @(Monoid.Last Text) "monoid-last"
   nixOptionTypeSpec @(Const Text Void) "const"
+  nixOptionTypeSpec @Overlap "overlap"
+  nixOptionsSpec @Overlap "overlap"
 
 nixOptionsSpec ::
   forall a.

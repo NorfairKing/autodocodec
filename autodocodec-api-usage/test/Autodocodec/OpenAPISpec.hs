@@ -130,6 +130,7 @@ spec = do
   openAPISchemaSpecAndViaDeclareSchemaRef @(Monoid.First Text) "monoid-first"
   openAPISchemaSpecAndViaDeclareSchemaRef @(Monoid.Last Text) "monoid-last"
   openAPISchemaSpecAndViaDeclareSchemaRef @(Const Text Void) "const"
+  openAPISchemaSpec @Overlap "overlap"
 
 openAPISchemaSpec :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =

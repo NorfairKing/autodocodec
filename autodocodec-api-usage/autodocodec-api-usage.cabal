@@ -73,6 +73,7 @@ extra-source-files:
     test_resources/json-schema/null.json
     test_resources/json-schema/object.json
     test_resources/json-schema/ordering.json
+    test_resources/json-schema/overlap.json
     test_resources/json-schema/recursive.json
     test_resources/json-schema/scientific.json
     test_resources/json-schema/semigroup-first.json
@@ -140,6 +141,8 @@ extra-source-files:
     test_resources/nix/null-type.nix
     test_resources/nix/object-type.nix
     test_resources/nix/ordering-type.nix
+    test_resources/nix/overlap-options.nix
+    test_resources/nix/overlap-type.nix
     test_resources/nix/recursive-type.nix
     test_resources/nix/scientific-type.nix
     test_resources/nix/semigroup-first-type.nix
@@ -225,6 +228,7 @@ extra-source-files:
     test_resources/openapi-schema/null.json
     test_resources/openapi-schema/object.json
     test_resources/openapi-schema/ordering.json
+    test_resources/openapi-schema/overlap.json
     test_resources/openapi-schema/recursive.json
     test_resources/openapi-schema/scientific.json
     test_resources/openapi-schema/semigroup-first.json
@@ -284,6 +288,7 @@ extra-source-files:
     test_resources/show-codec/null.txt
     test_resources/show-codec/object.txt
     test_resources/show-codec/ordering.txt
+    test_resources/show-codec/overlap.txt
     test_resources/show-codec/recursive.txt
     test_resources/show-codec/scientific.txt
     test_resources/show-codec/semigroup-first.txt
@@ -346,6 +351,7 @@ extra-source-files:
     test_resources/swagger-schema/null.json
     test_resources/swagger-schema/object.json
     test_resources/swagger-schema/ordering.json
+    test_resources/swagger-schema/overlap.json
     test_resources/swagger-schema/recursive.json
     test_resources/swagger-schema/scientific.json
     test_resources/swagger-schema/semigroup-first.json
@@ -402,6 +408,7 @@ extra-source-files:
     test_resources/yaml-schema/null.txt
     test_resources/yaml-schema/object.txt
     test_resources/yaml-schema/ordering.txt
+    test_resources/yaml-schema/overlap.txt
     test_resources/yaml-schema/recursive.txt
     test_resources/yaml-schema/scientific.txt
     test_resources/yaml-schema/set-text.txt
