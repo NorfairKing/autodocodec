@@ -288,6 +288,7 @@ extra-source-files:
     test_resources/show-codec/null.txt
     test_resources/show-codec/object.txt
     test_resources/show-codec/ordering.txt
+    test_resources/show-codec/overlap.txt
     test_resources/show-codec/recursive.txt
     test_resources/show-codec/scientific.txt
     test_resources/show-codec/semigroup-first.txt
