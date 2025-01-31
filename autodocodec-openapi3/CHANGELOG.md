@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0.1] - 2025-07-09
+
+* Fix discriminated union OpenAPI schema generation (see #61 for more info)
+
 ## [0.3.0.0] - 2024-07-29
 
 * Dropped support for orphan instances.
