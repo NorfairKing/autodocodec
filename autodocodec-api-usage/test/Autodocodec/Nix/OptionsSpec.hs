@@ -3,11 +3,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.NixSpec (spec) where
+module Autodocodec.Nix.OptionsSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Nix
-import Autodocodec.Usage
+import Autodocodec.Usage as Usage
 import qualified Data.Aeson as JSON
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
@@ -93,8 +93,8 @@ spec = do
   nixOptionTypeSpec @War "war"
   nixOptionTypeSpec @These "these"
   nixOptionsSpec @These "these"
-  nixOptionTypeSpec @Expression "expression"
-  nixOptionsSpec @Expression "expression"
+  nixOptionTypeSpec @Usage.Expression "expression"
+  nixOptionsSpec @Usage.Expression "expression"
   nixOptionTypeSpec @(Identity Text) "identity"
   nixOptionTypeSpec @(Dual Text) "dual"
   nixOptionTypeSpec @(Semigroup.First Text) "semigroup-first"
@@ -113,7 +113,7 @@ nixOptionsSpec ::
 nixOptionsSpec filePath =
   it "outputs the same nix type as before" $
     pureGoldenTextFile
-      ("test_resources/nix/" <> filePath <> "-options.nix")
+      ("test_resources/nix/options/" <> filePath <> "-options.nix")
       (renderNixOptionsViaCodec @a)
 
 nixOptionTypeSpec ::
@@ -124,5 +124,5 @@ nixOptionTypeSpec ::
 nixOptionTypeSpec filePath =
   it "outputs the same nix type as before" $
     pureGoldenTextFile
-      ("test_resources/nix/" <> filePath <> "-type.nix")
+      ("test_resources/nix/options/" <> filePath <> "-type.nix")
       (renderNixOptionTypeViaCodec @a)
