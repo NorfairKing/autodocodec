@@ -1,10 +1,10 @@
 name: autodocodec-schema
-version: 0.2.0.0
+version: 0.2.0.1
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2021-2024 Tom Sydney Kerckhove"
+copyright: "2021-2025 Tom Sydney Kerckhove"
 synopsis: Autodocodec interpreters for JSON Schema
 
 extra-source-files:

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0.1] - 2025-02-13
+
+### Added
+
+* `renderColouredObjectSchemaViaCodec`
+* `renderColouredObjectSchemaVia`
+* `renderPlainObjectSchemaViaCodec`
+* `renderPlainObjectSchemaVia`
+* `objectSchemaChunksViaCodec`
+* `objectSchemaChunksVia`
+* `jsonObjectSchemaChunks`
+* `jsonObjectSchemaChunkLines`
+
+### Changed
+
+* Support for `autodocodec-schema >=0.2.0.1`
+
 ## [0.4.0.0] - 2024-08-03
 
 ### Changed

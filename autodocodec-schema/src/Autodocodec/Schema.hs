@@ -7,7 +7,18 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Autodocodec.Schema where
+module Autodocodec.Schema
+  ( jsonSchemaViaCodec,
+    jsonSchemaVia,
+    jsonObjectSchemaViaCodec,
+    jsonObjectSchemaVia,
+    JSONSchema (..),
+    ObjectSchema (..),
+    KeyRequirement (..),
+    validateAccordingTo,
+    validateObjectAccordingTo,
+  )
+where
 
 import Autodocodec
 import qualified Autodocodec.Aeson.Compat as Compat
@@ -261,63 +272,6 @@ instance ToJSON ObjectSchema where
 defsPrefix :: Text
 defsPrefix = "#/$defs/"
 
-validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
-validateAccordingTo val schema = (`evalState` M.empty) $ go val schema
-  where
-    goObject :: JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
-    goObject obj = \case
-      ObjectAnySchema -> pure True
-      ObjectKeySchema key kr ks _ -> case Compat.lookupKey (Compat.toKey key) obj of
-        Nothing -> case kr of
-          Required -> pure False
-          Optional _ -> pure True
-        Just value' -> go value' ks
-      ObjectAllOfSchema ne -> and <$> mapM (goObject obj) ne
-      ObjectAnyOfSchema ne -> or <$> mapM (goObject obj) ne
-      ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (goObject obj) ne
-
-    go :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
-    go value = \case
-      AnySchema -> pure True
-      NullSchema -> pure $ value == JSON.Null
-      BoolSchema -> pure $ case value of
-        JSON.Bool _ -> True
-        _ -> False
-      StringSchema -> pure $ case value of
-        JSON.String _ -> True
-        _ -> False
-      IntegerSchema bounds -> pure $ case value of
-        JSON.Number s -> case checkBounds (fromInteger <$> bounds) s of
-          Left _ -> False
-          Right _ -> True
-        _ -> False
-      NumberSchema bounds -> pure $ case value of
-        JSON.Number s -> case checkBounds bounds s of
-          Left _ -> False
-          Right _ -> True
-        _ -> False
-      ArraySchema as -> case value of
-        JSON.Array v -> and <$> mapM (`go` as) v
-        _ -> pure False
-      MapSchema vs -> case value of
-        JSON.Object hm -> and <$> mapM (`go` vs) hm
-        _ -> pure False
-      ObjectSchema os -> case value of
-        JSON.Object obj -> goObject obj os
-        _ -> pure False
-      ValueSchema v -> pure $ v == value
-      AnyOfSchema ss -> or <$> mapM (go value) ss
-      OneOfSchema ss -> (== 1) . length . NE.filter id <$> mapM (go value) ss
-      CommentSchema _ s -> go value s
-      RefSchema name -> do
-        mSchema <- gets (M.lookup name)
-        case mSchema of
-          Nothing -> pure False -- Referred to a schema that's not defined, we have no choice but to reject the value.
-          Just s -> go value s
-      WithDefSchema defs s -> do
-        modify (M.union defs)
-        go value s
-
 data KeyRequirement
   = Required
   | Optional !(Maybe JSON.Value) -- Default value
@@ -329,42 +283,48 @@ jsonSchemaViaCodec :: forall a. (HasCodec a) => JSONSchema
 jsonSchemaViaCodec = jsonSchemaVia (codec @a)
 
 jsonSchemaVia :: ValueCodec input output -> JSONSchema
-jsonSchemaVia = (`evalState` S.empty) . go
-  where
-    go :: ValueCodec input output -> State (Set Text) JSONSchema
-    go = \case
-      NullCodec -> pure NullSchema
-      BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
-      StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
-      IntegerCodec mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
-      NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
-      ArrayOfCodec mname c -> do
-        s <- go c
-        pure $ maybe id CommentSchema mname $ ArraySchema s
-      ObjectOfCodec mname oc -> do
-        s <- goObject oc
-        pure $ maybe id CommentSchema mname $ ObjectSchema s
-      HashMapCodec c -> MapSchema <$> go c
-      MapCodec c -> MapSchema <$> go c
-      ValueCodec -> pure AnySchema
-      EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
-      EitherCodec u c1 c2 -> do
-        s1 <- go c1
-        s2 <- go c2
-        pure $ case u of
-          DisjointUnion -> OneOfSchema (goOneOf (s1 :| [s2]))
-          PossiblyJointUnion -> AnyOfSchema (goAnyOf (s1 :| [s2]))
-      BimapCodec _ _ c -> go c
-      CommentCodec t c -> CommentSchema t <$> go c
-      ReferenceCodec name c -> do
-        alreadySeen <- gets (S.member name)
-        if alreadySeen
-          then pure $ RefSchema name
-          else do
-            modify (S.insert name)
-            s <- go c
-            pure $ WithDefSchema (M.singleton name s) (RefSchema name)
+jsonSchemaVia = (`evalState` S.empty) . goValue
 
+jsonObjectSchemaViaCodec :: forall a. (HasObjectCodec a) => ObjectSchema
+jsonObjectSchemaViaCodec = jsonObjectSchemaVia (objectCodec @a)
+
+jsonObjectSchemaVia :: ObjectCodec input output -> ObjectSchema
+jsonObjectSchemaVia = (`evalState` S.empty) . goObject
+
+goValue :: ValueCodec input output -> State (Set Text) JSONSchema
+goValue = \case
+  NullCodec -> pure NullSchema
+  BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
+  StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
+  IntegerCodec mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
+  NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
+  ArrayOfCodec mname c -> do
+    s <- goValue c
+    pure $ maybe id CommentSchema mname $ ArraySchema s
+  ObjectOfCodec mname oc -> do
+    s <- goObject oc
+    pure $ maybe id CommentSchema mname $ ObjectSchema s
+  HashMapCodec c -> MapSchema <$> goValue c
+  MapCodec c -> MapSchema <$> goValue c
+  ValueCodec -> pure AnySchema
+  EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
+  EitherCodec u c1 c2 -> do
+    s1 <- goValue c1
+    s2 <- goValue c2
+    pure $ case u of
+      DisjointUnion -> OneOfSchema (goOneOf (s1 :| [s2]))
+      PossiblyJointUnion -> AnyOfSchema (goAnyOf (s1 :| [s2]))
+  BimapCodec _ _ c -> goValue c
+  CommentCodec t c -> CommentSchema t <$> goValue c
+  ReferenceCodec name c -> do
+    alreadySeen <- gets (S.member name)
+    if alreadySeen
+      then pure $ RefSchema name
+      else do
+        modify (S.insert name)
+        s <- goValue c
+        pure $ WithDefSchema (M.singleton name s) (RefSchema name)
+  where
     goAnyOf :: NonEmpty JSONSchema -> NonEmpty JSONSchema
     goAnyOf (s :| rest) = case NE.nonEmpty rest of
       Nothing -> goSingle s
@@ -384,38 +344,38 @@ jsonSchemaVia = (`evalState` S.empty) . go
           OneOfSchema ss -> goOneOf ss
           s' -> s' :| []
 
-    goObject :: ObjectCodec input output -> State (Set Text) ObjectSchema
-    goObject = \case
-      RequiredKeyCodec k c mdoc -> do
-        s <- go c
-        pure $ ObjectKeySchema k Required s mdoc
-      OptionalKeyCodec k c mdoc -> do
-        s <- go c
-        pure $ ObjectKeySchema k (Optional Nothing) s mdoc
-      OptionalKeyWithDefaultCodec k c mr mdoc -> do
-        s <- go c
-        pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
-      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec k c defaultValue mDoc)
-      BimapCodec _ _ c -> goObject c
-      EitherCodec u oc1 oc2 -> do
-        os1 <- goObject oc1
-        os2 <- goObject oc2
-        pure $ case u of
-          DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
-          PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
-      DiscriminatedUnionCodec pn _ m -> do
-        let mkSchema dName (_, oc) =
-              goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
-        ss <- HM.traverseWithKey mkSchema m
-        pure $ case NE.nonEmpty $ toList ss of
-          Nothing -> ObjectAnySchema
-          Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
-      PureCodec _ -> pure ObjectAnySchema
-      ApCodec oc1 oc2 -> do
-        os1 <- goObject oc1
-        os2 <- goObject oc2
-        pure $ ObjectAllOfSchema (goObjectAllOf (os1 :| [os2]))
-
+goObject :: ObjectCodec input output -> State (Set Text) ObjectSchema
+goObject = \case
+  RequiredKeyCodec k c mdoc -> do
+    s <- goValue c
+    pure $ ObjectKeySchema k Required s mdoc
+  OptionalKeyCodec k c mdoc -> do
+    s <- goValue c
+    pure $ ObjectKeySchema k (Optional Nothing) s mdoc
+  OptionalKeyWithDefaultCodec k c mr mdoc -> do
+    s <- goValue c
+    pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
+  OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec k c defaultValue mDoc)
+  BimapCodec _ _ c -> goObject c
+  EitherCodec u oc1 oc2 -> do
+    os1 <- goObject oc1
+    os2 <- goObject oc2
+    pure $ case u of
+      DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
+      PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
+  DiscriminatedUnionCodec pn _ m -> do
+    let mkSchema dName (_, oc) =
+          goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
+    ss <- HM.traverseWithKey mkSchema m
+    pure $ case NE.nonEmpty $ toList ss of
+      Nothing -> ObjectAnySchema
+      Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
+  PureCodec _ -> pure ObjectAnySchema
+  ApCodec oc1 oc2 -> do
+    os1 <- goObject oc1
+    os2 <- goObject oc2
+    pure $ ObjectAllOfSchema (goObjectAllOf (os1 :| [os2]))
+  where
     goObjectAnyOf :: NonEmpty ObjectSchema -> NonEmpty ObjectSchema
     goObjectAnyOf (s :| rest) = case NE.nonEmpty rest of
       Nothing -> goSingle s
@@ -446,5 +406,62 @@ jsonSchemaVia = (`evalState` S.empty) . go
           ObjectAllOfSchema ss -> goObjectAllOf ss
           s' -> s' :| []
 
-uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
-uncurry3 f (a, b, c) = f a b c
+validateAccordingTo :: JSON.Value -> JSONSchema -> Bool
+validateAccordingTo val schema = (`evalState` M.empty) $ validateValue val schema
+
+validateObjectAccordingTo :: JSON.Value -> JSONSchema -> Bool
+validateObjectAccordingTo val schema = (`evalState` M.empty) $ validateValue val schema
+
+validateValue :: JSON.Value -> JSONSchema -> State (Map Text JSONSchema) Bool
+validateValue value = \case
+  AnySchema -> pure True
+  NullSchema -> pure $ value == JSON.Null
+  BoolSchema -> pure $ case value of
+    JSON.Bool _ -> True
+    _ -> False
+  StringSchema -> pure $ case value of
+    JSON.String _ -> True
+    _ -> False
+  IntegerSchema bounds -> pure $ case value of
+    JSON.Number s -> case checkBounds (fromInteger <$> bounds) s of
+      Left _ -> False
+      Right _ -> True
+    _ -> False
+  NumberSchema bounds -> pure $ case value of
+    JSON.Number s -> case checkBounds bounds s of
+      Left _ -> False
+      Right _ -> True
+    _ -> False
+  ArraySchema as -> case value of
+    JSON.Array v -> and <$> mapM (`validateValue` as) v
+    _ -> pure False
+  MapSchema vs -> case value of
+    JSON.Object hm -> and <$> mapM (`validateValue` vs) hm
+    _ -> pure False
+  ObjectSchema os -> case value of
+    JSON.Object obj -> validateObject obj os
+    _ -> pure False
+  ValueSchema v -> pure $ v == value
+  AnyOfSchema ss -> or <$> mapM (validateValue value) ss
+  OneOfSchema ss -> (== 1) . length . NE.filter id <$> mapM (validateValue value) ss
+  CommentSchema _ s -> validateValue value s
+  RefSchema name -> do
+    mSchema <- gets (M.lookup name)
+    case mSchema of
+      Nothing -> pure False -- Referred to a schema that's not defined, we have no choice but to reject the value.
+      Just s -> validateValue value s
+  WithDefSchema defs s -> do
+    modify (M.union defs)
+    validateValue value s
+
+validateObject :: JSON.Object -> ObjectSchema -> State (Map Text JSONSchema) Bool
+validateObject obj = \case
+  ObjectAnySchema -> pure True
+  ObjectKeySchema key kr ks _ -> case Compat.lookupKey (Compat.toKey key) obj of
+    Nothing -> case kr of
+      Required -> pure False
+      Optional _ -> pure True
+    Just value' -> validateValue value' ks
+  ObjectAllOfSchema ne -> and <$> mapM (validateObject obj) ne
+  ObjectAnyOfSchema ne -> or <$> mapM (validateObject obj) ne
+  ObjectOneOfSchema ne -> (== 1) . length . NE.filter id <$> mapM (validateObject obj) ne

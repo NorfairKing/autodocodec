@@ -1,12 +1,19 @@
 # Changelog
 
-
-## [0.2.0.0] - 2024-07-26
-
-* Support for `autodocodec >=0.4`.
+## [0.2.0.1] - 2025-02-13
 
 ### Added
 
+* `jsonObjectSchemaViaCodec`
+* `jsonObjectSchemaVia`
+* `validateObjectAccordingTo`
+
+## [0.2.0.0] - 2024-07-26
+
+
+### Added
+
+* Support for `autodocodec >=0.4`.
 * The `IntegerSchema` constructor
 
 ### Changed
