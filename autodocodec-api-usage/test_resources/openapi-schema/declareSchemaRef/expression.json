@@ -3,9 +3,9 @@
         "Expression": {
             "discriminator": {
                 "mapping": {
-                    "literal": "LiteralExpression",
-                    "product": "ProductExpression",
-                    "sum": "SumExpression"
+                    "literal": "#/components/schemas/LiteralExpression",
+                    "product": "#/components/schemas/ProductExpression",
+                    "sum": "#/components/schemas/SumExpression"
                 },
                 "propertyName": "type"
             },
