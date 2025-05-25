@@ -24,12 +24,9 @@ let
         "--ghc-options=-Werror"
         "--ghc-options=-Wno-deprecations"
       ];
-      # Ugly hack because we can't just add flags to the 'test' invocation.
-      # Show test output as we go, instead of all at once afterwards.
-      testTarget = (old.testTarget or "") + " --show-details=direct";
       # Turn off tests for anything but the current GHC's because different
       # versions make for different outputs sometimes.
-      doCheck = self.ghc.version == "9.6.5";
+      doCheck = self.ghc.version == "9.8.4";
     }));
 
   autodocodecPackages = {

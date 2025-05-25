@@ -8,23 +8,6 @@
                     "minimum": -9223372036854775808,
                     "type": "integer"
                 },
-                "type": {
-                    "const": "that"
-                }
-            },
-            "required": [
-                "type",
-                "int"
-            ],
-            "type": "object"
-        },
-        {
-            "properties": {
-                "int": {
-                    "maximum": 9223372036854775807,
-                    "minimum": -9223372036854775808,
-                    "type": "integer"
-                },
                 "text": {
                     "type": "string"
                 },
@@ -51,6 +34,23 @@
             "required": [
                 "type",
                 "text"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "int": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                },
+                "type": {
+                    "const": "that"
+                }
+            },
+            "required": [
+                "type",
+                "int"
             ],
             "type": "object"
         }

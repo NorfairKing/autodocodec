@@ -5,7 +5,7 @@ ReferenceCodec
      (DiscriminatedUnionCodec
         "type"
         _
-        [ ( "sum"
+        [ ( "product"
           , BimapCodec
               _
               _
@@ -19,7 +19,7 @@ ReferenceCodec
                     _
                     (RequiredKeyCodec "right" Nothing (ReferenceCodec "Expression"))))
           )
-        , ( "product"
+        , ( "sum"
           , BimapCodec
               _
               _

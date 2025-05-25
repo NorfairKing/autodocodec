@@ -1,10 +1,6 @@
 # These
 # [32mone of[m
-[ [37mint[m: # [31mrequired[m
-    [33m<integer>[m # [32m64 bit signed integer[m
-  [37mtype[m: # [31mrequired[m
-    that
-, [37mtext[m: # [31mrequired[m
+[ [37mtext[m: # [31mrequired[m
     [33m<string>[m
   [37mint[m: # [31mrequired[m
     [33m<integer>[m # [32m64 bit signed integer[m
@@ -14,4 +10,8 @@
     [33m<string>[m
   [37mtype[m: # [31mrequired[m
     this
+, [37mint[m: # [31mrequired[m
+    [33m<integer>[m # [32m64 bit signed integer[m
+  [37mtype[m: # [31mrequired[m
+    that
 ]

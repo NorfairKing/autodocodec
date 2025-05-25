@@ -9,9 +9,9 @@ lib.types.submodule {
     };
     type = lib.mkOption {
       type = lib.types.oneOf [
-        "that"
         "both"
         "this"
+        "that"
       ];
     };
   };

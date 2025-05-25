@@ -12,7 +12,7 @@
                             "$ref": "#/$defs/Expression"
                         },
                         "type": {
-                            "const": "sum"
+                            "const": "product"
                         }
                     },
                     "required": [
@@ -31,7 +31,7 @@
                             "$ref": "#/$defs/Expression"
                         },
                         "type": {
-                            "const": "product"
+                            "const": "sum"
                         }
                     },
                     "required": [

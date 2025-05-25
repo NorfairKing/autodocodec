@@ -8,8 +8,8 @@
   };
   type = lib.mkOption {
     type = lib.types.oneOf [
-      "sum"
       "product"
+      "sum"
       "literal"
     ];
   };

@@ -1,4 +1,4 @@
-resolver: lts-22.39
+resolver: lts-23.19
 packages:
 - autodocodec
 - autodocodec-api-usage
@@ -27,6 +27,12 @@ extra-deps:
     - genvalidity-sydtest-aeson
     - genvalidity-text
 
+- github: NorfairKing/opt-env-conf
+  commit: f1a744f9497e0c0e017262dfa24b7aefe5250dd0
+  subdirs:
+    - opt-env-conf
+    - opt-env-conf-test
+
 - github: NorfairKing/safe-coloured-text
   commit: f1699005e9bf40a9676b89760aaf168d578c4419
   subdirs:
@@ -34,7 +40,7 @@ extra-deps:
     - safe-coloured-text-terminfo
 
 - github: NorfairKing/sydtest
-  commit: 6be618a53366d2453ba55da6cddc119d6d589916
+  commit: 710aa588759d3f9742216021e5b2c3cfcb919a9e
   subdirs:
     - sydtest
     - sydtest-aeson

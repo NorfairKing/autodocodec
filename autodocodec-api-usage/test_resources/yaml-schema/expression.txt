@@ -6,13 +6,13 @@
   [37mright[m: # [31mrequired[m
     [36mref: Expression[m
   [37mtype[m: # [31mrequired[m
-    sum
+    product
 , [37mleft[m: # [31mrequired[m
     [36mref: Expression[m
   [37mright[m: # [31mrequired[m
     [36mref: Expression[m
   [37mtype[m: # [31mrequired[m
-    product
+    sum
 , [37mvalue[m: # [31mrequired[m
     [33m<integer>[m # [32m64 bit signed integer[m
   [37mtype[m: # [31mrequired[m
