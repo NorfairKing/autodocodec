@@ -9,6 +9,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RoleAnnotations #-}
@@ -33,6 +34,7 @@ import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
 import Data.Scientific as Scientific
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -46,9 +48,11 @@ import Data.Void
 import Data.Word
 import GHC.Generics (Generic)
 import Numeric.Natural
+
 #if MIN_VERSION_aeson(2,0,0)
 import Data.Aeson.KeyMap (KeyMap)
 import qualified Data.Aeson.KeyMap as KM
+import Autodocodec.Class (HasCodec)
 #endif
 
 -- $setup
@@ -294,6 +298,91 @@ data Codec context input output where
     ObjectCodec input (output -> newOutput) ->
     ObjectCodec input output ->
     ObjectCodec input newOutput
+
+data DefaultNames = DefaultNames
+  { nameOfNull :: Text,
+    nameOfBool :: Text,
+    nameOfString :: Text,
+    nameOfInteger :: Bounds Integer -> Text,
+    nameOfNumber :: Bounds Scientific -> Text,
+    nameArray :: Text -> Text,
+    nameOfObjectOf :: Text -> Text,
+    nameOfJson :: Text,
+    nameOfHashMap :: Text -> Text,
+    nameOfMap :: Text -> Text,
+    nameOfEqCodec :: Text -> Text -> Text,
+    nameOfBimap :: Text -> Text,
+    nameOfEither :: Union -> Text -> Text -> Text,
+    nameOfDiscriminatedUnion :: Text -> [(Discriminator, Text, Text)] -> Text,
+    nameOfComment :: Text -> Text -> Text,
+    nameOfRequiredKey :: Text -> Text -> Maybe Text -> Text,
+    nameOfOptionalKey :: Text -> Text -> Maybe Text -> Text,
+    nameOfOptionalKeyWithDefault :: Text -> Text -> Maybe Text -> Text,
+    nameOfOptionalKeyWithOmittedDefault :: Text -> Text -> Maybe Text -> Text,
+    nameOfPureCodec :: Text,
+    nameOfApCodec :: Text -> Text -> Text
+  }
+
+-- note: Because this module doesn't have an export list, this will be exported
+showToText :: (Show a) => a -> Text
+showToText = T.pack . show
+
+exampleDefaultNames :: DefaultNames
+exampleDefaultNames =
+  DefaultNames
+    { nameOfNull = "Null",
+      nameOfBool = "Bool",
+      nameOfString = "String",
+      nameOfInteger = \(Bounds low high) -> "Integer_" <> showToText low <> "_" <> showToText high,
+      nameOfNumber = \(Bounds low high) -> "Number_" <> showToText low <> "_" <> showToText high,
+      nameArray = ("ArrayOf_" <>),
+      nameOfObjectOf = id,
+      nameOfJson = "JSON",
+      nameOfHashMap = ("MapOf_" <>),
+      nameOfMap = ("MapOf_" <>),
+      nameOfEqCodec = \valAsText codecName -> codecName <> "_Eq_" <> valAsText,
+      nameOfBimap = id,
+      nameOfEither = \_ c1 c2 -> c1 <> "_Or_" <> c2,
+      nameOfDiscriminatedUnion = \propertyName decoders -> "DiscriminatedUnion_" <> showToText (hash (propertyName, decoders)),
+      nameOfComment = \_ baseCodecName -> baseCodecName,
+      nameOfRequiredKey = \keyName baseCodecName _mdoc -> "Key_" <> keyName <> "_Required_" <> baseCodecName,
+      nameOfOptionalKey = \keyName baseCodecName _mdoc -> "Key_" <> keyName <> "_Optional_" <> baseCodecName,
+      nameOfOptionalKeyWithDefault = \keyName baseCodecName _mdoc -> "Key_" <> keyName <> "_OptionalWithDefault_" <> baseCodecName,
+      nameOfOptionalKeyWithOmittedDefault = \keyName baseCodecName _mdoc -> "Key_" <> keyName <> "_OptionalWithOmittedDefault_" <> baseCodecName,
+      nameOfPureCodec = "Pure",
+      nameOfApCodec = \c1 c2 -> c1 <> "_Ap_" <> c2
+    }
+
+nameOfCodec :: DefaultNames -> Codec context input output -> Text
+nameOfCodec DefaultNames {..} = go
+  where
+    go :: Codec context' input' output' -> Text
+    go = \case
+      NullCodec -> nameOfNull
+      BoolCodec mName -> fromMaybe nameOfBool mName
+      StringCodec mName -> fromMaybe nameOfString mName
+      IntegerCodec mName bounds -> fromMaybe (nameOfInteger bounds) mName
+      NumberCodec mName bounds -> fromMaybe (nameOfNumber bounds) mName
+      ArrayOfCodec mName codec -> fromMaybe (nameArray $ go codec) mName
+      ObjectOfCodec mName codec -> fromMaybe (nameOfObjectOf $ go codec) mName
+      ValueCodec -> nameOfJson
+      HashMapCodec codec -> nameOfHashMap $ go codec
+      MapCodec codec -> nameOfMap $ go codec
+      EqCodec value codec -> nameOfEqCodec (showToText value) (go codec)
+      BimapCodec _ _ codec -> nameOfBimap $ go codec
+      EitherCodec u c1 c2 -> nameOfEither u (go c1) (go c2)
+      DiscriminatedUnionCodec propertyName _ decoders -> nameOfDiscriminatedUnion propertyName ((\(d, (n, c)) -> (d, n, go c)) <$> HashMap.toList decoders)
+      CommentCodec comment codec -> nameOfComment comment $ go codec
+      ReferenceCodec name _ -> name
+      RequiredKeyCodec k codec docs -> nameOfRequiredKey k (go codec) docs
+      OptionalKeyCodec k codec docs -> nameOfOptionalKey k (go codec) docs
+      OptionalKeyWithDefaultCodec k codec _ docs -> nameOfOptionalKeyWithDefault k (go codec) docs
+      OptionalKeyWithOmittedDefaultCodec k codec _ docs -> nameOfOptionalKeyWithOmittedDefault k (go codec) docs
+      PureCodec _ -> nameOfPureCodec
+      ApCodec codec1 codec2 -> nameOfApCodec (go codec1) (go codec2)
+
+nameOfHasCodec :: forall a. (HasCodec a) => DefaultNames -> Text
+nameOfHasCodec defaultNames = nameOfCodec defaultNames (codec @a)
 
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
