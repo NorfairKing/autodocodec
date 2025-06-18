@@ -48,9 +48,9 @@
             "These": {
                 "discriminator": {
                     "mapping": {
-                        "both": "Both",
-                        "that": "That",
-                        "this": "This"
+                        "both": "#/components/schemas/Both",
+                        "that": "#/components/schemas/That",
+                        "this": "#/components/schemas/This"
                     },
                     "propertyName": "type"
                 },
