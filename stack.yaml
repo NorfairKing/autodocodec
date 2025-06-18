@@ -2,12 +2,13 @@ resolver: lts-23.19
 packages:
 - autodocodec
 - autodocodec-api-usage
+- autodocodec-exact
+- autodocodec-nix
 - autodocodec-openapi3
 - autodocodec-schema
 - autodocodec-servant-multipart
 - autodocodec-swagger2
 - autodocodec-yaml
-- autodocodec-nix
 
 extra-deps:
 - github: NorfairKing/validity

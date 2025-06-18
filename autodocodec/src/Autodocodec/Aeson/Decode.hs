@@ -144,8 +144,8 @@ parseJSONContextVia codec_ context_ =
                   Left err -> prependFailure ("  Previous branch failure: " <> err <> "\n") (rightParser value)
               DisjointUnion ->
                 case (parseEither leftParser value, parseEither rightParser value) of
-                  (Left _, Right r) -> pure r
                   (Right l, Left _) -> pure l
+                  (Left _, Right r) -> pure r
                   (Right _, Right _) -> fail "Both branches of a disjoint union succeeded."
                   (Left lErr, Left rErr) ->
                     fail $

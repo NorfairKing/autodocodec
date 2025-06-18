@@ -1,4 +1,0 @@
-version: 2.0.0
-value:
-- make autodocodec independent of aeson
-- autodocodec-nix, to output a nix module type for a given codec

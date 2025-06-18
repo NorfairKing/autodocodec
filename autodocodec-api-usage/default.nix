@@ -1,5 +1,5 @@
-{ mkDerivation, aeson, autodocodec, autodocodec-nix
-, autodocodec-openapi3, autodocodec-schema
+{ mkDerivation, aeson, autodocodec, autodocodec-exact
+, autodocodec-nix, autodocodec-openapi3, autodocodec-schema
 , autodocodec-servant-multipart, autodocodec-swagger2
 , autodocodec-yaml, base, bytestring, containers, criterion
 , deepseq, dlist, genvalidity, genvalidity-aeson
@@ -24,15 +24,15 @@ mkDerivation {
     unordered-containers yaml
   ];
   testHaskellDepends = [
-    aeson autodocodec autodocodec-nix autodocodec-openapi3
-    autodocodec-schema autodocodec-servant-multipart
-    autodocodec-swagger2 autodocodec-yaml base bytestring containers
-    dlist genvalidity genvalidity-aeson genvalidity-containers
-    genvalidity-dlist genvalidity-scientific genvalidity-sydtest
-    genvalidity-sydtest-aeson genvalidity-text genvalidity-time
-    openapi3 pretty-show QuickCheck safe-coloured-text scientific
-    servant-multipart-api swagger2 sydtest sydtest-aeson text time
-    vector yaml
+    aeson autodocodec autodocodec-exact autodocodec-nix
+    autodocodec-openapi3 autodocodec-schema
+    autodocodec-servant-multipart autodocodec-swagger2 autodocodec-yaml
+    base bytestring containers dlist genvalidity genvalidity-aeson
+    genvalidity-containers genvalidity-dlist genvalidity-scientific
+    genvalidity-sydtest genvalidity-sydtest-aeson genvalidity-text
+    genvalidity-time openapi3 pretty-show QuickCheck safe-coloured-text
+    scientific servant-multipart-api swagger2 sydtest sydtest-aeson
+    text time vector yaml
   ];
   testToolDepends = [ sydtest-discover ];
   benchmarkHaskellDepends = [

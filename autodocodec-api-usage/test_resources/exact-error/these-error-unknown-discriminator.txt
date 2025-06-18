@@ -1,0 +1,6 @@
+Parse error:
+as part of a schema named: These
+Unknown discriminator value: "huh", in object:
+{
+    "type": "huh"
+}

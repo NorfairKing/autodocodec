@@ -1,0 +1,3 @@
+Parse error:
+in the array at index 1 (so position 2)
+Type mismatch: expected a string, but got: 5

@@ -1,0 +1,2 @@
+Parse error:
+Type mismatch: expected null, but got: "hi"

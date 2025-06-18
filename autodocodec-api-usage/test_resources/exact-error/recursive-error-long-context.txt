@@ -1,0 +1,62 @@
+Parse error:
+as part of a schema referred to to as: recursive
+Disjoint union: both branches failed:
+  as part of a schema referred to to as: recursive
+  with comment: base case
+  Type mismatch: expected an integer , but got:
+  {
+      "recurse": {
+          "recurse": "hi"
+      }
+  }
+and
+  as part of a schema referred to to as: recursive
+  as part of a schema named: Recurse
+  in the value with key: "recurse"
+  documented: recursive case
+  as part of a schema referred to to as: recursive
+  Disjoint union: both branches failed:
+    as part of a schema referred to to as: recursive
+    as part of a schema named: Recurse
+    in the value with key: "recurse"
+    documented: recursive case
+    as part of a schema referred to to as: recursive
+    with comment: base case
+    Type mismatch: expected an integer , but got:
+    {
+        "recurse": "hi"
+    }
+  and
+    as part of a schema referred to to as: recursive
+    as part of a schema named: Recurse
+    in the value with key: "recurse"
+    documented: recursive case
+    as part of a schema referred to to as: recursive
+    as part of a schema named: Recurse
+    in the value with key: "recurse"
+    documented: recursive case
+    as part of a schema referred to to as: recursive
+    Disjoint union: both branches failed:
+      as part of a schema referred to to as: recursive
+      as part of a schema named: Recurse
+      in the value with key: "recurse"
+      documented: recursive case
+      as part of a schema referred to to as: recursive
+      as part of a schema named: Recurse
+      in the value with key: "recurse"
+      documented: recursive case
+      as part of a schema referred to to as: recursive
+      with comment: base case
+      Type mismatch: expected an integer, but got: "hi"
+    and
+      as part of a schema referred to to as: recursive
+      as part of a schema named: Recurse
+      in the value with key: "recurse"
+      documented: recursive case
+      as part of a schema referred to to as: recursive
+      as part of a schema named: Recurse
+      in the value with key: "recurse"
+      documented: recursive case
+      as part of a schema referred to to as: recursive
+      as part of a schema named: Recurse
+      Type mismatch: expected an object, but got: "hi"

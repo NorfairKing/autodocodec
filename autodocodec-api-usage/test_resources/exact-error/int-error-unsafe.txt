@@ -1,0 +1,3 @@
+Parse error:
+Rejecting number that would cause excessive memory usage: 1.0e10000
+Number 1.0e10000 is bigger than the upper bound 1.0e1024

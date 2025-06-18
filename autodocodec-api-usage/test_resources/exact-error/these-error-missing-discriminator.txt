@@ -1,0 +1,7 @@
+Parse error:
+as part of a schema named: These
+in the value with key: "type"
+Missing discriminator: "type", in object:
+{
+    "this": "hi"
+}

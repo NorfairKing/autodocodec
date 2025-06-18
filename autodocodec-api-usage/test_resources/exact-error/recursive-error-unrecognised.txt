@@ -1,0 +1,14 @@
+Parse warning:
+as part of a schema referred to to as: recursive
+as part of a schema named: Recurse
+in the value with key: "recurse"
+documented: recursive case
+as part of a schema referred to to as: recursive
+as part of a schema named: Recurse
+Unrecognised key: "foo"
+
+Parse warning:
+as part of a schema referred to to as: recursive
+as part of a schema named: Recurse
+Unrecognised keys: "bar", "baz"
+

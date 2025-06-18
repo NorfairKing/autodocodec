@@ -56,6 +56,7 @@ tests:
     - aeson
     - autodocodec
     - autodocodec-api-usage
+    - autodocodec-exact
     - autodocodec-openapi3
     - autodocodec-schema
     - autodocodec-servant-multipart

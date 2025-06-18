@@ -1,0 +1,8 @@
+Parse error:
+Disjoint union: both branches failed:
+  Type mismatch: expected a string, but got: 6
+and
+  Disjoint union: both branches failed:
+    Type mismatch: expected a string, but got: 6
+  and
+    Type mismatch: expected a string, but got: 6

@@ -1,0 +1,31 @@
+name: autodocodec-exact
+version: 0.0.0.0
+github: "NorfairKing/autodocodec"
+license: MIT
+author: "Tom Sydney Kerckhove"
+maintainer: "syd@cs-syd.eu"
+copyright: "2025 Tom Sydney Kerckhove"
+synopsis: Exact decoder for autodocodec
+
+extra-source-files:
+- LICENSE
+- CHANGELOG.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - aeson
+  - aeson-pretty
+  - autodocodec
+  - bytestring
+  - containers
+  - mtl
+  - pretty-show
+  - scientific
+  - scientific
+  - text
+  - unordered-containers
+  - vector

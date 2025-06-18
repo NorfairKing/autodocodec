@@ -17,6 +17,7 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     LICENSE
+    test_resources/error/bool-error-number.txt
     test_resources/error/bool-error-string.txt
     test_resources/error/char-error-number.txt
     test_resources/error/either-bool-text-error-array.txt
@@ -28,14 +29,39 @@ extra-source-files:
     test_resources/error/list-text-error-string.txt
     test_resources/error/maybe-text-error-object.txt
     test_resources/error/null-error-number.txt
+    test_resources/error/null-error-string.txt
     test_resources/error/object-error-array.txt
     test_resources/error/ordering-error-list.txt
+    test_resources/error/ordering-error-number.txt
+    test_resources/error/ordering-error-string.txt
     test_resources/error/recursive-error-recurse-string.txt
     test_resources/error/scientific-error-string.txt
     test_resources/error/string-error-object.txt
     test_resources/error/text-error-bool.txt
     test_resources/error/word-error-negative.txt
     test_resources/error/word8-error-300.txt
+    test_resources/exact-error/bool-error-number.txt
+    test_resources/exact-error/bool-error-string.txt
+    test_resources/exact-error/example-error-context-field.txt
+    test_resources/exact-error/example-error-missing-required.txt
+    test_resources/exact-error/example-error-string.txt
+    test_resources/exact-error/int-error-unsafe.txt
+    test_resources/exact-error/list-text-number.txt
+    test_resources/exact-error/non-empty-text-empty.txt
+    test_resources/exact-error/null-error-number.txt
+    test_resources/exact-error/null-error-string.txt
+    test_resources/exact-error/ordering-error-number.txt
+    test_resources/exact-error/ordering-error-string.txt
+    test_resources/exact-error/recursive-error-long-context.txt
+    test_resources/exact-error/recursive-error-unrecognised.txt
+    test_resources/exact-error/scientific-error-null.txt
+    test_resources/exact-error/scientific-error-string.txt
+    test_resources/exact-error/text-error-null.txt
+    test_resources/exact-error/text-error-number.txt
+    test_resources/exact-error/text-error-string.txt
+    test_resources/exact-error/these-error-invalid-discriminator.txt
+    test_resources/exact-error/these-error-missing-discriminator.txt
+    test_resources/exact-error/these-error-unknown-discriminator.txt
     test_resources/json-schema/ainur.json
     test_resources/json-schema/bool.json
     test_resources/json-schema/char.json
@@ -503,6 +529,7 @@ test-suite autodocodec-api-usage-test
   other-modules:
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
+      Autodocodec.ExactSpec
       Autodocodec.MultipartSpec
       Autodocodec.Nix.OptionsSpec
       Autodocodec.Nix.RenderSpec
@@ -522,6 +549,7 @@ test-suite autodocodec-api-usage-test
     , aeson
     , autodocodec
     , autodocodec-api-usage
+    , autodocodec-exact
     , autodocodec-nix
     , autodocodec-openapi3
     , autodocodec-schema

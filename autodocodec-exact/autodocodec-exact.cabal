@@ -1,0 +1,46 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           autodocodec-exact
+version:        0.0.0.0
+synopsis:       Exact decoder for autodocodec
+homepage:       https://github.com/NorfairKing/autodocodec#readme
+bug-reports:    https://github.com/NorfairKing/autodocodec/issues
+author:         Tom Sydney Kerckhove
+maintainer:     syd@cs-syd.eu
+copyright:      2025 Tom Sydney Kerckhove
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    LICENSE
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/NorfairKing/autodocodec
+
+library
+  exposed-modules:
+      Autodocodec.Exact
+  other-modules:
+      Paths_autodocodec_exact
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , aeson-pretty
+    , autodocodec
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , mtl
+    , pretty-show
+    , scientific
+    , text
+    , unordered-containers
+    , vector
+  default-language: Haskell2010
