@@ -300,15 +300,16 @@ goO value = \case
       Just (codecName, c) ->
         withContext (ExactParseContextPieceDiscriminator discriminator codecName) $
           goO value c
-  RequiredKeyCodec k c mDoc -> do
-    let key = Compat.toKey k
-    case Compat.lookupKey key value of
-      Nothing -> exactError $ ExactParseErrorMissingRequiredKey key value
-      Just v ->
-        withContext (ExactParseContextPieceKey key mDoc) $ do
-          recogniseKey key
-          liftValueParser $
-            goV v c
+  RequiredKeyCodec k c mDoc ->
+    coerce $ do
+      let key = Compat.toKey k
+      case Compat.lookupKey key value of
+        Nothing -> exactError $ ExactParseErrorMissingRequiredKey key value
+        Just v ->
+          withContext (ExactParseContextPieceKey key mDoc) $ do
+            recogniseKey key
+            liftValueParser $
+              goV v c
   OptionalKeyCodec k c mDoc ->
     coerce $ do
       let key = Compat.toKey k

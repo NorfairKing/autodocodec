@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0.2] - 2025-06-20
+
+### Changed
+
+* Support for `autodocodec >=0.5`
+
 ## [0.4.0.1] - 2025-02-13
 
 ### Added

@@ -77,6 +77,7 @@ spec = do
   nixOptionTypeSpec @Fruit "fruit"
   nixOptionTypeSpec @Shape "shape"
   nixOptionTypeSpec @Example "example"
+  nixOptionTypeSpec @Derived "derived"
   nixOptionsSpec @Example "example"
   nixOptionTypeSpec @Recursive "recursive"
   nixOptionTypeSpec @ListsExample "lists-example"

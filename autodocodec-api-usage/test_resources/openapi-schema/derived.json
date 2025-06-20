@@ -1,0 +1,94 @@
+{
+    "components": {
+        "schemas": {
+            "Example": {
+                "properties": {
+                    "bool": {
+                        "description": "a bool",
+                        "type": "boolean"
+                    },
+                    "fruit": {
+                        "description": "fruit!!",
+                        "enum": [
+                            "Apple",
+                            "Orange",
+                            "Banana",
+                            "Melon"
+                        ],
+                        "type": "string"
+                    },
+                    "maybe": {
+                        "description": "a maybe text",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "optional": {
+                        "description": "an optional text",
+                        "type": "string"
+                    },
+                    "optional-or-null": {
+                        "description": "an optional-or-null text",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "optional-with-default": {
+                        "default": "foobar",
+                        "description": "an optional text with a default",
+                        "type": "string"
+                    },
+                    "optional-with-null-default": {
+                        "default": [],
+                        "description": "an optional list of texts with a default empty list where the empty list would be omitted",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "shape": {
+                        "description": "shape!?",
+                        "enum": [
+                            "circle",
+                            "square",
+                            "rectangle"
+                        ],
+                        "type": "string"
+                    },
+                    "single-or-list": {
+                        "additionalProperties": true,
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            }
+                        ],
+                        "default": [],
+                        "description": "an optional list that can also be specified as a single element"
+                    },
+                    "text": {
+                        "description": "a text",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "text",
+                    "bool",
+                    "maybe",
+                    "fruit",
+                    "shape"
+                ],
+                "type": "object"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

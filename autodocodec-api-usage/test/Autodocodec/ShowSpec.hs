@@ -76,6 +76,7 @@ spec = do
   showCodecSpec @Fruit "fruit"
   showCodecSpec @Shape "shape"
   showCodecSpec @Example "example"
+  showCodecSpec @Derived "derived"
   showCodecSpec @Recursive "recursive"
   showCodecSpec @ListsExample "lists-example"
   showCodecSpec @MutuallyRecursiveA "mutually-recursive"

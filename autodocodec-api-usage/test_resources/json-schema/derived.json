@@ -1,0 +1,103 @@
+{
+    "$comment": "Example",
+    "properties": {
+        "bool": {
+            "$comment": "a bool",
+            "type": "boolean"
+        },
+        "fruit": {
+            "$comment": "fruit!!",
+            "oneOf": [
+                {
+                    "const": "Apple"
+                },
+                {
+                    "const": "Orange"
+                },
+                {
+                    "const": "Banana"
+                },
+                {
+                    "const": "Melon"
+                }
+            ]
+        },
+        "maybe": {
+            "$comment": "a maybe text",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "optional": {
+            "$comment": "an optional text",
+            "type": "string"
+        },
+        "optional-or-null": {
+            "$comment": "an optional-or-null text",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "optional-with-default": {
+            "$comment": "an optional text with a default",
+            "type": "string"
+        },
+        "optional-with-null-default": {
+            "$comment": "an optional list of texts with a default empty list where the empty list would be omitted",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "shape": {
+            "$comment": "shape!?",
+            "oneOf": [
+                {
+                    "const": "circle"
+                },
+                {
+                    "const": "square"
+                },
+                {
+                    "const": "rectangle"
+                }
+            ]
+        },
+        "single-or-list": {
+            "$comment": "an optional list that can also be specified as a single element",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            ]
+        },
+        "text": {
+            "$comment": "a text",
+            "type": "string"
+        }
+    },
+    "required": [
+        "shape",
+        "fruit",
+        "maybe",
+        "bool",
+        "text"
+    ],
+    "type": "object"
+}

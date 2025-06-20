@@ -44,7 +44,7 @@ toJSONObjectVia = flip go
   where
     go :: a -> ObjectCodec a void -> JSON.Object
     go a = \case
-      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= toJSONVia c a
+      RequiredKeyCodec k c _ -> Compat.toKey k JSON..= toJSONVia c (coerce a)
       OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> mempty
         Just b -> Compat.toKey k JSON..= toJSONVia c b
@@ -102,7 +102,7 @@ toSeriesVia = flip goObject
   where
     goObject :: a -> ObjectCodec a void -> JSON.Series
     goObject a = \case
-      RequiredKeyCodec k c _ -> JSON.pair (Compat.toKey k) (toEncodingVia c a)
+      RequiredKeyCodec k c _ -> JSON.pair (Compat.toKey k) (toEncodingVia c (coerce a))
       OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> mempty :: JSON.Series
         Just b -> JSON.pair (Compat.toKey k) (toEncodingVia c b)

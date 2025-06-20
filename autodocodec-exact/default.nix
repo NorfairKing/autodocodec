@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "autodocodec-exact";
-  version = "0.0.0.0";
+  version = "0.0.0.1";
   src = ./.;
   libraryHaskellDepends = [
     aeson aeson-pretty autodocodec base bytestring containers mtl

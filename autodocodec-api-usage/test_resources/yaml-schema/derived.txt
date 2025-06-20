@@ -1,0 +1,48 @@
+# Example
+[37mtext[m: # [31mrequired[m
+  # a text
+  [33m<string>[m
+[37mbool[m: # [31mrequired[m
+  # a bool
+  [33m<boolean>[m
+[37mmaybe[m: # [31mrequired[m
+  # a maybe text
+  # [32mor null[m
+  [33m<string>[m
+[37moptional[m: # [34moptional[m
+  # an optional text
+  [33m<string>[m
+[37moptional-or-null[m: # [34moptional[m
+  # an optional-or-null text
+  # [32mor null[m
+  [33m<string>[m
+[37moptional-with-default[m: # [34moptional[m
+  # default: [35mfoobar[m
+  # an optional text with a default
+  [33m<string>[m
+[37moptional-with-null-default[m: # [34moptional[m
+  # default: [35m[][m
+  # an optional list of texts with a default empty list where the empty list would be omitted
+  - [33m<string>[m
+[37msingle-or-list[m: # [34moptional[m
+  # default: [35m[][m
+  # an optional list that can also be specified as a single element
+  # [32many of[m
+  [ [33m<string>[m
+  , - [33m<string>[m
+  ]
+[37mfruit[m: # [31mrequired[m
+  # fruit!!
+  # [32mone of[m
+  [ Apple
+  , Orange
+  , Banana
+  , Melon
+  ]
+[37mshape[m: # [31mrequired[m
+  # shape!?
+  # [32mone of[m
+  [ circle
+  , square
+  , rectangle
+  ]

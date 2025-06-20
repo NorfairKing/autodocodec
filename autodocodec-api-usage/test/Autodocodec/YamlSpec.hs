@@ -86,6 +86,7 @@ spec = do
   yamlCodecSpec @Fruit
   yamlCodecSpec @Shape
   yamlCodecSpec @Example
+  yamlCodecSpec @Derived
   yamlCodecSpec @Recursive
   yamlCodecSpec @MutuallyRecursiveA
   yamlCodecSpec @Via

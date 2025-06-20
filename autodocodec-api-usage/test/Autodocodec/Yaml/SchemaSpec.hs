@@ -68,6 +68,7 @@ spec = do
   yamlSchemaSpec @Fruit "fruit"
   yamlSchemaSpec @Shape "shape"
   yamlSchemaSpec @Example "example"
+  yamlSchemaSpec @Derived "derived"
   yamlSchemaSpec @Recursive "recursive"
   yamlSchemaSpec @ListsExample "lists-example"
   yamlSchemaSpec @MutuallyRecursiveA "mutually-recursive"

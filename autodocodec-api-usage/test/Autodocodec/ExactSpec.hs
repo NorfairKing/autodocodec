@@ -101,6 +101,7 @@ spec = do
   exactCodecErrorSpec @Example "example-error-string" (JSON.String "hi")
   exactCodecErrorSpec @Example "example-error-missing-required" (JSON.Object (Compat.fromList []))
   exactCodecErrorSpec @Example "example-error-context-field" (JSON.Object (Compat.fromList [("text", JSON.Number 5)]))
+  exactCodecSpec @Derived
   exactCodecSpec @Recursive
   exactCodecErrorSpec @Recursive "recursive-error-long-context" (JSON.Object (Compat.fromList [("recurse", JSON.Object (Compat.fromList [("recurse", JSON.String "hi")]))]))
   exactCodecWarningsSpec @Recursive "recursive-error-unrecognised" (JSON.Object (Compat.fromList [("recurse", JSON.Object (Compat.fromList [("recurse", JSON.Number 5), ("foo", JSON.Null)])), ("bar", JSON.Null), ("baz", JSON.Null)]))

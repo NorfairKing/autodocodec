@@ -94,6 +94,7 @@ spec = do
   swaggerSchemaSpec @Fruit "fruit"
   swaggerSchemaSpec @Shape "shape"
   swaggerSchemaSpec @Example "example"
+  swaggerSchemaSpec @Derived "derived"
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @ListsExample "lists-example"
   swaggerSchemaSpec @MutuallyRecursiveA "mutually-recursive"

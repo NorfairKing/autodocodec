@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-exact
-version:        0.0.0.0
+version:        0.0.0.1
 synopsis:       Exact decoder for autodocodec
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -33,7 +33,7 @@ library
   build-depends:
       aeson
     , aeson-pretty
-    , autodocodec
+    , autodocodec >=0.5.0.0
     , base >=4.7 && <5
     , bytestring
     , containers

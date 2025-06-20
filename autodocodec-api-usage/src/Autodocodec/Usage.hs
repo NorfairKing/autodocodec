@@ -259,6 +259,11 @@ instance ToMultipart tag Example where
       )
       []
 
+newtype Derived = Derived {unDerived :: Example}
+  deriving stock (Show, Eq, Generic)
+  deriving newtype (Validity, GenValid, FromJSON, ToJSON)
+  deriving newtype (HasCodec) -- This is the important bit.
+
 data ListsExample = ListsExample
   { listsExamplePossiblyEmptyWithOmittedDefault :: [Int],
     listsExamplePossiblyEmptyWithDefault :: [Int],

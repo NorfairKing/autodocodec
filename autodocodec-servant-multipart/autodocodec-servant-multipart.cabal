@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-servant-multipart
-version:        0.0.0.1
+version:        0.0.0.2
 synopsis:       Autodocodec interpreters for Servant Multipart
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -32,7 +32,7 @@ library
       src
   build-depends:
       aeson
-    , autodocodec >=0.3.0.0
+    , autodocodec >=0.5.0.0
     , base >=4.7 && <5
     , bytestring
     , servant-multipart

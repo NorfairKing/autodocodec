@@ -164,7 +164,7 @@ parseJSONContextVia codec_ context_ =
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: Compat.toKey k
-        go valueAtKey c JSON.<?> Key (Compat.toKey k)
+        coerce $ go valueAtKey c JSON.<?> Key (Compat.toKey k)
       OptionalKeyCodec k c _ -> do
         let key = Compat.toKey k
             mValueAtKey = Compat.lookupKey key (value :: JSON.Object)

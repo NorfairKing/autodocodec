@@ -240,13 +240,14 @@ data Codec context input output where
     ~(ValueCodec input output) ->
     ValueCodec input output
   RequiredKeyCodec ::
+    (Coercible a input, Coercible b output) =>
     -- | Key
     Text ->
     -- | Codec for the value
     ValueCodec input output ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec input output
+    ObjectCodec a b
   OptionalKeyCodec ::
     (Coercible a (Maybe input), Coercible b (Maybe output)) =>
     -- | Key

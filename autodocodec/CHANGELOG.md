@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0.0] - 2025-06-20
+
+This is technically a breaking change but it's unlikely that you'll need to
+change any of your codecs.
+
+### Changed
+
+* Added the same `Coercible` trick to the `RequiredKeyCodec` constructor of a codec.
+
 ## [0.4.2.2] - 2024-09-01
 
 ### Added

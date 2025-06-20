@@ -67,6 +67,7 @@ extra-source-files:
     test_resources/json-schema/char.json
     test_resources/json-schema/const.json
     test_resources/json-schema/day.json
+    test_resources/json-schema/derived.json
     test_resources/json-schema/difftime.json
     test_resources/json-schema/dlist-text.json
     test_resources/json-schema/dual.json
@@ -156,6 +157,7 @@ extra-source-files:
     test_resources/nix/options/char-type.nix
     test_resources/nix/options/const-type.nix
     test_resources/nix/options/day-type.nix
+    test_resources/nix/options/derived-type.nix
     test_resources/nix/options/difftime-type.nix
     test_resources/nix/options/dlist-text-type.nix
     test_resources/nix/options/dnonempty-text-type.nix
@@ -229,6 +231,7 @@ extra-source-files:
     test_resources/openapi-schema/day.json
     test_resources/openapi-schema/declareSchemaRef/ainur.json
     test_resources/openapi-schema/declareSchemaRef/const.json
+    test_resources/openapi-schema/declareSchemaRef/derived.json
     test_resources/openapi-schema/declareSchemaRef/dual.json
     test_resources/openapi-schema/declareSchemaRef/example.json
     test_resources/openapi-schema/declareSchemaRef/expression.json
@@ -250,6 +253,7 @@ extra-source-files:
     test_resources/openapi-schema/declareSchemaRef/via.json
     test_resources/openapi-schema/declareSchemaRef/void.json
     test_resources/openapi-schema/declareSchemaRef/war.json
+    test_resources/openapi-schema/derived.json
     test_resources/openapi-schema/difftime.json
     test_resources/openapi-schema/dlist-text.json
     test_resources/openapi-schema/dnonempty-text.json
@@ -312,6 +316,7 @@ extra-source-files:
     test_resources/show-codec/char.txt
     test_resources/show-codec/const.txt
     test_resources/show-codec/day.txt
+    test_resources/show-codec/derived.txt
     test_resources/show-codec/dlist-text.txt
     test_resources/show-codec/dnonempty-text.txt
     test_resources/show-codec/dual.txt
@@ -373,6 +378,7 @@ extra-source-files:
     test_resources/swagger-schema/char.json
     test_resources/swagger-schema/const.json
     test_resources/swagger-schema/day.json
+    test_resources/swagger-schema/derived.json
     test_resources/swagger-schema/difftime.json
     test_resources/swagger-schema/dlist-text.json
     test_resources/swagger-schema/dnonempty-text.json
@@ -435,6 +441,7 @@ extra-source-files:
     test_resources/yaml-schema/bool.txt
     test_resources/yaml-schema/char.txt
     test_resources/yaml-schema/day.txt
+    test_resources/yaml-schema/derived.txt
     test_resources/yaml-schema/difftime.txt
     test_resources/yaml-schema/either-bool-text.txt
     test_resources/yaml-schema/either-either-bool-scientific-text.txt

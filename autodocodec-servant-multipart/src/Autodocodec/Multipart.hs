@@ -48,7 +48,7 @@ toMultipartVia = flip go
               (go a c)
       RequiredKeyCodec key vc _ ->
         MultipartData
-          { inputs = map (Input key) (goValue a vc),
+          { inputs = map (Input key) (goValue (coerce a) vc),
             files = []
           }
       OptionalKeyCodec key vc _ ->
@@ -156,7 +156,7 @@ fromMultipartVia = flip go
           Just (_, c) -> go mpd c
       RequiredKeyCodec key vc _ -> do
         values <- lookupLInput key mpd
-        goValue values vc
+        coerce $ goValue values vc
       OptionalKeyCodec key vc _ -> do
         values <- lookupLInput key mpd
         coerce $ case values of

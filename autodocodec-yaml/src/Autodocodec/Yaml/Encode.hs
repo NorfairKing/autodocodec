@@ -52,7 +52,7 @@ toYamlVia = flip go
 
     goObject :: a -> ObjectCodec a void -> [(Text, YamlBuilder)]
     goObject a = \case
-      RequiredKeyCodec k c _ -> [(k, go a c)]
+      RequiredKeyCodec k c _ -> [(k, go (coerce a) c)]
       OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
         Nothing -> []
         Just b -> [k Yaml..= go b c]

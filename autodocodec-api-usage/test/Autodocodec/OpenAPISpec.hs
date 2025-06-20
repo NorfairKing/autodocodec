@@ -101,6 +101,8 @@ spec = do
   openAPISchemaSpecViaDeclareSchemaRef @Shape "shape"
   openAPISchemaSpec @Example "example"
   openAPISchemaSpecViaDeclareSchemaRef @Example "example"
+  openAPISchemaSpec @Derived "derived"
+  openAPISchemaSpecViaDeclareSchemaRef @Derived "derived"
   openAPISchemaSpec @ListsExample "lists-example"
   openAPISchemaSpecViaDeclareSchemaRef @ListsExample "lists-example"
   openAPISchemaSpec @Recursive "recursive"
