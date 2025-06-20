@@ -5,6 +5,7 @@
 module Autodocodec.Yaml.IO where
 
 import Autodocodec
+import Autodocodec.Exact
 import Autodocodec.Yaml.Schema
 import qualified Data.ByteString as SB
 import qualified Data.Text as T
@@ -33,28 +34,40 @@ readFirstYamlConfigFile files = go files
           mc <- forgivingAbsence $ SB.readFile $ toFilePath p
           case mc of
             Nothing -> go ps
-            Just contents ->
+            Just contents -> do
+              let triedFilesMsgs = case files of
+                    [] -> []
+                    [f] -> ["While parsing file: " <> toFilePath f]
+                    fs -> "While parsing files:" : map (("* " <>) . toFilePath) fs
               case Yaml.decodeEither' contents of
                 Left err -> do
                   let failedMsgs =
                         [ "Failed to parse yaml file",
                           toFilePath p,
-                          "with error:",
                           Yaml.prettyPrintParseException err
-                        ]
-                      triedFilesMsgs = case files of
-                        [] -> []
-                        [f] -> ["While parsing file: " <> toFilePath f]
-                        fs -> "While parsing files:" : map (("* " <>) . toFilePath) fs
-                      referenceMsgs =
-                        [ "Reference: ",
-                          T.unpack $ renderColouredSchemaViaCodec @a
                         ]
                   die $
                     unlines $
                       concat
                         [ failedMsgs,
-                          triedFilesMsgs,
-                          referenceMsgs
+                          triedFilesMsgs
                         ]
-                Right (Autodocodec conf) -> pure $ Just conf
+                Right aesonValue -> case parseExactJSONViaCodec aesonValue of
+                  Left err -> do
+                    let failedMsgs =
+                          [ "Failed to parse yaml file",
+                            toFilePath p,
+                            prettyExactParseError err
+                          ]
+                        referenceMsgs =
+                          [ "Reference: ",
+                            T.unpack $ renderColouredSchemaViaCodec @a
+                          ]
+                    die $
+                      unlines $
+                        concat
+                          [ failedMsgs,
+                            triedFilesMsgs,
+                            referenceMsgs
+                          ]
+                  Right (conf, _) -> pure $ Just conf

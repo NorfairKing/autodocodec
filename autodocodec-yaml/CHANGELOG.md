@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0.0] - 2025-06-20
+
+### Changed
+
+* Use `autodocodec-exact` for parsing instead of the yaml library directly, for
+  nicer error messages.
+
 ## [0.4.0.2] - 2025-06-20
 
 ### Changed

@@ -1,5 +1,5 @@
 name: autodocodec-yaml
-version: 0.4.0.2
+version: 0.5.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -19,6 +19,7 @@ library:
   dependencies:
   - autodocodec >= 0.5.0.0
   - autodocodec-schema >=0.2.0.1
+  - autodocodec-exact
   - bytestring
   - containers
   - path
