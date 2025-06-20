@@ -82,6 +82,11 @@
                 ".*/default.nix"
                 "autodocodec-api-usage/test_resources/nix/.*.nix"
               ];
+              deadnix.enable = true;
+              deadnix.excludes = [
+                ".*/default.nix"
+                "autodocodec-api-usage/test_resources/nix/.*.nix"
+              ];
               cabal2nix.enable = true;
               tagref.enable = true;
             };

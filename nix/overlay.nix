@@ -6,7 +6,7 @@ in
 {
   haskell = prev.haskell // {
     packages = builtins.mapAttrs
-      (compiler: haskellPackages: haskellPackages.override addOverrides)
+      (_: haskellPackages: haskellPackages.override addOverrides)
       prev.haskell.packages;
   };
   haskellPackages = prev.haskellPackages.override addOverrides;
