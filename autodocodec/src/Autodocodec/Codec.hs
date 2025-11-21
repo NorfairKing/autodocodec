@@ -378,7 +378,7 @@ type ValueCodec = Codec JSON.Value
 
 -- | A codec within the 'JSON.Object' context.
 --
--- An 'Object' can be used to turn a Haskell value into a 'JSON.Object' or to parse a 'JSON.Object' into a haskell value.
+-- An 'ObjectCodec' can be used to turn a Haskell value into a 'JSON.Object' or to parse a 'JSON.Object' into a haskell value.
 --
 -- This cannot be used in certain places where 'ValueCodec' could be used, and vice versa.
 type ObjectCodec = Codec JSON.Object
