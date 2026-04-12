@@ -169,18 +169,18 @@ instance ToJSON Example where
             "optional-with-default" JSON..= exampleOptionalWithDefault
           ],
           [ "optional" JSON..= opt
-            | opt <- maybeToList exampleOptional
+          | opt <- maybeToList exampleOptional
           ],
           [ "optional-or-null" JSON..= opt
-            | opt <- maybeToList exampleOptionalOrNull
+          | opt <- maybeToList exampleOptionalOrNull
           ],
           [ "optional-with-null-default" JSON..= exampleOptionalWithNullDefault
-            | not (null exampleOptionalWithNullDefault)
+          | not (null exampleOptionalWithNullDefault)
           ],
           [ case exampleSingleOrList of
               [e] -> "single-or-list" JSON..= e
               l -> "single-or-list" JSON..= l
-            | not (null exampleSingleOrList)
+          | not (null exampleSingleOrList)
           ]
         ]
 
