@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0.1] - 2026-04-25
+
+### Changed
+
+* Attribute keys that are not valid Nix identifiers are now quoted in rendered expressions.
+
 ## [0.1.0.0] - 2025-02-13
 
 ### Added

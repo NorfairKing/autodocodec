@@ -18,6 +18,7 @@ where
 import Data.Aeson as JSON
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
+import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Scientific
@@ -82,9 +83,24 @@ renderExpression = T.unlines . go 0
         parensWhen (d > 10) $
           ("with " <> t <> ";") : go 0 e
     goBind key e =
-      prependWith " " (key <> " =") $
+      prependWith " " (nixAttrKey key <> " =") $
         (`append` ";") $
           go 0 e
+
+-- | Quote an attribute key if it is not a valid Nix identifier.
+-- Valid identifiers match @[a-zA-Z_][a-zA-Z0-9_'-]*@.
+nixAttrKey :: Text -> Text
+nixAttrKey key
+  | isNixIdentifier key = key
+  | otherwise = T.pack $ show $ T.unpack key
+
+isNixIdentifier :: Text -> Bool
+isNixIdentifier t = case T.uncons t of
+  Nothing -> False
+  Just (c, rest) -> isNixIdentStart c && T.all isNixIdentChar rest
+  where
+    isNixIdentStart c = c == '_' || isAsciiLower c || isAsciiUpper c
+    isNixIdentChar c = isNixIdentStart c || isDigit c || c == '-' || c == '\''
 
 indent :: [Text] -> [Text]
 indent = map ("  " <>)
