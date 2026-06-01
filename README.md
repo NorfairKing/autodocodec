@@ -1,5 +1,7 @@
 # Autodocodec
 
+[![NixCI](https://staging.nix-ci.com/badge/gh:NorfairKing:autodocodec)](https://staging.nix-ci.com/gh:NorfairKing:autodocodec)
+
 Autodocodec is short for "self(auto)- documenting encoder and decoder".
 
 In short:
