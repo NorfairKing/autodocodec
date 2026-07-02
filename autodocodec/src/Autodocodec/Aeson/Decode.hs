@@ -65,8 +65,9 @@ parseJSONContextVia codec_ context_ =
       BoolCodec mname -> case mname of
         Nothing -> coerce (parseJSON value :: JSON.Parser Bool)
         Just name -> coerce $ withBool (T.unpack name) pure value
-      StringCodec mname bounds -> coerce $
-          ( \f -> case mname of        
+      StringCodec mname bounds ->
+        coerce $
+          ( \f -> case mname of
               Nothing -> parseJSON value >>= f
               Just name -> withText (T.unpack name) f value
           )

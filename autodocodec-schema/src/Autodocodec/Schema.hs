@@ -92,7 +92,7 @@ instance ToJSON JSONSchema where
         AnySchema -> []
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
-        StringSchema StringBounds {..} -> 
+        StringSchema StringBounds {..} ->
           catMaybes
             [ Just ("type" JSON..= ("string" :: Text)),
               ("maxLength" JSON..=) <$> stringBoundsMaxLength,

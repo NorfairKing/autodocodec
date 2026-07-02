@@ -299,9 +299,8 @@ data Codec context input output where
     ObjectCodec input newOutput
 
 data StringBounds = StringBounds
-  { stringBoundsMinLength :: !(Maybe Natural)
-  , stringBoundsMaxLength :: !(Maybe Natural)
-  --, stringBoundsPattern   :: !(Maybe Text)  -- not sure if a dependency to a regex library is justified
+  { stringBoundsMinLength :: !(Maybe Natural),
+    stringBoundsMaxLength :: !(Maybe Natural)
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -1367,7 +1366,6 @@ textCodec = StringCodec Nothing emptyStringBounds
 --
 -- >>> JSON.parseMaybe (parseJSONVia (textWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 4})) (String "hello")
 -- Nothing
-
 textWithBoundsCodec :: StringBounds -> JSONCodec Text
 textWithBoundsCodec bounds = StringCodec Nothing bounds
 
