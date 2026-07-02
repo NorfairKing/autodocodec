@@ -12,7 +12,15 @@ ObjectOfCodec
                              (BimapCodec
                                 _
                                 _
-                                (RequiredKeyCodec "text" (Just "a text") (StringCodec Nothing)))
+                                (RequiredKeyCodec
+                                   "text"
+                                   (Just "a text")
+                                   (StringCodec
+                                      Nothing
+                                      StringBounds
+                                        { stringBoundsMinLength = Nothing
+                                        , stringBoundsMaxLength = Nothing
+                                        })))
                              (BimapCodec
                                 _ _ (RequiredKeyCodec "bool" (Just "a bool") (BoolCodec Nothing))))
                           (BimapCodec
@@ -25,12 +33,26 @@ ObjectOfCodec
                                    _
                                    _
                                    (EitherCodec
-                                      PossiblyJointUnion NullCodec (StringCodec Nothing))))))
+                                      PossiblyJointUnion
+                                      NullCodec
+                                      (StringCodec
+                                         Nothing
+                                         StringBounds
+                                           { stringBoundsMinLength = Nothing
+                                           , stringBoundsMaxLength = Nothing
+                                           }))))))
                        (BimapCodec
                           _
                           _
                           (OptionalKeyCodec
-                             "optional" (Just "an optional text") (StringCodec Nothing))))
+                             "optional"
+                             (Just "an optional text")
+                             (StringCodec
+                                Nothing
+                                StringBounds
+                                  { stringBoundsMinLength = Nothing
+                                  , stringBoundsMaxLength = Nothing
+                                  }))))
                     (BimapCodec
                        _
                        _
@@ -41,13 +63,25 @@ ObjectOfCodec
                              _
                              _
                              (EitherCodec
-                                PossiblyJointUnion NullCodec (StringCodec Nothing))))))
+                                PossiblyJointUnion
+                                NullCodec
+                                (StringCodec
+                                   Nothing
+                                   StringBounds
+                                     { stringBoundsMinLength = Nothing
+                                     , stringBoundsMaxLength = Nothing
+                                     }))))))
                  (BimapCodec
                     _
                     _
                     (OptionalKeyWithDefaultCodec
                        "optional-with-default"
-                       (StringCodec Nothing)
+                       (StringCodec
+                          Nothing
+                          StringBounds
+                            { stringBoundsMinLength = Nothing
+                            , stringBoundsMaxLength = Nothing
+                            })
                        _
                        (Just "an optional text with a default"))))
               (BimapCodec
@@ -55,7 +89,17 @@ ObjectOfCodec
                  _
                  (OptionalKeyWithOmittedDefaultCodec
                     "optional-with-null-default"
-                    (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing)))
+                    (BimapCodec
+                       _
+                       _
+                       (ArrayOfCodec
+                          Nothing
+                          (StringCodec
+                             Nothing
+                             StringBounds
+                               { stringBoundsMinLength = Nothing
+                               , stringBoundsMaxLength = Nothing
+                               })))
                     _
                     (Just
                        "an optional list of texts with a default empty list where the empty list would be omitted"))))
@@ -69,8 +113,23 @@ ObjectOfCodec
                     _
                     (EitherCodec
                        PossiblyJointUnion
-                       (StringCodec Nothing)
-                       (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing)))))
+                       (StringCodec
+                          Nothing
+                          StringBounds
+                            { stringBoundsMinLength = Nothing
+                            , stringBoundsMaxLength = Nothing
+                            })
+                       (BimapCodec
+                          _
+                          _
+                          (ArrayOfCodec
+                             Nothing
+                             (StringCodec
+                                Nothing
+                                StringBounds
+                                  { stringBoundsMinLength = Nothing
+                                  , stringBoundsMaxLength = Nothing
+                                  })))))
                  _
                  (Just
                     "an optional list that can also be specified as a single element"))))
@@ -85,20 +144,60 @@ ObjectOfCodec
                  _
                  (EitherCodec
                     DisjointUnion
-                    (BimapCodec _ _ (EqCodec "Apple" (StringCodec Nothing)))
+                    (BimapCodec
+                       _
+                       _
+                       (EqCodec
+                          "Apple"
+                          (StringCodec
+                             Nothing
+                             StringBounds
+                               { stringBoundsMinLength = Nothing
+                               , stringBoundsMaxLength = Nothing
+                               })))
                     (BimapCodec
                        _
                        _
                        (EitherCodec
                           DisjointUnion
-                          (BimapCodec _ _ (EqCodec "Orange" (StringCodec Nothing)))
+                          (BimapCodec
+                             _
+                             _
+                             (EqCodec
+                                "Orange"
+                                (StringCodec
+                                   Nothing
+                                   StringBounds
+                                     { stringBoundsMinLength = Nothing
+                                     , stringBoundsMaxLength = Nothing
+                                     })))
                           (BimapCodec
                              _
                              _
                              (EitherCodec
                                 DisjointUnion
-                                (BimapCodec _ _ (EqCodec "Banana" (StringCodec Nothing)))
-                                (BimapCodec _ _ (EqCodec "Melon" (StringCodec Nothing))))))))))))
+                                (BimapCodec
+                                   _
+                                   _
+                                   (EqCodec
+                                      "Banana"
+                                      (StringCodec
+                                         Nothing
+                                         StringBounds
+                                           { stringBoundsMinLength = Nothing
+                                           , stringBoundsMaxLength = Nothing
+                                           })))
+                                (BimapCodec
+                                   _
+                                   _
+                                   (EqCodec
+                                      "Melon"
+                                      (StringCodec
+                                         Nothing
+                                         StringBounds
+                                           { stringBoundsMinLength = Nothing
+                                           , stringBoundsMaxLength = Nothing
+                                           }))))))))))))
      (BimapCodec
         _
         _
@@ -110,11 +209,41 @@ ObjectOfCodec
               _
               (EitherCodec
                  DisjointUnion
-                 (BimapCodec _ _ (EqCodec "circle" (StringCodec Nothing)))
+                 (BimapCodec
+                    _
+                    _
+                    (EqCodec
+                       "circle"
+                       (StringCodec
+                          Nothing
+                          StringBounds
+                            { stringBoundsMinLength = Nothing
+                            , stringBoundsMaxLength = Nothing
+                            })))
                  (BimapCodec
                     _
                     _
                     (EitherCodec
                        DisjointUnion
-                       (BimapCodec _ _ (EqCodec "square" (StringCodec Nothing)))
-                       (BimapCodec _ _ (EqCodec "rectangle" (StringCodec Nothing))))))))))
+                       (BimapCodec
+                          _
+                          _
+                          (EqCodec
+                             "square"
+                             (StringCodec
+                                Nothing
+                                StringBounds
+                                  { stringBoundsMinLength = Nothing
+                                  , stringBoundsMaxLength = Nothing
+                                  })))
+                       (BimapCodec
+                          _
+                          _
+                          (EqCodec
+                             "rectangle"
+                             (StringCodec
+                                Nothing
+                                StringBounds
+                                  { stringBoundsMinLength = Nothing
+                                  , stringBoundsMaxLength = Nothing
+                                  }))))))))))

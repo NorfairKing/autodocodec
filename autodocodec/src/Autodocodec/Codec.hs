@@ -98,6 +98,8 @@ data Codec context input output where
     (Coercible a Text, Coercible b Text) =>
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
+    -- | Bounds for the string, these are checked and documented
+    StringBounds ->
     ValueCodec a b
   -- | Encode 'Integer' to a @number@ value, and decode a @number@ value as an 'Integer'.
   --
@@ -296,6 +298,31 @@ data Codec context input output where
     ObjectCodec input output ->
     ObjectCodec input newOutput
 
+data StringBounds = StringBounds
+  { stringBoundsMinLength :: !(Maybe Natural)
+  , stringBoundsMaxLength :: !(Maybe Natural)
+  --, stringBoundsPattern   :: !(Maybe Text)  -- not sure if a dependency to a regex library is justified
+  }
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity StringBounds where
+  validate StringBounds {..} =
+    mconcat
+      [ validate stringBoundsMinLength,
+        validate stringBoundsMaxLength
+      ]
+
+emptyStringBounds :: StringBounds
+emptyStringBounds = StringBounds Nothing Nothing
+
+checkStringBounds :: StringBounds -> Text -> Either String Text
+checkStringBounds StringBounds {..} s =
+  case stringBoundsMinLength of
+    Just lo | T.length s < fromIntegral lo -> Left $ unwords ["String", show s, "is shorter than the lower bound", show lo]
+    _ -> case stringBoundsMaxLength of
+      Just hi | T.length s > fromIntegral hi -> Left $ unwords ["String", show s, "is longer than the upper bound", show hi]
+      _ -> Right s
+
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
     boundsLower :: !(Maybe a),
@@ -410,7 +437,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
     go d = \case
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
-      StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
+      StringCodec mName mbs -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       IntegerCodec mName mbs -> pure $ showParen (d > 10) $ showString "IntegerCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
@@ -1328,7 +1355,7 @@ boolCodec = BoolCodec Nothing
 --
 -- > textCodec = StringCodec Nothing
 textCodec :: JSONCodec Text
-textCodec = StringCodec Nothing
+textCodec = StringCodec Nothing emptyStringBounds
 
 -- | Codec for 'String' values
 --

@@ -71,7 +71,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
     go = \case
       NullCodec -> Just OptionTypeNull
       BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
-      StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
+      StringCodec _ _ -> Just $ OptionTypeSimple "lib.types.str"
       IntegerCodec _ bounds -> Just $
         OptionTypeSimple $
           case guessIntegerBoundsSymbolic bounds of

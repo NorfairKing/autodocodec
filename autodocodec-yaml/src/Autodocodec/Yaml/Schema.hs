@@ -137,7 +137,7 @@ goValue = \case
   AnySchema -> [[fore yellow "<any>"]]
   NullSchema -> [[fore yellow "null"]]
   BoolSchema -> [[fore yellow "<boolean>"]]
-  StringSchema -> [[fore yellow "<string>"]]
+  StringSchema _ -> [[fore yellow "<string>"]] -- TODO bounds?
   IntegerSchema bounds -> integerBoundsChunks bounds
   NumberSchema _ -> [[fore yellow "<number>"]] -- TODO bounds?
   ArraySchema s ->

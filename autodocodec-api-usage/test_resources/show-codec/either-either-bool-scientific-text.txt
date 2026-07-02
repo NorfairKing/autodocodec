@@ -18,4 +18,13 @@ EitherCodec
                     Nothing
                     Bounds { boundsLower = Nothing , boundsUpper = Nothing }))))))
   (ObjectOfCodec
-     Nothing (RequiredKeyCodec "Right" Nothing (StringCodec Nothing)))
+     Nothing
+     (RequiredKeyCodec
+        "Right"
+        Nothing
+        (StringCodec
+           Nothing
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

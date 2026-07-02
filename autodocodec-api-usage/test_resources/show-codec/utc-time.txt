@@ -1,1 +1,11 @@
-CommentCodec "UTCTime" (BimapCodec _ _ (StringCodec Nothing))
+CommentCodec
+  "UTCTime"
+  (BimapCodec
+     _
+     _
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Nothing
+          , stringBoundsMaxLength = Nothing
+          }))

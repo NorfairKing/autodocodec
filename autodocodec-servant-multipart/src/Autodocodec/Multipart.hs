@@ -97,7 +97,7 @@ toMultipartVia = flip go
         case coerce a of
           True -> "True"
           False -> "False"
-      StringCodec _ -> coerce a
+      StringCodec _ _ -> coerce a
       vc ->
         let value = toJSONVia vc a
          in case value of
@@ -237,7 +237,7 @@ fromMultipartVia = flip go
         "true" -> Right True
         "True" -> Right True
         _ -> Left $ "Unknown bool: " <> show t
-      StringCodec _ -> Right (coerce t)
+      StringCodec _ _ -> Right (coerce t)
       vc -> case JSON.parseEither (parseJSONVia vc) (JSON.String t) of
         Right a -> Right a
         Left _ -> do

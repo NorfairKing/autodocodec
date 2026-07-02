@@ -107,10 +107,12 @@ goV value = \case
       case value of
         JSON.Bool b -> return $ coerce b
         _ -> exactError $ ExactParseErrorTypeMismatch "a boolean" value
-  StringCodec mname ->
+  StringCodec mname bounds ->
     withNamed mname $
       case value of
-        JSON.String s -> return $ coerce s
+        JSON.String s -> case checkStringBounds bounds s of
+          Left err -> exactError $ ExactParseErrorStringOutOfBounds bounds s err
+          Right s' -> pure $ coerce s'
         _ -> exactError $ ExactParseErrorTypeMismatch "a string" value
   IntegerCodec mname bounds ->
     withNamed mname $
@@ -490,6 +492,7 @@ data ExactParseErrorMessage
   | ExactParseErrorDisjointBothSucceeded
   | ExactParseErrorDisjointBothFailed !ExactParseError !ExactParseError
   | ExactParseErrorUnsafeNumber !(Bounds Scientific) !Scientific !String
+  | ExactParseErrorStringOutOfBounds !StringBounds !Text !String
   | ExactParseErrorNumberOutOfBounds !(Bounds Scientific) !Scientific !String
   | ExactParseErrorIntegerOutOfBounds !(Bounds Integer) !Integer !String
   | ExactParseErrorMissingRequiredKey !Key !JSON.Object
@@ -551,6 +554,8 @@ prettyExactParseErrorMessage = \case
     [unwords ["Number is out of bounds:", show @Scientific s], err]
   ExactParseErrorIntegerOutOfBounds _ i err ->
     [unwords ["Integer is out of bounds:", show @Integer i], err]
+  ExactParseErrorStringOutOfBounds _ t err ->
+    [unwords ["String is out of bounds:", show @Text t], err]
   ExactParseErrorMissingRequiredKey key o ->
     appendOnLine' ["Missing required key:", show @Key key ++ ", in object:"] (showObject o)
   ExactParseErrorMissingDiscriminator key o ->

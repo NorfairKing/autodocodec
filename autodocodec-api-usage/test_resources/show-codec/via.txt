@@ -5,9 +5,23 @@ ObjectOfCodec
         _
         _
         (RequiredKeyCodec
-           "one" (Just "first field") (StringCodec Nothing)))
+           "one"
+           (Just "first field")
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                })))
      (BimapCodec
         _
         _
         (RequiredKeyCodec
-           "two" (Just "second field") (StringCodec Nothing))))
+           "two"
+           (Just "second field")
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                }))))

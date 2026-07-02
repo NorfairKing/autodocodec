@@ -143,7 +143,7 @@ instance GenValid JSONSchema where
     AnySchema -> []
     NullSchema -> [AnySchema]
     BoolSchema -> [AnySchema]
-    StringSchema -> [AnySchema]
+    StringSchema mBounds -> AnySchema : (StringSchema <$> shrinkValid mBounds)
     IntegerSchema mBounds -> AnySchema : (IntegerSchema <$> shrinkValid mBounds)
     NumberSchema mBounds -> AnySchema : (NumberSchema <$> shrinkValid mBounds)
     MapSchema s -> AnySchema : s : (MapSchema <$> shrinkValid s)
@@ -163,10 +163,11 @@ instance GenValid JSONSchema where
       pure $ WithDefSchema name' s'
   genValid = sized $ \n ->
     if n <= 1
-      then elements [AnySchema, NullSchema, BoolSchema, StringSchema]
+      then elements [AnySchema, NullSchema, BoolSchema]
       else
         oneof
           [ IntegerSchema <$> genValid,
+            StringSchema <$> genValid,
             NumberSchema <$> genValid,
             ArraySchema <$> resize (n - 1) genValid,
             MapSchema <$> resize (n - 1) genValid,
@@ -215,6 +216,10 @@ instance GenValid ObjectSchema where
           ]
 
 instance (GenValid a) => GenValid (Bounds a) where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid StringBounds where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 

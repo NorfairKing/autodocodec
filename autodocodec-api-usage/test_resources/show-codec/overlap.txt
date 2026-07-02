@@ -10,9 +10,25 @@ BimapCodec
               _
               _
               (RequiredKeyCodec
-                 "type" Nothing (EqCodec "a" (StringCodec Nothing))))
+                 "type"
+                 Nothing
+                 (EqCodec
+                    "a"
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         }))))
            (RequiredKeyCodec
-              "text" (Just "text for a") (StringCodec Nothing))))
+              "text"
+              (Just "text for a")
+              (StringCodec
+                 Nothing
+                 StringBounds
+                   { stringBoundsMinLength = Nothing
+                   , stringBoundsMaxLength = Nothing
+                   }))))
      (ObjectOfCodec
         (Just "B")
         (ApCodec
@@ -20,7 +36,16 @@ BimapCodec
               _
               _
               (RequiredKeyCodec
-                 "type" Nothing (EqCodec "b" (StringCodec Nothing))))
+                 "type"
+                 Nothing
+                 (EqCodec
+                    "b"
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         }))))
            (RequiredKeyCodec
               "int"
               (Just "int for b")

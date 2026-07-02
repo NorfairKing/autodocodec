@@ -1,1 +1,6 @@
-StringCodec Nothing
+StringCodec
+  Nothing
+  StringBounds
+    { stringBoundsMinLength = Nothing
+    , stringBoundsMaxLength = Nothing
+    }

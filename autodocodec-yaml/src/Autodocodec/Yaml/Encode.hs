@@ -34,7 +34,7 @@ toYamlVia = flip go
     go a = \case
       NullCodec -> Yaml.null
       BoolCodec _ -> Yaml.bool (coerce a :: Bool)
-      StringCodec _ -> Yaml.string (coerce a :: Text)
+      StringCodec _ _ -> Yaml.string (coerce a :: Text)
       IntegerCodec _ _ -> Yaml.scientific $ fromInteger (coerce a :: Integer)
       NumberCodec _ _ -> yamlNumber (coerce a :: Scientific)
       ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (coerce a :: Vector _)))

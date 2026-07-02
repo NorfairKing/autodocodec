@@ -1,1 +1,8 @@
-ArrayOfCodec Nothing (StringCodec Nothing)
+ArrayOfCodec
+  Nothing
+  (StringCodec
+     Nothing
+     StringBounds
+       { stringBoundsMinLength = Nothing
+       , stringBoundsMaxLength = Nothing
+       })

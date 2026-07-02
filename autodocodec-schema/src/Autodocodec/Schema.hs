@@ -56,7 +56,7 @@ data JSONSchema
   = AnySchema
   | NullSchema
   | BoolSchema
-  | StringSchema
+  | StringSchema !StringBounds
   | IntegerSchema !(Bounds Integer)
   | NumberSchema !(Bounds Scientific)
   | ArraySchema !JSONSchema
@@ -92,7 +92,12 @@ instance ToJSON JSONSchema where
         AnySchema -> []
         NullSchema -> ["type" JSON..= ("null" :: Text)]
         BoolSchema -> ["type" JSON..= ("boolean" :: Text)]
-        StringSchema -> ["type" JSON..= ("string" :: Text)]
+        StringSchema StringBounds {..} -> 
+          catMaybes
+            [ Just ("type" JSON..= ("string" :: Text)),
+              ("maxLength" JSON..=) <$> stringBoundsMaxLength,
+              ("minLength" JSON..=) <$> stringBoundsMinLength
+            ]
         IntegerSchema Bounds {..} ->
           catMaybes
             [ Just ("type" JSON..= ("integer" :: Text)),
@@ -144,7 +149,10 @@ instance FromJSON JSONSchema where
     fmap (commentFunc . defsFunc) $ case mt :: Maybe Text of
       Just "null" -> pure NullSchema
       Just "boolean" -> pure BoolSchema
-      Just "string" -> pure StringSchema
+      Just "string" -> do
+        stringBoundsMinLength <- o JSON..:? "minLength"
+        stringBoundsMaxLength <- o JSON..:? "maxLength"
+        pure $ StringSchema StringBounds {..}
       Just "integer" -> do
         boundsLower <- o JSON..:? "minimum"
         boundsUpper <- o JSON..:? "maximum"
@@ -295,7 +303,7 @@ goValue :: ValueCodec input output -> State (Set Text) JSONSchema
 goValue = \case
   NullCodec -> pure NullSchema
   BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
-  StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
+  StringCodec mname mBounds -> pure $ maybe id CommentSchema mname $ StringSchema mBounds
   IntegerCodec mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
   NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
   ArrayOfCodec mname c -> do
@@ -419,8 +427,10 @@ validateValue value = \case
   BoolSchema -> pure $ case value of
     JSON.Bool _ -> True
     _ -> False
-  StringSchema -> pure $ case value of
-    JSON.String _ -> True
+  StringSchema bounds -> pure $ case value of
+    JSON.String s -> case checkStringBounds bounds s of
+      Left _ -> False
+      Right _ -> True
     _ -> False
   IntegerSchema bounds -> pure $ case value of
     JSON.Number s -> case checkBounds (fromInteger <$> bounds) s of
