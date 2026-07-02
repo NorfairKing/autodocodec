@@ -1357,6 +1357,20 @@ boolCodec = BoolCodec Nothing
 textCodec :: JSONCodec Text
 textCodec = StringCodec Nothing emptyStringBounds
 
+-- | Codec for 'Text' values with bounds
+--
+--
+-- === Example usage
+--
+-- >>> JSON.parseMaybe (parseJSONVia (textWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10})) (String "hello")
+-- Just "hello"
+--
+-- >>> JSON.parseMaybe (parseJSONVia (textWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 4})) (String "hello")
+-- Nothing
+
+textWithBoundsCodec :: StringBounds -> JSONCodec Text
+textWithBoundsCodec bounds = StringCodec Nothing bounds
+
 -- | Codec for 'String' values
 --
 --
@@ -1379,6 +1393,32 @@ textCodec = StringCodec Nothing emptyStringBounds
 -- This is a 'String' version of 'textCodec'.
 stringCodec :: JSONCodec String
 stringCodec = dimapCodec T.unpack T.pack textCodec
+
+-- | Codec for 'String' values with bounds
+--
+--
+-- === Example usage
+--
+-- >>> JSON.parseMaybe (parseJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10})) (String "hello")
+-- Just "hello"
+--
+-- >>> JSON.parseMaybe (parseJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 4})) (String "hello")
+-- Nothing
+--
+--
+-- === WARNING
+--
+-- This codec uses 'T.unpack' and 'T.pack' to dimap a 'textWithBoundsCodec', so it __does not roundtrip__.
+--
+-- >>> toJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10}) "\55296"
+-- String "\65533"
+--
+--
+-- ==== API Note
+--
+-- This is a 'String' version of 'textWithBoundsCodec'.
+stringWithBoundsCodec :: StringBounds -> JSONCodec String
+stringWithBoundsCodec bounds = dimapCodec T.unpack T.pack (textWithBoundsCodec bounds)
 
 -- | Codec for 'Scientific' values
 --
