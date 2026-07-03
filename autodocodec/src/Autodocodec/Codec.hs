@@ -299,7 +299,9 @@ data Codec context input output where
     ObjectCodec input newOutput
 
 data StringBounds = StringBounds
-  { stringBoundsMinLength :: !(Maybe Natural),
+  { -- | Lower bound, inclusive. A string is valid if its length is greater than, or equal to, this value.
+    stringBoundsMinLength :: !(Maybe Natural),
+    -- | Upper bound, inclusive. A string is valid if its length is less than, or equal to, this value.
     stringBoundsMaxLength :: !(Maybe Natural)
   }
   deriving (Show, Eq, Ord, Generic)
