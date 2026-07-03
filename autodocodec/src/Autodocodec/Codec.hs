@@ -1358,6 +1358,9 @@ textCodec = StringCodec Nothing emptyStringBounds
 
 -- | Codec for 'Text' values with bounds
 --
+-- During parsing, only 'Text' values within the given boundaries are accepted.
+--
+-- During rendering, the value is not checked and is simply output as is.
 --
 -- === Example usage
 --
@@ -1394,6 +1397,9 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 
 -- | Codec for 'String' values with bounds
 --
+-- During parsing, only 'String' values within the given boundaries are accepted.
+--
+-- During rendering, the value is not checked and is simply output as is.
 --
 -- === Example usage
 --
