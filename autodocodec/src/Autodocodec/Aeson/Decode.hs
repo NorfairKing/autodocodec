@@ -2,6 +2,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Autodocodec.Aeson.Decode
@@ -15,6 +17,12 @@ module Autodocodec.Aeson.Decode
 
     -- ** Internal
     parseJSONContextVia,
+
+    -- * Decoding "Trees That Grow" extension nodes
+    ParseExt (..),
+    parseJSONViaExt,
+    parseJSONObjectViaExt,
+    parseJSONContextViaExt,
   )
 where
 
@@ -52,13 +60,46 @@ parseJSONObjectVia = parseJSONContextVia
 --
 -- You probably won't need this. See 'eitherDecodeViaCodec', 'parseJSONViaCodec' and 'parseJSONVia' instead.
 parseJSONContextVia :: Codec Vanilla context void a -> context -> JSON.Parser a
-parseJSONContextVia codec_ context_ =
+parseJSONContextVia = parseJSONContextViaExt vanillaParseExt
+
+-- Everything below is for parsing 'Codec's at phases other than 'Vanilla',
+-- i.e. codecs that may contain 'XCodec' "Trees That Grow" extension nodes.
+
+-- | How to parse the 'XCodec' extension nodes of a given @phase@.
+--
+-- The handler receives the extension payload and the 'JSON.Value' at the node
+-- and produces a parser for the value (recovered at 'XVal').
+--
+-- At the 'Vanilla' phase there are no extension nodes, so 'vanillaParseExt'
+-- provides a handler that can never be called.
+newtype ParseExt phase = ParseExt
+  { runParseExt :: XXCodec phase -> JSON.Value -> JSON.Parser (XVal phase)
+  }
+
+-- | The 'ParseExt' for the 'Vanilla' phase; its handler is unreachable.
+vanillaParseExt :: ParseExt Vanilla
+vanillaParseExt = ParseExt (\x _ -> noExtCon x)
+
+-- | Like 'parseJSONVia', but for a 'Codec' at any @phase@, given a handler for
+-- its extension nodes.
+parseJSONViaExt :: ParseExt phase -> Codec phase JSON.Value void a -> JSON.Value -> JSON.Parser a
+parseJSONViaExt = parseJSONContextViaExt
+
+-- | Like 'parseJSONObjectVia', but for a 'Codec' at any @phase@, given a
+-- handler for its extension nodes.
+parseJSONObjectViaExt :: ParseExt phase -> Codec phase JSON.Object void a -> JSON.Object -> JSON.Parser a
+parseJSONObjectViaExt = parseJSONContextViaExt
+
+-- | Like 'parseJSONContextVia', but for a 'Codec' at any @phase@, given a
+-- handler for its extension nodes.
+parseJSONContextViaExt :: forall phase context void a. ParseExt phase -> Codec phase context void a -> context -> JSON.Parser a
+parseJSONContextViaExt ext codec_ context_ =
   modifyFailure (\s -> if '\n' `elem` s then "\n" ++ s else s) $
     go context_ codec_
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
-    go :: context -> Codec Vanilla context void a -> JSON.Parser a
+    go :: forall context' void' a'. context' -> Codec phase context' void' a' -> JSON.Parser a'
     go value = \case
       NullCodec _ -> case (value :: JSON.Value) of
         Null -> coerce (pure () :: JSON.Parser ())
@@ -121,8 +162,8 @@ parseJSONContextVia codec_ context_ =
             Just name -> withObject (T.unpack name) f value
         )
           (\object_ -> (`go` c) (object_ :: JSON.Object))
-      HashMapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _))
-      MapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _))
+      HashMapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (goList c) value :: JSON.Parser (HashMap _ _))
+      MapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (goList c) value :: JSON.Parser (Map _ _))
       ValueCodec _ -> pure $ coerce value
       EqCodec _ expected c -> do
         actual <- go value c
@@ -175,6 +216,19 @@ parseJSONContextVia codec_ context_ =
         coerce $ case mValueAtKey of
           Nothing -> pure defaultValue
           Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
-      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec noExtField k c defaultValue mDoc
+      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue _ -> do
+        let key = Compat.toKey k
+            mValueAtKey = Compat.lookupKey key (value :: JSON.Object)
+        coerce $ case mValueAtKey of
+          Nothing -> pure defaultValue
+          Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
       PureCodec _ a -> pure a
       ApCodec _ ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
+      XCodec meta -> coerce <$> runParseExt ext meta value
+    -- A phase-polymorphic list parser, mirroring 'listCodec's parsing: parse an
+    -- array and parse each element with the element codec. Inlined because the
+    -- 'Vanilla'-pinned 'listCodec' would not typecheck at an arbitrary phase.
+    goList :: forall elemInput elemOutput. Codec phase JSON.Value elemInput elemOutput -> JSON.Value -> JSON.Parser [elemOutput]
+    goList c v = do
+      vec <- parseJSON v :: JSON.Parser (Vector JSON.Value)
+      V.toList <$> V.imapM (\ix el -> go el c JSON.<?> Index ix) vec

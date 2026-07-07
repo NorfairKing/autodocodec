@@ -88,7 +88,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
               8 -> "lib.types.ints.s8"
               _ -> "lib.types.int" -- TODO bounds?
             OtherIntegerBounds _ _ -> "lib.types.int" -- TODO bounds?
-      NumberCodec _ _ _ -> Just $ OptionTypeSimple "lib.types.number"
+      NumberCodec {} -> Just $ OptionTypeSimple "lib.types.number"
       HashMapCodec _ c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       MapCodec _ c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec _ -> Just (OptionTypeSimple "lib.types.unspecified")

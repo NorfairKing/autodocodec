@@ -35,8 +35,8 @@ toYamlVia = flip go
       NullCodec _ -> Yaml.null
       BoolCodec _ _ -> Yaml.bool (coerce a :: Bool)
       StringCodec _ _ -> Yaml.string (coerce a :: Text)
-      IntegerCodec _ _ _ -> Yaml.scientific $ fromInteger (coerce a :: Integer)
-      NumberCodec _ _ _ -> yamlNumber (coerce a :: Scientific)
+      IntegerCodec {} -> Yaml.scientific $ fromInteger (coerce a :: Integer)
+      NumberCodec {} -> yamlNumber (coerce a :: Scientific)
       ArrayOfCodec _ _ c -> Yaml.array (map (`go` c) (V.toList (coerce a :: Vector _)))
       ObjectOfCodec _ _ oc -> Yaml.mapping (goObject a oc)
       c@(HashMapCodec {}) -> go (toJSONVia c a) valueCodec -- This may be optimisable?
@@ -57,10 +57,8 @@ toYamlVia = flip go
         Nothing -> []
         Just b -> [k Yaml..= go b c]
       OptionalKeyWithDefaultCodec _ k c _ mDoc -> goObject (Just a) (optionalKeyCodec k c mDoc)
-      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc ->
-        if coerce a == defaultValue
-          then []
-          else goObject a (optionalKeyWithDefaultCodec k (coerce c) (coerce defaultValue) mDoc)
+      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue _ ->
+        [(k, go (coerce a) c) | coerce a /= defaultValue]
       BimapCodec _ _ g c -> goObject (g a) c
       EitherCodec _ _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> goObject a1 c1
