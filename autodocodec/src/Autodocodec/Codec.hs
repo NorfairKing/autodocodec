@@ -26,6 +26,8 @@ import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Types as JSON
 import Data.Coerce (Coercible)
+import Data.Data (TypeRep)
+import Data.Dynamic (Dynamic)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Hashable
@@ -227,6 +229,14 @@ data Codec context input output where
     Text ->
     ValueCodec input output ->
     ValueCodec input output
+  -- | An extension codec
+  --
+  -- This is used to add implementation-irrelevant but human-relevant information.
+  ExtensionCodec ::
+    -- | Extension
+    Map TypeRep Dynamic ->
+    ValueCodec input output ->
+    ValueCodec input output
   -- | A reference codec
   --
   -- This is used for naming a codec, so that recursive codecs can have a finite schema.
@@ -426,6 +436,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
         let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
         pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
       CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
+      ExtensionCodec _ c -> (\s -> showParen (d > 10) $ showString "ExtensionCodec _ " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
         if alreadySeen

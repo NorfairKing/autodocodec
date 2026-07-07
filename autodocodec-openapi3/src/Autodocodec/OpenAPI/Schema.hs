@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Autodocodec.OpenAPI.Schema where
 
@@ -16,15 +17,21 @@ import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
 import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
 import qualified Data.Aeson as Aeson
+import Data.Data (typeRep)
+import Data.Dynamic (fromDynamic)
 import qualified Data.Foldable as Foldable
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import qualified Data.Map as Map
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
+
+-- | Extension type for OpenAPI schema extensions.
+data OpenAPIExt = OpenAPIExt (Schema -> Schema)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -127,6 +134,13 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
+      ExtensionCodec ext c ->
+        let f = case Map.lookup (typeRep (Proxy @OpenAPIExt)) ext >>= fromDynamic of
+              Just (OpenAPIExt f') -> f'
+              Nothing -> id
+         in do
+              NamedSchema mName s <- go c
+              pure $ NamedSchema mName (f s)
       ReferenceCodec n c -> do
         seenSchemas <- State.get
         case HashMap.lookup n seenSchemas of

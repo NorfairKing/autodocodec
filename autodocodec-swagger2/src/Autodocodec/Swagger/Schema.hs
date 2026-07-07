@@ -116,6 +116,7 @@ declareNamedSchemaVia c' Proxy = go c'
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
       BimapCodec _ _ c -> go c
+      ExtensionCodec _ c -> go c
       EitherCodec u c1 c2 -> do
         ns1 <- go c1
         let s1 = _namedSchemaSchema ns1
