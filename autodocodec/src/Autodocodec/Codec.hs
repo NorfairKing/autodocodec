@@ -371,8 +371,6 @@ data Codec phase context input output where
 data NoExtField = NoExtField
   deriving (Show, Eq, Generic)
 
-instance Validity NoExtField
-
 -- | The single value of 'NoExtField'.
 noExtField :: NoExtField
 noExtField = NoExtField

@@ -1,7 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
@@ -73,13 +72,15 @@ toSeriesVia = toSeriesViaExt vanillaToEncodingExt
 -- Everything below is for encoding 'Codec's at phases other than 'Vanilla',
 -- i.e. codecs that may contain 'XValCodec' "Trees That Grow" extension nodes.
 
--- | How to encode the 'XValCodec' extension nodes of a given @phase@ to
--- 'JSON.Value's and 'JSON.Object's.
+-- | How to encode a @phase@'s extension nodes to JSON: 'toJSONValueExt' handles
+-- 'XValCodec' (value-context) nodes and 'toJSONObjectExt' handles 'XObjCodec'
+-- (object-context) nodes. Each handler receives the (typed) extension payload
+-- and the value being encoded, recovered at 'XVal' \/ 'XObj'.
 --
--- An extension node is polymorphic in the codec context, so it may appear both
--- where a value or where an object is expected; hence there is one handler for
--- each. Each handler receives the (typed) extension payload and the value being
--- encoded.
+-- NOTE: because you supply the encode, 'ToEncodingExt' and 'ParseExt' handlers
+-- separately, /you/ are responsible for keeping them consistent (that decoding
+-- inverts encoding, and that 'toEncoding' agrees with 'toJSON'); the library
+-- cannot check this, just as it cannot for a hand-written 'bimapCodec'.
 --
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaToJSONExt'
 -- provides handlers that can never be called.
