@@ -31,7 +31,7 @@ import Data.Scientific
 import Data.Text (Text)
 
 -- | Extension type for OpenAPI schema extensions.
-data OpenAPIExt = OpenAPIExt (Schema -> Schema)
+data OpenAPIExt = OpenAPIExt (NamedSchema -> Declare (Definitions Schema) NamedSchema)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -137,10 +137,10 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
       ExtensionCodec ext c ->
         let f = case Map.lookup (typeRep (Proxy @OpenAPIExt)) ext >>= fromDynamic of
               Just (OpenAPIExt f') -> f'
-              Nothing -> id
+              Nothing -> pure
          in do
-              NamedSchema mName s <- go c
-              pure $ NamedSchema mName (f s)
+              ns <- go c
+              lift $ f ns
       ReferenceCodec n c -> do
         seenSchemas <- State.get
         case HashMap.lookup n seenSchemas of
