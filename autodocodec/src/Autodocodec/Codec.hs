@@ -3,6 +3,8 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
@@ -15,6 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 -- Because Eq is a superclass of Hashable in newer versions.
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
@@ -78,27 +81,43 @@ import qualified Data.Aeson.KeyMap as KM
 -- * The @input@ parameter is used for the type that is used during encoding of a value, so it's the @input@ to the codec.
 -- * The @output@ parameter is used for the type that is used during decoding of a value, so it's the @output@ of the codec.
 -- * Both parameters are unused during documentation.
-type role Codec _ representational representational
+type role Codec _ _ representational representational
 
-data Codec context input output where
+-- | A codec, in the "Trees That Grow" style.
+--
+-- The @phase@ type parameter is a "Trees That Grow" (Najd & Peyton Jones)
+-- index. Each constructor carries a per-constructor extension field, whose
+-- type is given by a type family (e.g. 'XNullCodec' for 'NullCodec'), and
+-- there is a single extension constructor 'XCodec' whose payload type is given
+-- by the 'XXCodec' family. This lets other phases decorate the tree (or add
+-- constructors) without touching this definition.
+--
+-- This library only ever instantiates @phase@ at the 'Vanilla' phase, at which
+-- every extension field is 'NoExtField' and the extension constructor is
+-- uninhabited (see the 'Vanilla' instances below). The public 'ValueCodec',
+-- 'ObjectCodec' and 'JSONCodec' synonyms are all pinned to 'Vanilla'.
+data Codec phase context input output where
   -- | Encode '()' to the @null@ value, and decode @null@ as '()'.
   NullCodec ::
     (Coercible a (), Coercible b ()) =>
-    ValueCodec a b
+    !(XNullCodec phase) ->
+    ValueCodecAt phase a b
   -- | Encode a 'Bool' to a @boolean@ value, and decode a @boolean@ value as a 'Bool'.
   BoolCodec ::
     (Coercible a Bool, Coercible b Bool) =>
+    !(XBoolCodec phase) ->
     -- | Name of the @bool@, for error messages and documentation.
     Maybe Text ->
-    ValueCodec a b
+    ValueCodecAt phase a b
   -- | Encode 'Text' to a @string@ value, and decode a @string@ value as a 'Text'.
   --
   -- This is named after the primitive type "String" in json, not after the haskell type string.
   StringCodec ::
     (Coercible a Text, Coercible b Text) =>
+    !(XStringCodec phase) ->
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
-    ValueCodec a b
+    ValueCodecAt phase a b
   -- | Encode 'Integer' to a @number@ value, and decode a @number@ value as an 'Integer'.
   --
   -- The number has 'Bounds Integer'.
@@ -109,11 +128,12 @@ data Codec context input output where
   -- more precise documentation about whether the numbers are integers.
   IntegerCodec ::
     (Coercible a Integer, Coercible b Integer) =>
+    !(XIntegerCodec phase) ->
     -- | Name of the @integer@, for error messages and documentation.
     Maybe Text ->
     -- | Bounds for the integer, these are checked and documented
     Bounds Integer ->
-    ValueCodec a b
+    ValueCodecAt phase a b
   -- | Encode 'Scientific' to a @number@ value, and decode a @number@ value as a 'Scientific'.
   --
   -- The number has 'Bounds Scientific'.
@@ -122,56 +142,64 @@ data Codec context input output where
   -- NOTE: We use 'Scientific' here because that is what aeson uses.
   NumberCodec ::
     (Coercible a Scientific, Coercible b Scientific) =>
+    !(XNumberCodec phase) ->
     -- | Name of the @number@, for error messages and documentation.
     Maybe Text ->
     -- | Bounds for the number, these are checked and documented
     Bounds Scientific ->
-    ValueCodec a b
+    ValueCodecAt phase a b
   -- | Encode a 'HashMap', and decode any 'HashMap'.
   HashMapCodec ::
     (Eq k, Hashable k, FromJSONKey k, ToJSONKey k, Coercible a (HashMap k v), Coercible b (HashMap k v)) =>
-    JSONCodec v ->
-    ValueCodec a b
+    !(XHashMapCodec phase) ->
+    JSONCodecAt phase v ->
+    ValueCodecAt phase a b
   -- | Encode a 'Map', and decode any 'Map'.
   MapCodec ::
     (Ord k, FromJSONKey k, ToJSONKey k, Coercible a (Map k v), Coercible b (Map k v)) =>
-    JSONCodec v ->
-    ValueCodec a b
+    !(XMapCodec phase) ->
+    JSONCodecAt phase v ->
+    ValueCodecAt phase a b
   -- | Encode a 'JSON.Value', and decode any 'JSON.Value'.
   ValueCodec ::
     (Coercible JSON.Value a, Coercible JSON.Value b) =>
-    ValueCodec a b
+    !(XValueCodec phase) ->
+    ValueCodecAt phase a b
   -- | Encode a 'Vector' of values as an @array@ value, and decode an @array@ value as a 'Vector' of values.
   ArrayOfCodec ::
     (Coercible a (Vector input), Coercible b (Vector output)) =>
+    !(XArrayOfCodec phase) ->
     -- | Name of the @array@, for error messages and documentation.
     Maybe Text ->
-    ValueCodec input output ->
-    ValueCodec a b
+    ValueCodecAt phase input output ->
+    ValueCodecAt phase a b
   -- | Encode a value as a an @object@ value using the given 'ObjectCodec', and decode an @object@ value as a value using the given 'ObjectCodec'.
   ObjectOfCodec ::
+    !(XObjectOfCodec phase) ->
     -- | Name of the @object@, for error messages and documentation.
     Maybe Text ->
-    ObjectCodec input output ->
-    ValueCodec input output
+    ObjectCodecAt phase input output ->
+    ValueCodecAt phase input output
   -- | Match a given value using its 'Eq' instance during decoding, and encode exactly that value during encoding.
   EqCodec ::
     (Show value, Eq value, Coercible a value, Coercible b value) =>
+    !(XEqCodec phase) ->
     -- | Value to match
     value ->
     -- | Codec for the value
-    JSONCodec value ->
-    ValueCodec a b
+    JSONCodecAt phase value ->
+    ValueCodecAt phase a b
   -- | Map a codec in both directions.
   --
   -- This is not strictly dimap, because the decoding function is allowed to fail,
   -- but we can implement dimap using this function by using a decoding function that does not fail.
   -- Otherwise we would have to have another constructor here.
   BimapCodec ::
+    !(XBimapCodec phase) ->
     (oldOutput -> Either String newOutput) ->
     (newInput -> oldInput) ->
-    Codec context oldInput oldOutput ->
-    Codec context newInput newOutput
+    Codec phase context oldInput oldOutput ->
+    Codec phase context newInput newOutput
   -- | Encode/Decode an 'Either' value
   --
   -- During encoding, encode either value of an 'Either' using their own codec.
@@ -187,13 +215,14 @@ data Codec context input output where
   -- because those docs are easier to generate.
   EitherCodec ::
     (Coercible a (Either input1 input2), Coercible b (Either output1 output2)) =>
+    !(XEitherCodec phase) ->
     -- | What type of union we encode and decode
     !Union ->
     -- | Codec for the 'Left' side
-    Codec context input1 output1 ->
+    Codec phase context input1 output1 ->
     -- | Codec for the 'Right' side
-    Codec context input2 output2 ->
-    Codec context a b
+    Codec phase context input2 output2 ->
+    Codec phase context a b
   -- | Encode/decode a discriminated union of objects
   --
   -- The type of object being encoded/decoded is discriminated by
@@ -211,22 +240,24 @@ data Codec context input output where
   -- In particular, for OpenAPI 3, it will generate a schema with a 'discriminator', as defined
   -- by https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
   DiscriminatedUnionCodec ::
+    !(XDiscriminatedUnionCodec phase) ->
     -- | propertyName to use for discrimination
     Text ->
     -- | how to encode the input
-    (input -> (Discriminator, ObjectCodec input ())) ->
+    (input -> (Discriminator, ObjectCodecAt phase input ())) ->
     -- | how to decode the output
     -- The 'Text' field is the name to use for the object schema.
-    HashMap Discriminator (Text, ObjectCodec Void output) ->
-    ObjectCodec input output
+    HashMap Discriminator (Text, ObjectCodecAt phase Void output) ->
+    ObjectCodecAt phase input output
   -- | A comment codec
   --
   -- This is used to add implementation-irrelevant but human-relevant information.
   CommentCodec ::
+    !(XCommentCodec phase) ->
     -- | Comment
     Text ->
-    ValueCodec input output ->
-    ValueCodec input output
+    ValueCodecAt phase input output ->
+    ValueCodecAt phase input output
   -- | A reference codec
   --
   -- This is used for naming a codec, so that recursive codecs can have a finite schema.
@@ -235,66 +266,208 @@ data Codec context input output where
   --
   -- This value MUST be lazy, otherwise we can never define recursive codecs.
   ReferenceCodec ::
+    !(XReferenceCodec phase) ->
     -- | Name
     Text ->
-    ~(ValueCodec input output) ->
-    ValueCodec input output
+    ~(ValueCodecAt phase input output) ->
+    ValueCodecAt phase input output
   RequiredKeyCodec ::
     (Coercible a input, Coercible b output) =>
+    !(XRequiredKeyCodec phase) ->
     -- | Key
     Text ->
     -- | Codec for the value
-    ValueCodec input output ->
+    ValueCodecAt phase input output ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec a b
+    ObjectCodecAt phase a b
   OptionalKeyCodec ::
     (Coercible a (Maybe input), Coercible b (Maybe output)) =>
+    !(XOptionalKeyCodec phase) ->
     -- | Key
     Text ->
     -- | Codec for the value
-    ValueCodec input output ->
+    ValueCodecAt phase input output ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec a b
+    ObjectCodecAt phase a b
   OptionalKeyWithDefaultCodec ::
     (Coercible b value) =>
+    !(XOptionalKeyWithDefaultCodec phase) ->
     -- | Key
     Text ->
     -- | Codec for the value
-    ValueCodec value value ->
+    ValueCodecAt phase value value ->
     -- | Default value
     value ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec value b
+    ObjectCodecAt phase value b
   OptionalKeyWithOmittedDefaultCodec ::
     (Eq value, Coercible a value, Coercible b value) =>
+    !(XOptionalKeyWithOmittedDefaultCodec phase) ->
     -- | Key
     Text ->
     -- | Codec for the value
-    ValueCodec value value ->
+    ValueCodecAt phase value value ->
     -- | Default value
     value ->
     -- | Documentation
     Maybe Text ->
-    ObjectCodec a b
+    ObjectCodecAt phase a b
   -- | To implement 'pure' from 'Applicative'.
   --
   -- Pure is not available for non-object codecs because there is no 'mempty' for 'JSON.Value', which we would need during encoding.
   PureCodec ::
+    !(XPureCodec phase) ->
     output ->
     -- |
     --
     -- We have to use 'void' instead of 'Void' here to be able to implement 'Applicative'.
-    ObjectCodec void output
+    ObjectCodecAt phase void output
   -- | To implement '<*>' from 'Applicative'.
   --
   -- Ap is not available for non-object codecs because we cannot combine ('mappend') two encoded 'JSON.Value's
   ApCodec ::
-    ObjectCodec input (output -> newOutput) ->
-    ObjectCodec input output ->
-    ObjectCodec input newOutput
+    !(XApCodec phase) ->
+    ObjectCodecAt phase input (output -> newOutput) ->
+    ObjectCodecAt phase input output ->
+    ObjectCodecAt phase input newOutput
+  -- | The "Trees That Grow" extension constructor.
+  --
+  -- At the 'Vanilla' phase its payload is uninhabited ('NoExtCon'), so this
+  -- constructor cannot occur and pattern matches at 'Vanilla' need not mention
+  -- it.
+  XCodec ::
+    !(XXCodec phase) ->
+    Codec phase context input output
+
+-- | Placeholder for a "Trees That Grow" extension field that carries no
+-- information, used by the 'Vanilla' phase.
+data NoExtField = NoExtField
+  deriving (Show, Eq, Generic)
+
+instance Validity NoExtField
+
+-- | The single value of 'NoExtField'.
+noExtField :: NoExtField
+noExtField = NoExtField
+
+-- | Payload for the 'XCodec' extension constructor in phases that add no
+-- constructors. It is uninhabited, so 'XCodec' cannot be constructed and
+-- pattern matches on it are unreachable.
+data NoExtCon
+
+-- | Eliminator for the uninhabited 'NoExtCon'.
+noExtCon :: NoExtCon -> a
+noExtCon x = case x of {}
+
+-- | The phase at which this library instantiates 'Codec': no decorations, no
+-- extra constructors.
+data Vanilla
+
+-- Phase-polymorphic aliases, used in the definition of 'Codec' itself.
+
+-- | A 'Codec' in the 'JSON.Value' context, at a given phase.
+type ValueCodecAt phase = Codec phase JSON.Value
+
+-- | A 'Codec' in the 'JSON.Object' context, at a given phase.
+type ObjectCodecAt phase = Codec phase JSON.Object
+
+-- | A 'ValueCodecAt' whose input and output types coincide.
+type JSONCodecAt phase a = ValueCodecAt phase a a
+
+type family XNullCodec phase
+
+type family XBoolCodec phase
+
+type family XStringCodec phase
+
+type family XIntegerCodec phase
+
+type family XNumberCodec phase
+
+type family XHashMapCodec phase
+
+type family XMapCodec phase
+
+type family XValueCodec phase
+
+type family XArrayOfCodec phase
+
+type family XObjectOfCodec phase
+
+type family XEqCodec phase
+
+type family XBimapCodec phase
+
+type family XEitherCodec phase
+
+type family XDiscriminatedUnionCodec phase
+
+type family XCommentCodec phase
+
+type family XReferenceCodec phase
+
+type family XRequiredKeyCodec phase
+
+type family XOptionalKeyCodec phase
+
+type family XOptionalKeyWithDefaultCodec phase
+
+type family XOptionalKeyWithOmittedDefaultCodec phase
+
+type family XPureCodec phase
+
+type family XApCodec phase
+
+type family XXCodec phase
+
+type instance XNullCodec Vanilla = NoExtField
+
+type instance XBoolCodec Vanilla = NoExtField
+
+type instance XStringCodec Vanilla = NoExtField
+
+type instance XIntegerCodec Vanilla = NoExtField
+
+type instance XNumberCodec Vanilla = NoExtField
+
+type instance XHashMapCodec Vanilla = NoExtField
+
+type instance XMapCodec Vanilla = NoExtField
+
+type instance XValueCodec Vanilla = NoExtField
+
+type instance XArrayOfCodec Vanilla = NoExtField
+
+type instance XObjectOfCodec Vanilla = NoExtField
+
+type instance XEqCodec Vanilla = NoExtField
+
+type instance XBimapCodec Vanilla = NoExtField
+
+type instance XEitherCodec Vanilla = NoExtField
+
+type instance XDiscriminatedUnionCodec Vanilla = NoExtField
+
+type instance XCommentCodec Vanilla = NoExtField
+
+type instance XReferenceCodec Vanilla = NoExtField
+
+type instance XRequiredKeyCodec Vanilla = NoExtField
+
+type instance XOptionalKeyCodec Vanilla = NoExtField
+
+type instance XOptionalKeyWithDefaultCodec Vanilla = NoExtField
+
+type instance XOptionalKeyWithOmittedDefaultCodec Vanilla = NoExtField
+
+type instance XPureCodec Vanilla = NoExtField
+
+type instance XApCodec Vanilla = NoExtField
+
+type instance XXCodec Vanilla = NoExtCon
 
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
@@ -374,14 +547,14 @@ instance Validity Union
 -- An 'ValueCodec' can be used to turn a Haskell value into a 'JSON.Value' or to parse a 'JSON.Value' into a haskell value.
 --
 -- This cannot be used in certain places where 'ObjectCodec' could be used, and vice versa.
-type ValueCodec = Codec JSON.Value
+type ValueCodec = ValueCodecAt Vanilla
 
 -- | A codec within the 'JSON.Object' context.
 --
 -- An 'ObjectCodec' can be used to turn a Haskell value into a 'JSON.Object' or to parse a 'JSON.Object' into a haskell value.
 --
 -- This cannot be used in certain places where 'ValueCodec' could be used, and vice versa.
-type ObjectCodec = Codec JSON.Object
+type ObjectCodec = ObjectCodecAt Vanilla
 
 -- | A completed autodocodec for parsing and rendering a 'JSON.Value'.
 --
@@ -403,30 +576,30 @@ type JSONObjectCodec a = ObjectCodec a a
 --
 -- This function exists for codec debugging.
 -- It omits any unshowable information from the output.
-showCodecABit :: Codec context input output -> String
+showCodecABit :: Codec Vanilla context input output -> String
 showCodecABit = ($ "") . (`evalState` S.empty) . go 0
   where
-    go :: Int -> Codec context input output -> State (Set Text) ShowS
+    go :: Int -> Codec Vanilla context input output -> State (Set Text) ShowS
     go d = \case
-      NullCodec -> pure $ showString "NullCodec"
-      BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
-      StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
-      IntegerCodec mName mbs -> pure $ showParen (d > 10) $ showString "IntegerCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
-      NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
-      ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
-      ObjectOfCodec mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
-      ValueCodec -> pure $ showString "ValueCodec"
-      MapCodec c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
-      HashMapCodec c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
-      EqCodec value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
-      BimapCodec _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
-      EitherCodec u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
-      DiscriminatedUnionCodec propertyName _ mapping -> do
+      NullCodec _ -> pure $ showString "NullCodec"
+      BoolCodec _ mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
+      StringCodec _ mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
+      IntegerCodec _ mName mbs -> pure $ showParen (d > 10) $ showString "IntegerCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
+      NumberCodec _ mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
+      ArrayOfCodec _ mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
+      ObjectOfCodec _ mName oc -> (\s -> showParen (d > 10) $ showString "ObjectOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 oc
+      ValueCodec _ -> pure $ showString "ValueCodec"
+      MapCodec _ c -> (\s -> showParen (d > 10) $ showString "MapCodec" . s) <$> go 11 c
+      HashMapCodec _ c -> (\s -> showParen (d > 10) $ showString "HashMapCodec" . s) <$> go 11 c
+      EqCodec _ value c -> (\s -> showParen (d > 10) $ showString "EqCodec " . showsPrec 11 value . showString " " . s) <$> go 11 c
+      BimapCodec _ _ _ c -> (\s -> showParen (d > 10) $ showString "BimapCodec _ _ " . s) <$> go 11 c
+      EitherCodec _ u c1 c2 -> (\s1 s2 -> showParen (d > 10) $ showString "EitherCodec " . showsPrec 11 u . showString " " . s1 . showString " " . s2) <$> go 11 c1 <*> go 11 c2
+      DiscriminatedUnionCodec _ propertyName _ mapping -> do
         cs <- traverse (\(n, (_, c)) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
         let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
         pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
-      CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
-      ReferenceCodec name c -> do
+      CommentCodec _ comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
+      ReferenceCodec _ name c -> do
         alreadySeen <- gets (S.member name)
         if alreadySeen
           then pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name
@@ -434,12 +607,12 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
             modify (S.insert name)
             s <- go 11 c
             pure $ showParen (d > 10) $ showString "ReferenceCodec " . showsPrec 11 name . showString " " . s
-      RequiredKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
-      OptionalKeyCodec k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
-      OptionalKeyWithDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
-      OptionalKeyWithOmittedDefaultCodec k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithOmittedDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
-      PureCodec _ -> pure $ showString "PureCodec _"
-      ApCodec oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
+      RequiredKeyCodec _ k c mdoc -> (\s -> showParen (d > 10) $ showString "RequiredKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyCodec _ k c mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyCodec " . showsPrec 11 k . showString " " . showsPrec 11 mdoc . showString " " . s) <$> go 11 c
+      OptionalKeyWithDefaultCodec _ k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
+      OptionalKeyWithOmittedDefaultCodec _ k c _ mdoc -> (\s -> showParen (d > 10) $ showString "OptionalKeyWithOmittedDefaultCodec " . showsPrec 11 k . showString " " . s . showString " _ " . showsPrec 11 mdoc) <$> go 11 c
+      PureCodec _ _ -> pure $ showString "PureCodec _"
+      ApCodec _ oc1 oc2 -> (\s1 s2 -> showParen (d > 10) $ showString "ApCodec " . s1 . showString " " . s2) <$> go 11 oc1 <*> go 11 oc2
 
 -- | Map the output part of a codec
 --
@@ -452,11 +625,11 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
 -- Just 10
 rmapCodec ::
   (oldOutput -> newOutput) ->
-  Codec context input oldOutput ->
-  Codec context input newOutput
+  Codec Vanilla context input oldOutput ->
+  Codec Vanilla context input newOutput
 rmapCodec f = dimapCodec f id
 
-instance Functor (Codec context input) where
+instance Functor (Codec Vanilla context input) where
   fmap = rmapCodec
 
 -- | Map the input part of a codec
@@ -470,8 +643,8 @@ instance Functor (Codec context input) where
 -- Number 10.0
 lmapCodec ::
   (newInput -> oldInput) ->
-  Codec context oldInput output ->
-  Codec context newInput output
+  Codec Vanilla context oldInput output ->
+  Codec Vanilla context newInput output
 lmapCodec g = dimapCodec id g
 
 -- | Infix version of 'lmapCodec'
@@ -513,8 +686,8 @@ dimapCodec ::
   -- | Function to make __from__ the new type
   (newInput -> oldInput) ->
   -- | Codec for the old type
-  Codec context oldInput oldOutput ->
-  Codec context newInput newOutput
+  Codec Vanilla context oldInput oldOutput ->
+  Codec Vanilla context newInput newOutput
 dimapCodec f g = bimapCodec (Right . f) g
 
 -- | Produce a value without parsing any part of an 'Object'.
@@ -526,9 +699,9 @@ dimapCodec f g = bimapCodec (Right . f) g
 --
 -- This is a forward-compatible version of 'PureCodec'.
 --
--- > pureCodec = PureCodec
+-- > pureCodec = PureCodec noExtField
 pureCodec :: output -> ObjectCodec input output
-pureCodec = PureCodec
+pureCodec = PureCodec noExtField
 
 -- | Sequentially apply two codecs that parse part of an 'Object'.
 --
@@ -539,9 +712,9 @@ pureCodec = PureCodec
 --
 -- This is a forward-compatible version of 'ApCodec'.
 --
--- > apCodec = ApCodec
+-- > apCodec = ApCodec noExtField
 apCodec :: ObjectCodec input (output -> newOutput) -> ObjectCodec input output -> ObjectCodec input newOutput
-apCodec = ApCodec
+apCodec = ApCodec noExtField
 
 instance Applicative (ObjectCodec input) where
   pure = pureCodec
@@ -609,9 +782,9 @@ maybeCodec =
 --
 -- > eitherCodec = possiblyJointEitherCodec
 eitherCodec ::
-  Codec context input1 output1 ->
-  Codec context input2 output2 ->
-  Codec context (Either input1 input2) (Either output1 output2)
+  Codec Vanilla context input1 output1 ->
+  Codec Vanilla context input2 output2 ->
+  Codec Vanilla context (Either input1 input2) (Either output1 output2)
 eitherCodec = possiblyJointEitherCodec
 
 -- | Possibly joint either codec
@@ -683,12 +856,12 @@ eitherCodec = possiblyJointEitherCodec
 --
 -- This is a forward-compatible version of 'EitherCodec DisjointUnion'.
 --
--- > disjointEitherCodec = EitherCodec DisjointUnion
+-- > disjointEitherCodec = EitherCodec noExtField DisjointUnion
 disjointEitherCodec ::
-  Codec context input1 output1 ->
-  Codec context input2 output2 ->
-  Codec context (Either input1 input2) (Either output1 output2)
-disjointEitherCodec = EitherCodec DisjointUnion
+  Codec Vanilla context input1 output1 ->
+  Codec Vanilla context input2 output2 ->
+  Codec Vanilla context (Either input1 input2) (Either output1 output2)
+disjointEitherCodec = EitherCodec noExtField DisjointUnion
 
 -- | Possibly joint either codec
 --
@@ -752,12 +925,12 @@ disjointEitherCodec = EitherCodec DisjointUnion
 --
 -- This is a forward-compatible version of 'EitherCodec PossiblyJointUnion'.
 --
--- > possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+-- > possiblyJointEitherCodec = EitherCodec noExtField PossiblyJointUnion
 possiblyJointEitherCodec ::
-  Codec context input1 output1 ->
-  Codec context input2 output2 ->
-  Codec context (Either input1 input2) (Either output1 output2)
-possiblyJointEitherCodec = EitherCodec PossiblyJointUnion
+  Codec Vanilla context input1 output1 ->
+  Codec Vanilla context input2 output2 ->
+  Codec Vanilla context (Either input1 input2) (Either output1 output2)
+possiblyJointEitherCodec = EitherCodec noExtField PossiblyJointUnion
 
 -- | Discriminator value used in 'DiscriminatedUnionCodec'
 type Discriminator = Text
@@ -766,12 +939,12 @@ type Discriminator = Text
 -- and encoder for 'a's that ignores its input and instead encodes
 -- the value 'b'.
 -- This is useful for building 'discriminatedUnionCodec's.
-mapToEncoder :: b -> Codec context b any -> Codec context a ()
+mapToEncoder :: b -> Codec Vanilla context b any -> Codec Vanilla context a ()
 mapToEncoder b = dimapCodec (const ()) (const b)
 
 -- | Map a codec for decoding 'b's into a decoder for 'a's.
 -- This is useful for building 'discriminatedUnionCodec's.
-mapToDecoder :: (b -> a) -> Codec context any b -> Codec context Void a
+mapToDecoder :: (b -> a) -> Codec Vanilla context any b -> Codec Vanilla context Void a
 mapToDecoder f = dimapCodec f absurd
 
 -- | Encode/decode a discriminated union of objects
@@ -811,7 +984,7 @@ discriminatedUnionCodec ::
   -- Use 'mapToDecoder' to produce the 'ObjectCodec's.
   HashMap Discriminator (Text, ObjectCodec Void output) ->
   ObjectCodec input output
-discriminatedUnionCodec = DiscriminatedUnionCodec
+discriminatedUnionCodec = DiscriminatedUnionCodec noExtField
 
 -- | Map a codec's input and output types.
 --
@@ -829,14 +1002,14 @@ discriminatedUnionCodec = DiscriminatedUnionCodec
 bimapCodec ::
   (oldOutput -> Either String newOutput) ->
   (newInput -> oldInput) ->
-  Codec context oldInput oldOutput ->
-  Codec context newInput newOutput
+  Codec Vanilla context oldInput oldOutput ->
+  Codec Vanilla context newInput newOutput
 bimapCodec f g =
   -- We distinguish between a 'BimapCodec' and a non-'BimapCodec' just so that
   -- we don't introduce additional layers that we can already combine anyway.
   \case
-    BimapCodec f' g' c -> BimapCodec (f' >=> f) (g' . g) c
-    c -> BimapCodec f g c
+    BimapCodec _ f' g' c -> BimapCodec noExtField (f' >=> f) (g' . g) c
+    c -> BimapCodec noExtField f g c
 
 -- | Vector codec
 --
@@ -853,9 +1026,9 @@ bimapCodec f g =
 --
 -- This is a forward-compatible version of 'ArrayOfCodec' without a name.
 --
--- > vectorCodec = ArrayOfCodec Nothing
+-- > vectorCodec = ArrayOfCodec noExtField Nothing
 vectorCodec :: ValueCodec input output -> ValueCodec (Vector input) (Vector output)
-vectorCodec = ArrayOfCodec Nothing
+vectorCodec = ArrayOfCodec noExtField Nothing
 
 -- | List codec
 --
@@ -876,7 +1049,7 @@ listCodec = dimapCodec V.toList V.fromList . vectorCodec
 
 -- Some restricted constructors
 optionalKeyCodec :: Text -> ValueCodec input output -> Maybe Text -> ObjectCodec (Maybe input) (Maybe output)
-optionalKeyCodec = OptionalKeyCodec
+optionalKeyCodec = OptionalKeyCodec noExtField
 
 optionalKeyWithDefaultCodec ::
   -- | Key
@@ -888,7 +1061,7 @@ optionalKeyWithDefaultCodec ::
   -- | Documentation
   Maybe Text ->
   ObjectCodec value value
-optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec
+optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec noExtField
 
 -- | Build a codec for nonempty lists of values from a codec for a single value.
 --
@@ -998,7 +1171,7 @@ requiredFieldWith ::
   -- | Documentation
   Text ->
   ObjectCodec input output
-requiredFieldWith key c doc = RequiredKeyCodec key c (Just doc)
+requiredFieldWith key c doc = RequiredKeyCodec noExtField key c (Just doc)
 
 -- | Like 'requiredFieldWith', but without documentation.
 requiredFieldWith' ::
@@ -1007,7 +1180,7 @@ requiredFieldWith' ::
   -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec input output
-requiredFieldWith' key c = RequiredKeyCodec key c Nothing
+requiredFieldWith' key c = RequiredKeyCodec noExtField key c Nothing
 
 -- | An optional field
 --
@@ -1022,7 +1195,7 @@ optionalFieldWith ::
   -- | Documentation
   Text ->
   ObjectCodec (Maybe input) (Maybe output)
-optionalFieldWith key c doc = OptionalKeyCodec key c (Just doc)
+optionalFieldWith key c doc = OptionalKeyCodec noExtField key c (Just doc)
 
 -- | Like 'optionalFieldWith', but without documentation.
 optionalFieldWith' ::
@@ -1031,7 +1204,7 @@ optionalFieldWith' ::
   -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec (Maybe input) (Maybe output)
-optionalFieldWith' key c = OptionalKeyCodec key c Nothing
+optionalFieldWith' key c = OptionalKeyCodec noExtField key c Nothing
 
 -- | An optional field with default value
 --
@@ -1050,7 +1223,7 @@ optionalFieldWithDefaultWith ::
   -- | Documentation
   Text ->
   ObjectCodec output output
-optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCodec key c defaultValue (Just doc)
+optionalFieldWithDefaultWith key c defaultValue doc = OptionalKeyWithDefaultCodec noExtField key c defaultValue (Just doc)
 
 -- | Like 'optionalFieldWithDefaultWith', but without documentation.
 optionalFieldWithDefaultWith' ::
@@ -1061,7 +1234,7 @@ optionalFieldWithDefaultWith' ::
   -- | Default value
   output ->
   ObjectCodec output output
-optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec key c defaultValue Nothing
+optionalFieldWithDefaultWith' key c defaultValue = OptionalKeyWithDefaultCodec noExtField key c defaultValue Nothing
 
 -- | Like 'optionalFieldWithDefaultWith', but also interpret @null@ as the
 -- default value.
@@ -1118,7 +1291,7 @@ optionalFieldWithOmittedDefaultWith ::
   -- | Documentation
   Text ->
   ObjectCodec output output
-optionalFieldWithOmittedDefaultWith key c defaultValue doc = OptionalKeyWithOmittedDefaultCodec key c defaultValue (Just doc)
+optionalFieldWithOmittedDefaultWith key c defaultValue doc = OptionalKeyWithOmittedDefaultCodec noExtField key c defaultValue (Just doc)
 
 -- | Like 'optionalFieldWithOmittedDefaultWith', but without documentation.
 optionalFieldWithOmittedDefaultWith' ::
@@ -1130,7 +1303,7 @@ optionalFieldWithOmittedDefaultWith' ::
   -- | Default value
   output ->
   ObjectCodec output output
-optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmittedDefaultCodec key c defaultValue Nothing
+optionalFieldWithOmittedDefaultWith' key c defaultValue = OptionalKeyWithOmittedDefaultCodec noExtField key c defaultValue Nothing
 
 -- | Like 'optionalFieldWithOmittedDefaultWith', but the value may also be
 -- @null@ and that will be interpreted as the default value.
@@ -1184,7 +1357,7 @@ optionalFieldOrNullWith ::
   -- | Documentation
   Text ->
   ObjectCodec (Maybe input) (Maybe output)
-optionalFieldOrNullWith key c doc = orNullHelper $ OptionalKeyCodec key (maybeCodec c) (Just doc)
+optionalFieldOrNullWith key c doc = orNullHelper $ OptionalKeyCodec noExtField key (maybeCodec c) (Just doc)
 
 -- | Like 'optionalFieldOrNullWith', but without documentation
 optionalFieldOrNullWith' ::
@@ -1193,18 +1366,18 @@ optionalFieldOrNullWith' ::
   -- | Codec for the value
   ValueCodec input output ->
   ObjectCodec (Maybe input) (Maybe output)
-optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec c) Nothing
+optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec noExtField key (maybeCodec c) Nothing
 
 -- | Add a comment to a codec
 --
 -- This is an infix version of 'CommentCodec'
--- > (<?>) = flip CommentCodec
+-- > (<?>) c comment = CommentCodec noExtField comment c
 (<?>) ::
   ValueCodec input output ->
   -- | Comment
   Text ->
   ValueCodec input output
-(<?>) = flip CommentCodec
+(<?>) c comment = CommentCodec noExtField comment c
 
 -- | A version of '<?>' that lets you supply a list of lines of text instead of a single text.
 --
@@ -1214,7 +1387,7 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
   -- | Lines of comments
   [Text] ->
   ValueCodec input output
-(<??>) c ls = CommentCodec (T.unlines ls) c
+(<??>) c ls = CommentCodec noExtField (T.unlines ls) c
 
 -- | Encode a 'HashMap', and decode any 'HashMap'.
 --
@@ -1223,12 +1396,12 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
 --
 -- This is a forward-compatible version of 'HashMapCodec'.
 --
--- > hashMapCodec = HashMapCodec
+-- > hashMapCodec = HashMapCodec noExtField
 hashMapCodec ::
   (Eq k, Hashable k, FromJSONKey k, ToJSONKey k) =>
   JSONCodec v ->
   JSONCodec (HashMap k v)
-hashMapCodec = HashMapCodec
+hashMapCodec = HashMapCodec noExtField
 
 -- | Encode a 'Map', and decode any 'Map'.
 --
@@ -1237,12 +1410,12 @@ hashMapCodec = HashMapCodec
 --
 -- This is a forward-compatible version of 'MapCodec'.
 --
--- > mapCodec = MapCodec
+-- > mapCodec = MapCodec noExtField
 mapCodec ::
   (Ord k, FromJSONKey k, ToJSONKey k) =>
   JSONCodec v ->
   JSONCodec (Map k v)
-mapCodec = MapCodec
+mapCodec = MapCodec noExtField
 
 #if MIN_VERSION_aeson(2,0,0)
 -- | Encode a 'KeyMap', and decode any 'KeyMap'.
@@ -1271,9 +1444,9 @@ keyMapCodec = case KM.coercionToMap of
 --
 -- This is a forward-compatible version of 'ValueCodec'.
 --
--- > valueCodec = ValueCodec
+-- > valueCodec = ValueCodec noExtField
 valueCodec :: JSONCodec JSON.Value
-valueCodec = ValueCodec
+valueCodec = ValueCodec noExtField
 
 -- | Codec for @null@
 --
@@ -1292,9 +1465,9 @@ valueCodec = ValueCodec
 --
 -- This is a forward-compatible version of 'NullCodec'.
 --
--- > nullCodec = NullCodec
+-- > nullCodec = NullCodec noExtField
 nullCodec :: JSONCodec ()
-nullCodec = NullCodec
+nullCodec = NullCodec noExtField
 
 -- | Codec for boolean values
 --
@@ -1309,9 +1482,9 @@ nullCodec = NullCodec
 --
 -- This is a forward-compatible version of 'BoolCodec' without a name.
 --
--- > boolCodec = BoolCodec Nothing
+-- > boolCodec = BoolCodec noExtField Nothing
 boolCodec :: JSONCodec Bool
-boolCodec = BoolCodec Nothing
+boolCodec = BoolCodec noExtField Nothing
 
 -- | Codec for text values
 --
@@ -1326,9 +1499,9 @@ boolCodec = BoolCodec Nothing
 --
 -- This is a forward-compatible version of 'StringCodec' without a name.
 --
--- > textCodec = StringCodec Nothing
+-- > textCodec = StringCodec noExtField Nothing
 textCodec :: JSONCodec Text
-textCodec = StringCodec Nothing
+textCodec = StringCodec noExtField Nothing
 
 -- | Codec for 'String' values
 --
@@ -1382,7 +1555,7 @@ stringCodec = dimapCodec T.unpack T.pack textCodec
 --
 -- > scientificCodec = NumberCodec Nothing Nothing
 scientificCodec :: JSONCodec Scientific
-scientificCodec = NumberCodec Nothing emptyBounds
+scientificCodec = NumberCodec noExtField Nothing emptyBounds
 
 -- | Codec for 'Integer' values
 --
@@ -1409,7 +1582,7 @@ scientificCodec = NumberCodec Nothing emptyBounds
 --
 -- For a codec without this protection, see 'unsafeUnboundedIntegerCodec'.
 integerCodec :: JSONCodec Integer
-integerCodec = IntegerCodec Nothing emptyBounds
+integerCodec = IntegerCodec noExtField Nothing emptyBounds
 
 -- | A codec for 'Natural' values.
 --
@@ -1469,9 +1642,9 @@ naturalCodec =
 --
 -- This is a forward-compatible version of 'NumberCodec' without a name.
 --
--- > scientificWithBoundsCodec bounds = NumberCodec Nothing bounds
+-- > scientificWithBoundsCodec bounds = NumberCodec noExtField Nothing bounds
 scientificWithBoundsCodec :: Bounds Scientific -> JSONCodec Scientific
-scientificWithBoundsCodec bounds = NumberCodec Nothing bounds
+scientificWithBoundsCodec bounds = NumberCodec noExtField Nothing bounds
 
 -- | Codec for 'Integer' values with bounds
 --
@@ -1492,9 +1665,9 @@ scientificWithBoundsCodec bounds = NumberCodec Nothing bounds
 --
 -- This is a forward-compatible version of 'IntegerCodec' without a name.
 --
--- > integerWithBoundsCodec bounds = IntegerCodec Nothing bounds
+-- > integerWithBoundsCodec bounds = IntegerCodec noExtField Nothing bounds
 integerWithBoundsCodec :: Bounds Integer -> JSONCodec Integer
-integerWithBoundsCodec bounds = IntegerCodec Nothing bounds
+integerWithBoundsCodec bounds = IntegerCodec noExtField Nothing bounds
 
 -- | An object codec with a given name
 --
@@ -1518,9 +1691,9 @@ integerWithBoundsCodec bounds = IntegerCodec Nothing bounds
 --
 -- This is a forward-compatible version 'ObjectOfCodec' with a name.
 --
--- > object name = ObjectOfCodec (Just name)
+-- > object name = ObjectOfCodec noExtField (Just name)
 object :: Text -> ObjectCodec input output -> ValueCodec input output
-object name = ObjectOfCodec (Just name)
+object name = ObjectOfCodec noExtField (Just name)
 
 -- | A codec for bounded integers like 'Int', 'Int8', and 'Word'.
 --
@@ -1580,7 +1753,7 @@ unsafeUnboundedNaturalCodec =
 -- >>> JSON.parseMaybe (parseJSONVia c) (String "world")
 -- Nothing
 literalTextCodec :: Text -> JSONCodec Text
-literalTextCodec text = EqCodec text textCodec
+literalTextCodec text = EqCodec noExtField text textCodec
 
 -- | A codec for a literal value corresponding to a literal piece of 'Text'.
 --
@@ -1640,12 +1813,12 @@ literalTextValueCodec value text = dimapCodec (const value) (const text) (litera
 -- > disjointMatchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
 matchChoiceCodec ::
   -- | First codec
-  Codec context input output ->
+  Codec Vanilla context input output ->
   -- | Second codec
-  Codec context input' output ->
+  Codec Vanilla context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  Codec context newInput output
+  Codec Vanilla context newInput output
 matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
 
 -- | Disjoint version of 'matchChoiceCodec'
@@ -1658,12 +1831,12 @@ matchChoiceCodec = matchChoiceCodecAs PossiblyJointUnion
 -- > disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 disjointMatchChoiceCodec ::
   -- | First codec
-  Codec context input output ->
+  Codec Vanilla context input output ->
   -- | Second codec
-  Codec context input' output ->
+  Codec Vanilla context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  Codec context newInput output
+  Codec Vanilla context newInput output
 disjointMatchChoiceCodec = matchChoiceCodecAs DisjointUnion
 
 -- | An even more general version of 'matchChoiceCodec' and 'disjointMatchChoiceCodec'.
@@ -1671,15 +1844,15 @@ matchChoiceCodecAs ::
   -- | Is the union DisjointUnion or PossiblyJointUnion
   Union ->
   -- | First codec
-  Codec context input output ->
+  Codec Vanilla context input output ->
   -- | Second codec
-  Codec context input' output ->
+  Codec Vanilla context input' output ->
   -- | Rendering chooser
   (newInput -> Either input input') ->
-  Codec context newInput output
+  Codec Vanilla context newInput output
 matchChoiceCodecAs union c1 c2 renderingChooser =
   dimapCodec (either id id) renderingChooser $
-    EitherCodec union c1 c2
+    EitherCodec noExtField union c1 c2
 
 -- | A choice codec for a list of options, each with their own rendering matcher.
 --
@@ -1721,10 +1894,10 @@ matchChoiceCodecAs union c1 c2 renderingChooser =
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 matchChoicesCodec ::
   -- | Codecs, each with their own rendering matcher
-  [(input -> Maybe input, Codec context input output)] ->
+  [(input -> Maybe input, Codec Vanilla context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
-  Codec context input output ->
-  Codec context input output
+  Codec Vanilla context input output ->
+  Codec Vanilla context input output
 matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
 
 -- | Disjoint version of 'matchChoicesCodec'
@@ -1737,20 +1910,20 @@ matchChoicesCodec = matchChoicesCodecAs PossiblyJointUnion
 -- > disjointMatchChoiceCodec = matchChoicesCodecAs DisjointUnion
 disjointMatchChoicesCodec ::
   -- | Codecs, each with their own rendering matcher
-  [(input -> Maybe input, Codec context input output)] ->
+  [(input -> Maybe input, Codec Vanilla context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
-  Codec context input output ->
-  Codec context input output
+  Codec Vanilla context input output ->
+  Codec Vanilla context input output
 disjointMatchChoicesCodec = matchChoicesCodecAs DisjointUnion
 
 -- | An even more general version of 'matchChoicesCodec' and 'disjointMatchChoicesCodec'
 matchChoicesCodecAs ::
   Union ->
   -- | Codecs, each with their own rendering matcher
-  [(input -> Maybe input, Codec context input output)] ->
+  [(input -> Maybe input, Codec Vanilla context input output)] ->
   -- | Fallback codec, in case none of the matchers in the list match
-  Codec context input output ->
-  Codec context input output
+  Codec Vanilla context input output ->
+  Codec Vanilla context input output
 matchChoicesCodecAs union l fallback = go l
   where
     go = \case
@@ -1779,13 +1952,13 @@ matchChoicesCodecAs union l fallback = go l
 -- Nothing
 parseAlternatives ::
   -- | Main codec, for parsing and rendering
-  Codec context input output ->
+  Codec Vanilla context input output ->
   -- | Alternative codecs just for parsing
-  [Codec context input output] ->
-  Codec context input output
+  [Codec Vanilla context input output] ->
+  Codec Vanilla context input output
 parseAlternatives c rest = go (c :| rest)
   where
-    go :: NonEmpty (Codec context input output) -> Codec context input output
+    go :: NonEmpty (Codec Vanilla context input output) -> Codec Vanilla context input output
     go = \case
       (c' :| cRest) -> case NE.nonEmpty cRest of
         Nothing -> c'
@@ -1847,10 +2020,10 @@ parseAlternatives c rest = go (c :| rest)
 -- Just Nothing
 parseAlternative ::
   -- | Main codec, for parsing and rendering
-  Codec context input output ->
+  Codec Vanilla context input output ->
   -- | Alternative codecs just for parsing
-  Codec context input' output ->
-  Codec context input output
+  Codec Vanilla context input' output ->
+  Codec Vanilla context input output
 parseAlternative c cAlt = matchChoiceCodec c cAlt Left
 
 -- | A codec for an enum that can be written each with their own codec.
@@ -1862,11 +2035,11 @@ parseAlternative c cAlt = matchChoiceCodec c cAlt Left
 enumCodec ::
   forall enum context.
   (Eq enum) =>
-  NonEmpty (enum, Codec context enum enum) ->
-  Codec context enum enum
+  NonEmpty (enum, Codec Vanilla context enum enum) ->
+  Codec Vanilla context enum enum
 enumCodec = go
   where
-    go :: NonEmpty (enum, Codec context enum enum) -> Codec context enum enum
+    go :: NonEmpty (enum, Codec Vanilla context enum enum) -> Codec Vanilla context enum enum
     go ((e, c) :| rest) = case NE.nonEmpty rest of
       Nothing -> c
       Just ne -> disjointMatchChoiceCodec c (go ne) $ \i ->
@@ -1980,9 +2153,9 @@ orNullHelper = dimapCodec f g
 --
 -- This is a forward-compatible version of 'ReferenceCodec'.
 --
--- > named = ReferenceCodec
+-- > named = ReferenceCodec noExtField
 named :: Text -> ValueCodec input output -> ValueCodec input output
-named = ReferenceCodec
+named = ReferenceCodec noExtField
 
 -- | Produce a codec using a type's 'FromJSON' and 'ToJSON' instances.
 --

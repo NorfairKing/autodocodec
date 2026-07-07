@@ -293,30 +293,30 @@ jsonObjectSchemaVia = (`evalState` S.empty) . goObject
 
 goValue :: ValueCodec input output -> State (Set Text) JSONSchema
 goValue = \case
-  NullCodec -> pure NullSchema
-  BoolCodec mname -> pure $ maybe id CommentSchema mname BoolSchema
-  StringCodec mname -> pure $ maybe id CommentSchema mname StringSchema
-  IntegerCodec mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
-  NumberCodec mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
-  ArrayOfCodec mname c -> do
+  NullCodec _ -> pure NullSchema
+  BoolCodec _ mname -> pure $ maybe id CommentSchema mname BoolSchema
+  StringCodec _ mname -> pure $ maybe id CommentSchema mname StringSchema
+  IntegerCodec _ mname mBounds -> pure $ maybe id CommentSchema mname $ IntegerSchema mBounds
+  NumberCodec _ mname mBounds -> pure $ maybe id CommentSchema mname $ NumberSchema mBounds
+  ArrayOfCodec _ mname c -> do
     s <- goValue c
     pure $ maybe id CommentSchema mname $ ArraySchema s
-  ObjectOfCodec mname oc -> do
+  ObjectOfCodec _ mname oc -> do
     s <- goObject oc
     pure $ maybe id CommentSchema mname $ ObjectSchema s
-  HashMapCodec c -> MapSchema <$> goValue c
-  MapCodec c -> MapSchema <$> goValue c
-  ValueCodec -> pure AnySchema
-  EqCodec value c -> pure $ ValueSchema (toJSONVia c value)
-  EitherCodec u c1 c2 -> do
+  HashMapCodec _ c -> MapSchema <$> goValue c
+  MapCodec _ c -> MapSchema <$> goValue c
+  ValueCodec _ -> pure AnySchema
+  EqCodec _ value c -> pure $ ValueSchema (toJSONVia c value)
+  EitherCodec _ u c1 c2 -> do
     s1 <- goValue c1
     s2 <- goValue c2
     pure $ case u of
       DisjointUnion -> OneOfSchema (goOneOf (s1 :| [s2]))
       PossiblyJointUnion -> AnyOfSchema (goAnyOf (s1 :| [s2]))
-  BimapCodec _ _ c -> goValue c
-  CommentCodec t c -> CommentSchema t <$> goValue c
-  ReferenceCodec name c -> do
+  BimapCodec _ _ _ c -> goValue c
+  CommentCodec _ t c -> CommentSchema t <$> goValue c
+  ReferenceCodec _ name c -> do
     alreadySeen <- gets (S.member name)
     if alreadySeen
       then pure $ RefSchema name
@@ -346,32 +346,32 @@ goValue = \case
 
 goObject :: ObjectCodec input output -> State (Set Text) ObjectSchema
 goObject = \case
-  RequiredKeyCodec k c mdoc -> do
+  RequiredKeyCodec _ k c mdoc -> do
     s <- goValue c
     pure $ ObjectKeySchema k Required s mdoc
-  OptionalKeyCodec k c mdoc -> do
+  OptionalKeyCodec _ k c mdoc -> do
     s <- goValue c
     pure $ ObjectKeySchema k (Optional Nothing) s mdoc
-  OptionalKeyWithDefaultCodec k c mr mdoc -> do
+  OptionalKeyWithDefaultCodec _ k c mr mdoc -> do
     s <- goValue c
     pure $ ObjectKeySchema k (Optional (Just (toJSONVia c mr))) s mdoc
-  OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec k c defaultValue mDoc)
-  BimapCodec _ _ c -> goObject c
-  EitherCodec u oc1 oc2 -> do
+  OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec k c defaultValue mDoc)
+  BimapCodec _ _ _ c -> goObject c
+  EitherCodec _ u oc1 oc2 -> do
     os1 <- goObject oc1
     os2 <- goObject oc2
     pure $ case u of
       DisjointUnion -> ObjectOneOfSchema (goObjectOneOf (os1 :| [os2]))
       PossiblyJointUnion -> ObjectAnyOfSchema (goObjectAnyOf (os1 :| [os2]))
-  DiscriminatedUnionCodec pn _ m -> do
+  DiscriminatedUnionCodec _ pn _ m -> do
     let mkSchema dName (_, oc) =
           goObject $ oc *> (requiredFieldWith' pn (literalTextCodec dName) .= const dName)
     ss <- HM.traverseWithKey mkSchema m
     pure $ case NE.nonEmpty $ toList ss of
       Nothing -> ObjectAnySchema
       Just ss' -> ObjectOneOfSchema $ goObjectOneOf ss'
-  PureCodec _ -> pure ObjectAnySchema
-  ApCodec oc1 oc2 -> do
+  PureCodec _ _ -> pure ObjectAnySchema
+  ApCodec _ oc1 oc2 -> do
     os1 <- goObject oc1
     os2 <- goObject oc2
     pure $ ObjectAllOfSchema (goObjectAllOf (os1 :| [os2]))

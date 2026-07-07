@@ -32,45 +32,45 @@ toYamlVia = flip go
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
     go :: a -> ValueCodec a void -> YamlBuilder
     go a = \case
-      NullCodec -> Yaml.null
-      BoolCodec _ -> Yaml.bool (coerce a :: Bool)
-      StringCodec _ -> Yaml.string (coerce a :: Text)
-      IntegerCodec _ _ -> Yaml.scientific $ fromInteger (coerce a :: Integer)
-      NumberCodec _ _ -> yamlNumber (coerce a :: Scientific)
-      ArrayOfCodec _ c -> Yaml.array (map (`go` c) (V.toList (coerce a :: Vector _)))
-      ObjectOfCodec _ oc -> Yaml.mapping (goObject a oc)
+      NullCodec _ -> Yaml.null
+      BoolCodec _ _ -> Yaml.bool (coerce a :: Bool)
+      StringCodec _ _ -> Yaml.string (coerce a :: Text)
+      IntegerCodec _ _ _ -> Yaml.scientific $ fromInteger (coerce a :: Integer)
+      NumberCodec _ _ _ -> yamlNumber (coerce a :: Scientific)
+      ArrayOfCodec _ _ c -> Yaml.array (map (`go` c) (V.toList (coerce a :: Vector _)))
+      ObjectOfCodec _ _ oc -> Yaml.mapping (goObject a oc)
       c@(HashMapCodec {}) -> go (toJSONVia c a) valueCodec -- This may be optimisable?
       c@(MapCodec {}) -> go (toJSONVia c a) valueCodec -- This may be optimisable?
-      ValueCodec -> yamlValue (coerce a :: JSON.Value)
-      EqCodec value c -> go value c
-      BimapCodec _ g c -> go (g a) c
-      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
+      ValueCodec _ -> yamlValue (coerce a :: JSON.Value)
+      EqCodec _ value c -> go value c
+      BimapCodec _ _ g c -> go (g a) c
+      EitherCodec _ _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
-      CommentCodec _ c -> go a c
-      ReferenceCodec _ c -> go a c
+      CommentCodec _ _ c -> go a c
+      ReferenceCodec _ _ c -> go a c
 
     goObject :: a -> ObjectCodec a void -> [(Text, YamlBuilder)]
     goObject a = \case
-      RequiredKeyCodec k c _ -> [(k, go (coerce a) c)]
-      OptionalKeyCodec k c _ -> case (coerce a :: Maybe _) of
+      RequiredKeyCodec _ k c _ -> [(k, go (coerce a) c)]
+      OptionalKeyCodec _ k c _ -> case (coerce a :: Maybe _) of
         Nothing -> []
         Just b -> [k Yaml..= go b c]
-      OptionalKeyWithDefaultCodec k c _ mDoc -> goObject (Just a) (optionalKeyCodec k c mDoc)
-      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc ->
+      OptionalKeyWithDefaultCodec _ k c _ mDoc -> goObject (Just a) (optionalKeyCodec k c mDoc)
+      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc ->
         if coerce a == defaultValue
           then []
           else goObject a (optionalKeyWithDefaultCodec k (coerce c) (coerce defaultValue) mDoc)
-      BimapCodec _ g c -> goObject (g a) c
-      EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
+      BimapCodec _ _ g c -> goObject (g a) c
+      EitherCodec _ _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> goObject a1 c1
         Right a2 -> goObject a2 c2
-      DiscriminatedUnionCodec propertyName m _ ->
+      DiscriminatedUnionCodec _ propertyName m _ ->
         case m a of
           (discriminatorValue, c) ->
             (propertyName, Yaml.string discriminatorValue) : goObject a c
-      PureCodec _ -> []
-      ApCodec oc1 oc2 -> goObject a oc1 <> goObject a oc2
+      PureCodec _ _ -> []
+      ApCodec _ oc1 oc2 -> goObject a oc1 <> goObject a oc2
 
     -- Encode a 'Scientific' value 'safely' by refusing to encode values that would be enormous.
     yamlNumber :: Scientific -> YamlBuilder

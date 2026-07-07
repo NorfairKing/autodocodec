@@ -69,10 +69,10 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
     mTyp = fromMaybe $ OptionTypeSimple "lib.types.anything"
     go :: ValueCodec input output -> Maybe OptionType
     go = \case
-      NullCodec -> Just OptionTypeNull
-      BoolCodec _ -> Just $ OptionTypeSimple "lib.types.bool"
-      StringCodec _ -> Just $ OptionTypeSimple "lib.types.str"
-      IntegerCodec _ bounds -> Just $
+      NullCodec _ -> Just OptionTypeNull
+      BoolCodec _ _ -> Just $ OptionTypeSimple "lib.types.bool"
+      StringCodec _ _ -> Just $ OptionTypeSimple "lib.types.str"
+      IntegerCodec _ _ bounds -> Just $
         OptionTypeSimple $
           case guessIntegerBoundsSymbolic bounds of
             BitUInt w -> case w of
@@ -88,16 +88,16 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
               8 -> "lib.types.ints.s8"
               _ -> "lib.types.int" -- TODO bounds?
             OtherIntegerBounds _ _ -> "lib.types.int" -- TODO bounds?
-      NumberCodec _ _ -> Just $ OptionTypeSimple "lib.types.number"
-      HashMapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
-      MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
-      ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
-      ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
-      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
-      EqCodec v c -> Just $ OptionTypeEnum [toNixExpressionVia c v]
-      BimapCodec _ _ c -> go c
-      EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
-      CommentCodec _ c -> go c
+      NumberCodec _ _ _ -> Just $ OptionTypeSimple "lib.types.number"
+      HashMapCodec _ c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
+      MapCodec _ c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
+      ValueCodec _ -> Just (OptionTypeSimple "lib.types.unspecified")
+      ArrayOfCodec _ _ c -> Just $ OptionTypeListOf $ mTyp $ go c
+      ObjectOfCodec _ _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
+      EqCodec _ v c -> Just $ OptionTypeEnum [toNixExpressionVia c v]
+      BimapCodec _ _ _ c -> go c
+      EitherCodec _ _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
+      CommentCodec _ _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
 -- [tag:NixOptionNullable]
@@ -113,7 +113,7 @@ objectCodecNixOptions = simplifyOptions . go False
     -- The bool means 'force optional'
     go :: Bool -> ObjectCodec input output -> Map Text Option
     go b = \case
-      DiscriminatedUnionCodec k _ m ->
+      DiscriminatedUnionCodec _ k _ m ->
         M.insert
           k
           ( Option
@@ -132,7 +132,7 @@ objectCodecNixOptions = simplifyOptions . go False
             )
           $ map (go b . snd)
           $ HM.elems m
-      RequiredKeyCodec key o mDesc ->
+      RequiredKeyCodec _ key o mDesc ->
         M.singleton key $
           Option
             { optionType =
@@ -147,14 +147,14 @@ objectCodecNixOptions = simplifyOptions . go False
                   then Just JSON.Null
                   else Nothing -- [ref:NixOptionNullable]
             }
-      OptionalKeyCodec key o mDesc ->
+      OptionalKeyCodec _ key o mDesc ->
         M.singleton key $
           Option
             { optionType = OptionTypeNullOr <$> valueCodecNixOptionType o,
               optionDescription = mDesc,
               optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
             }
-      OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
+      OptionalKeyWithDefaultCodec _ key c defaultValue mDesc ->
         M.singleton
           key
           Option
@@ -162,7 +162,7 @@ objectCodecNixOptions = simplifyOptions . go False
               optionDescription = mDesc,
               optionDefault = Just $ toJSONVia c defaultValue
             }
-      OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
+      OptionalKeyWithOmittedDefaultCodec _ key c defaultValue mDesc ->
         M.singleton
           key
           Option
@@ -170,10 +170,10 @@ objectCodecNixOptions = simplifyOptions . go False
               optionDescription = mDesc,
               optionDefault = Just $ toJSONVia c defaultValue
             }
-      PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.unionWith mergeOption (go b c1) (go b c2)
-      BimapCodec _ _ c -> go b c
-      EitherCodec _ c1 c2 -> M.unionWith mergeOption (go True c1) (go True c2)
+      PureCodec _ _ -> M.empty
+      ApCodec _ c1 c2 -> M.unionWith mergeOption (go b c1) (go b c2)
+      BimapCodec _ _ _ c -> go b c
+      EitherCodec _ _ c1 c2 -> M.unionWith mergeOption (go True c1) (go True c2)
     -- This throwing away of the description and the default is not ideal but
     -- better than just taking the first option.
     mergeOption :: Option -> Option -> Option

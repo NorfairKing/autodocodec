@@ -30,7 +30,7 @@ declareNamedSchemaVia c' Proxy = go c'
   where
     go :: ValueCodec input output -> Declare (Definitions Schema) NamedSchema
     go = \case
-      NullCodec ->
+      NullCodec _ ->
         pure $
           NamedSchema Nothing $
             mempty
@@ -39,9 +39,9 @@ declareNamedSchemaVia c' Proxy = go c'
                     { _paramSchemaType = Just SwaggerNull
                     }
               }
-      BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
-      StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
-      IntegerCodec mname mBounds -> do
+      BoolCodec _ mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
+      StringCodec _ mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      IntegerCodec _ mname mBounds -> do
         s <- declareSchema (Proxy :: Proxy Integer)
         let addNumberBounds Bounds {..} s_ =
               s_
@@ -52,7 +52,7 @@ declareNamedSchemaVia c' Proxy = go c'
                       }
                 }
         pure $ NamedSchema mname $ addNumberBounds mBounds s
-      NumberCodec mname mBounds -> do
+      NumberCodec _ mname mBounds -> do
         s <- declareSchema (Proxy :: Proxy Scientific)
         let addNumberBounds Bounds {..} s_ =
               s_
@@ -63,7 +63,7 @@ declareNamedSchemaVia c' Proxy = go c'
                       }
                 }
         pure $ NamedSchema mname $ addNumberBounds mBounds s
-      HashMapCodec c -> do
+      HashMapCodec _ c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -75,7 +75,7 @@ declareNamedSchemaVia c' Proxy = go c'
                     { _paramSchemaType = Just SwaggerObject
                     }
               }
-      MapCodec c -> do
+      MapCodec _ c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -87,14 +87,14 @@ declareNamedSchemaVia c' Proxy = go c'
                     { _paramSchemaType = Just SwaggerObject
                     }
               }
-      ValueCodec ->
+      ValueCodec _ ->
         pure $
           NamedSchema
             Nothing
             mempty
               { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
               }
-      ArrayOfCodec mname c -> do
+      ArrayOfCodec _ mname c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -106,26 +106,26 @@ declareNamedSchemaVia c' Proxy = go c'
                       _paramSchemaItems = Just $ SwaggerItemsObject $ _namedSchemaSchema <$> itemsSchemaRef
                     }
               }
-      ObjectOfCodec mname oc -> do
+      ObjectOfCodec _ mname oc -> do
         ss <- goObject oc
         pure $ NamedSchema mname $ combineObjectSchemas ss
-      EqCodec val valCodec ->
+      EqCodec _ val valCodec ->
         pure $
           NamedSchema Nothing $
             mempty
               { _schemaParamSchema = mempty {_paramSchemaEnum = Just [toJSONVia valCodec val]}
               }
-      BimapCodec _ _ c -> go c
-      EitherCodec u c1 c2 -> do
+      BimapCodec _ _ _ c -> go c
+      EitherCodec _ u c1 c2 -> do
         ns1 <- go c1
         let s1 = _namedSchemaSchema ns1
         ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
         pure $ NamedSchema Nothing $ combineSchemaOr u s1 s2
-      CommentCodec t c -> do
+      CommentCodec _ t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
-      ReferenceCodec n c -> do
+      ReferenceCodec _ n c -> do
         d <- look
         case InsOrdHashMap.lookup n d of
           Nothing -> do
@@ -138,7 +138,7 @@ declareNamedSchemaVia c' Proxy = go c'
           Just s -> pure $ NamedSchema (Just n) s
     goObject :: ObjectCodec input output -> Declare (Definitions Schema) [Schema]
     goObject = \case
-      RequiredKeyCodec key vs mDoc -> do
+      RequiredKeyCodec _ key vs mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         pure
@@ -148,7 +148,7 @@ declareNamedSchemaVia c' Proxy = go c'
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
-      OptionalKeyCodec key vs mDoc -> do
+      OptionalKeyCodec _ key vs mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         pure
@@ -157,7 +157,7 @@ declareNamedSchemaVia c' Proxy = go c'
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
-      OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
+      OptionalKeyWithDefaultCodec _ key vs defaultValue mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         pure
@@ -170,13 +170,13 @@ declareNamedSchemaVia c' Proxy = go c'
                     }
               }
           ]
-      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
-      PureCodec _ -> pure []
-      EitherCodec u oc1 oc2 -> do
+      OptionalKeyWithOmittedDefaultCodec _ key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
+      PureCodec _ _ -> pure []
+      EitherCodec _ u oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure [combineSchemaOr u (combineObjectSchemas ss1) (combineObjectSchemas ss2)]
-      DiscriminatedUnionCodec pn _ m -> do
+      DiscriminatedUnionCodec _ pn _ m -> do
         let mkSchema dName (_, oc) =
               fmap combineObjectSchemas $ goObject $ oc *> (requiredFieldWith' pn textCodec .= const dName)
         ss <- HashMap.traverseWithKey mkSchema m
@@ -184,11 +184,11 @@ declareNamedSchemaVia c' Proxy = go c'
               [] -> mempty
               (s : ss') -> foldr (combineSchemaOr DisjointUnion) s ss'
         pure [combined]
-      ApCodec oc1 oc2 -> do
+      ApCodec _ oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
-      BimapCodec _ _ oc -> goObject oc
+      BimapCodec _ _ _ oc -> goObject oc
     addMDoc :: Maybe Text -> Schema -> Schema
     addMDoc = maybe id addDoc
     addDoc :: Text -> Schema -> Schema

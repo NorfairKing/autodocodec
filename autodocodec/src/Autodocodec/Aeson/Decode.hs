@@ -51,25 +51,25 @@ parseJSONObjectVia = parseJSONContextVia
 -- | Parse via a general codec.
 --
 -- You probably won't need this. See 'eitherDecodeViaCodec', 'parseJSONViaCodec' and 'parseJSONVia' instead.
-parseJSONContextVia :: Codec context void a -> context -> JSON.Parser a
+parseJSONContextVia :: Codec Vanilla context void a -> context -> JSON.Parser a
 parseJSONContextVia codec_ context_ =
   modifyFailure (\s -> if '\n' `elem` s then "\n" ++ s else s) $
     go context_ codec_
   where
     -- We use type-annotations here for readability of type information that is
     -- gathered to case-matching on GADTs, they aren't strictly necessary.
-    go :: context -> Codec context void a -> JSON.Parser a
+    go :: context -> Codec Vanilla context void a -> JSON.Parser a
     go value = \case
-      NullCodec -> case (value :: JSON.Value) of
+      NullCodec _ -> case (value :: JSON.Value) of
         Null -> coerce (pure () :: JSON.Parser ())
         _ -> typeMismatch "Null" value
-      BoolCodec mname -> case mname of
+      BoolCodec _ mname -> case mname of
         Nothing -> coerce (parseJSON value :: JSON.Parser Bool)
         Just name -> coerce $ withBool (T.unpack name) pure value
-      StringCodec mname -> case mname of
+      StringCodec _ mname -> case mname of
         Nothing -> coerce (parseJSON value :: JSON.Parser Text)
         Just name -> coerce $ withText (T.unpack name) pure value
-      IntegerCodec mname bounds ->
+      IntegerCodec _ mname bounds ->
         coerce $
           ( \f -> do
               let safetyBounds =
@@ -92,7 +92,7 @@ parseJSONContextVia codec_ context_ =
                 Left err -> fail err
                 Right i' -> pure i'
             )
-      NumberCodec mname bounds ->
+      NumberCodec _ mname bounds ->
         coerce $
           ( \f -> case mname of
               Nothing -> parseJSON value >>= f
@@ -102,7 +102,7 @@ parseJSONContextVia codec_ context_ =
                 Left err -> fail err
                 Right s' -> pure s'
             )
-      ArrayOfCodec mname c ->
+      ArrayOfCodec _ mname c ->
         ( \f -> case mname of
             Nothing -> parseJSON value >>= f
             Just name -> withArray (T.unpack name) f value
@@ -115,26 +115,26 @@ parseJSONContextVia codec_ context_ =
                       go v c JSON.<?> Index ix
                   )
           )
-      ObjectOfCodec mname c ->
+      ObjectOfCodec _ mname c ->
         ( \f -> case mname of
             Nothing -> parseJSON value >>= f
             Just name -> withObject (T.unpack name) f value
         )
           (\object_ -> (`go` c) (object_ :: JSON.Object))
-      HashMapCodec c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _))
-      MapCodec c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _))
-      ValueCodec -> pure $ coerce value
-      EqCodec expected c -> do
+      HashMapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (HashMap _ _))
+      MapCodec _ c -> coerce (Compat.liftParseJSON (`go` c) (`go` listCodec c) value :: JSON.Parser (Map _ _))
+      ValueCodec _ -> pure $ coerce value
+      EqCodec _ expected c -> do
         actual <- go value c
         if expected == actual
           then pure (coerce actual)
           else fail $ unwords ["Expected", show expected, "but got", show actual]
-      BimapCodec f _ c -> do
+      BimapCodec _ f _ c -> do
         old <- go value c
         case f old of
           Left err -> fail err
           Right new -> pure new
-      EitherCodec u c1 c2 ->
+      EitherCodec _ u c1 c2 ->
         let leftParser v = Left <$> go v c1
             rightParser v = Right <$> go v c2
          in coerce $ case u of
@@ -154,27 +154,27 @@ parseJSONContextVia codec_ context_ =
                           unwords ["Left:  ", lErr],
                           unwords ["Right: ", rErr]
                         ]
-      DiscriminatedUnionCodec propertyName _ m -> do
+      DiscriminatedUnionCodec _ propertyName _ m -> do
         discriminatorValue <- (value :: JSON.Object) JSON..: Compat.toKey propertyName
         case HashMap.lookup discriminatorValue m of
           Nothing -> fail $ "Unexpected discriminator value: " <> show discriminatorValue
           Just (_, c) ->
             go value c
-      CommentCodec _ c -> go value c
-      ReferenceCodec _ c -> go value c
-      RequiredKeyCodec k c _ -> do
+      CommentCodec _ _ c -> go value c
+      ReferenceCodec _ _ c -> go value c
+      RequiredKeyCodec _ k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: Compat.toKey k
         coerce $ go valueAtKey c JSON.<?> Key (Compat.toKey k)
-      OptionalKeyCodec k c _ -> do
+      OptionalKeyCodec _ k c _ -> do
         let key = Compat.toKey k
             mValueAtKey = Compat.lookupKey key (value :: JSON.Object)
         coerce $ forM mValueAtKey $ \valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
-      OptionalKeyWithDefaultCodec k c defaultValue _ -> do
+      OptionalKeyWithDefaultCodec _ k c defaultValue _ -> do
         let key = Compat.toKey k
             mValueAtKey = Compat.lookupKey key (value :: JSON.Object)
         coerce $ case mValueAtKey of
           Nothing -> pure defaultValue
           Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
-      OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec k c defaultValue mDoc
-      PureCodec a -> pure a
-      ApCodec ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
+      OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc -> go value $ OptionalKeyWithDefaultCodec noExtField k c defaultValue mDoc
+      PureCodec _ a -> pure a
+      ApCodec _ ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca

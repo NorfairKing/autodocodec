@@ -96,23 +96,23 @@ exactParseKey key =
 
 -- We use type-annotations here for readability of type information that is
 -- gathered to case-matching on GADTs, they aren't strictly necessary.
-goV :: JSON.Value -> Codec JSON.Value void a -> ExactParser a
+goV :: JSON.Value -> Codec Vanilla JSON.Value void a -> ExactParser a
 goV value = \case
-  NullCodec ->
+  NullCodec _ ->
     case value of
       JSON.Null -> return $ coerce ()
       _ -> exactError $ ExactParseErrorTypeMismatch "null" value
-  BoolCodec mname ->
+  BoolCodec _ mname ->
     withNamed mname $
       case value of
         JSON.Bool b -> return $ coerce b
         _ -> exactError $ ExactParseErrorTypeMismatch "a boolean" value
-  StringCodec mname ->
+  StringCodec _ mname ->
     withNamed mname $
       case value of
         JSON.String s -> return $ coerce s
         _ -> exactError $ ExactParseErrorTypeMismatch "a string" value
-  IntegerCodec mname bounds ->
+  IntegerCodec _ mname bounds ->
     withNamed mname $
       case value of
         JSON.Number unsafeS ->
@@ -130,7 +130,7 @@ goV value = \case
                       Left err -> exactError $ ExactParseErrorIntegerOutOfBounds bounds i err
                       Right i' -> pure $ coerce i'
         _ -> exactError $ ExactParseErrorTypeMismatch "an integer" value
-  NumberCodec mname bounds ->
+  NumberCodec _ mname bounds ->
     withNamed mname $
       case value of
         JSON.Number s ->
@@ -138,7 +138,7 @@ goV value = \case
             Left err -> exactError $ ExactParseErrorNumberOutOfBounds bounds s err
             Right s' -> pure $ coerce s'
         _ -> exactError $ ExactParseErrorTypeMismatch "a number" value
-  ArrayOfCodec mname c ->
+  ArrayOfCodec _ mname c ->
     withNamed mname $
       case value of
         JSON.Array array ->
@@ -150,14 +150,14 @@ goV value = \case
               )
               array
         _ -> exactError $ ExactParseErrorTypeMismatch "an array" value
-  ObjectOfCodec mname oc ->
+  ObjectOfCodec _ mname oc ->
     withNamed mname $
       case value of
         JSON.Object o ->
           withUnrecognisedKeys o $
             goO o oc
         _ -> exactError $ ExactParseErrorTypeMismatch "an object" value
-  HashMapCodec c ->
+  HashMapCodec _ c ->
     case value of
       JSON.Object o ->
         coerce $
@@ -178,7 +178,7 @@ goV value = \case
                 )
                 (Compat.toList o)
       _ -> exactError $ ExactParseErrorTypeMismatch "an object" value
-  MapCodec c ->
+  MapCodec _ c ->
     case value of
       JSON.Object o ->
         coerce $
@@ -199,19 +199,19 @@ goV value = \case
                 )
                 (Compat.toList o)
       _ -> exactError $ ExactParseErrorTypeMismatch "an object" value
-  ValueCodec ->
+  ValueCodec _ ->
     pure $ coerce value
-  EqCodec expected c -> do
+  EqCodec _ expected c -> do
     actual <- goV value c
     if expected == actual
       then pure (coerce actual)
       else exactError $ ExactParseErrorExactMatch (ppShow actual) (ppShow expected)
-  BimapCodec f _ c -> do
+  BimapCodec _ f _ c -> do
     old <- goV value c
     case f old of
       Left err -> exactError $ ExactParseErrorBimapFailure err
       Right new -> pure new
-  EitherCodec u c1 c2 -> do
+  EitherCodec _ u c1 c2 -> do
     ctx <- ask
     let errOrFirst = runExactParserWithContext ctx $ Left <$> goV value c1
         errOrSecond = runExactParserWithContext ctx $ Right <$> goV value c2
@@ -237,21 +237,21 @@ goV value = \case
           (Right _, Right _) -> exactError ExactParseErrorDisjointBothSucceeded
           (Left lErr, Left rErr) ->
             exactError $ ExactParseErrorDisjointBothFailed lErr rErr
-  CommentCodec comment c ->
+  CommentCodec _ comment c ->
     withContext (ExactParseContextPieceComment comment) $
       goV value c
-  ReferenceCodec ref c ->
+  ReferenceCodec _ ref c ->
     withContext (ExactParseContextPieceReference ref) $
       goV value c
 
-goO :: JSON.Object -> Codec JSON.Object void a -> ExactObjectParser a
+goO :: JSON.Object -> Codec Vanilla JSON.Object void a -> ExactObjectParser a
 goO value = \case
-  BimapCodec f _ c -> do
+  BimapCodec _ f _ c -> do
     old <- goO value c
     case f old of
       Left err -> exactError $ ExactParseErrorBimapFailure err
       Right new -> pure new
-  EitherCodec u c1 c2 -> do
+  EitherCodec _ u c1 c2 -> do
     ctx <- ask
     before <- get
     let errOrFirst = runExactObjectParserWithContext ctx before $ Left <$> goO value c1
@@ -285,7 +285,7 @@ goO value = \case
             (Right _, Right _) -> exactError ExactParseErrorDisjointBothSucceeded
             (Left lErr, Left rErr) ->
               exactError $ ExactParseErrorDisjointBothFailed lErr rErr
-  DiscriminatedUnionCodec discriminatorName _ hm -> do
+  DiscriminatedUnionCodec _ discriminatorName _ hm -> do
     let key = Compat.toKey discriminatorName
     discriminator <- withContext (ExactParseContextPieceKey key Nothing) $ do
       case Compat.lookupKey key (value :: JSON.Object) of
@@ -300,7 +300,7 @@ goO value = \case
       Just (codecName, c) ->
         withContext (ExactParseContextPieceDiscriminator discriminator codecName) $
           goO value c
-  RequiredKeyCodec k c mDoc ->
+  RequiredKeyCodec _ k c mDoc ->
     coerce $ do
       let key = Compat.toKey k
       case Compat.lookupKey key value of
@@ -310,7 +310,7 @@ goO value = \case
             recogniseKey key
             liftValueParser $
               goV v c
-  OptionalKeyCodec k c mDoc ->
+  OptionalKeyCodec _ k c mDoc ->
     coerce $ do
       let key = Compat.toKey k
       forM (Compat.lookupKey key value) $ \v ->
@@ -318,7 +318,7 @@ goO value = \case
           recogniseKey key
           liftValueParser $
             goV v c
-  OptionalKeyWithDefaultCodec k c defaultValue mDoc ->
+  OptionalKeyWithDefaultCodec _ k c defaultValue mDoc ->
     coerce $ do
       let key = Compat.toKey k
       case Compat.lookupKey key value of
@@ -328,7 +328,7 @@ goO value = \case
             recogniseKey key
             liftValueParser $
               goV v c
-  OptionalKeyWithOmittedDefaultCodec k c defaultValue mDoc ->
+  OptionalKeyWithOmittedDefaultCodec _ k c defaultValue mDoc ->
     coerce $ do
       let key = Compat.toKey k
       case Compat.lookupKey key value of
@@ -338,9 +338,9 @@ goO value = \case
           withContext (ExactParseContextPieceKey key mDoc) $
             liftValueParser $
               goV v c
-  PureCodec a ->
+  PureCodec _ a ->
     pure a
-  ApCodec ocf oca ->
+  ApCodec _ ocf oca ->
     goO (value :: JSON.Object) ocf <*> goO (value :: JSON.Object) oca
 
 newtype ExactObjectParser a = ExactObjectParser (StateT (Set Key) ExactParser a)

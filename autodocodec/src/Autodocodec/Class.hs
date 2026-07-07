@@ -150,8 +150,8 @@ instance (HasCodec a) => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     disjointEitherCodec
-      (ObjectOfCodec Nothing (requiredField' "Left"))
-      (ObjectOfCodec Nothing (requiredField' "Right"))
+      (ObjectOfCodec noExtField Nothing (requiredField' "Left"))
+      (ObjectOfCodec noExtField Nothing (requiredField' "Right"))
 
 instance (HasCodec a) => HasCodec (Vector a) where
   codec = vectorCodec codec

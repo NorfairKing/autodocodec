@@ -36,15 +36,15 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
   where
     go :: ValueCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) NamedSchema
     go = \case
-      NullCodec ->
+      NullCodec _ ->
         pure $
           NamedSchema Nothing $
             mempty
               { _schemaType = Just OpenApiNull
               }
-      BoolCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
-      StringCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
-      IntegerCodec mname mBounds -> do
+      BoolCodec _ mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
+      StringCodec _ mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      IntegerCodec _ mname mBounds -> do
         s <- lift $ declareSchema (Proxy :: Proxy Integer)
         let addNumberBounds Bounds {..} s_ =
               s_
@@ -52,7 +52,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                   _schemaMaximum = fromInteger <$> boundsUpper
                 }
         pure $ NamedSchema mname $ addNumberBounds mBounds s
-      NumberCodec mname mBounds -> do
+      NumberCodec _ mname mBounds -> do
         s <- lift $ declareSchema (Proxy :: Proxy Scientific)
         let addNumberBounds Bounds {..} s_ =
               s_
@@ -60,7 +60,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                   _schemaMaximum = boundsUpper
                 }
         pure $ NamedSchema mname $ addNumberBounds mBounds s
-      ArrayOfCodec mname c -> do
+      ArrayOfCodec _ mname c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -69,7 +69,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               { _schemaItems = Just $ OpenApiItemsObject $ _namedSchemaSchema <$> itemsSchemaRef,
                 _schemaType = Just OpenApiArray
               }
-      HashMapCodec c -> do
+      HashMapCodec _ c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -78,7 +78,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               { _schemaType = Just OpenApiObject,
                 _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
               }
-      MapCodec c -> do
+      MapCodec _ c -> do
         itemsSchema <- go c
         itemsSchemaRef <- declareSpecificNamedSchemaRef itemsSchema
         pure $
@@ -87,14 +87,14 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               { _schemaType = Just OpenApiObject,
                 _schemaAdditionalProperties = Just $ AdditionalPropertiesSchema $ _namedSchemaSchema <$> itemsSchemaRef
               }
-      ValueCodec ->
+      ValueCodec _ ->
         pure $
           NamedSchema
             Nothing
             mempty
               { _schemaAdditionalProperties = Just $ AdditionalPropertiesAllowed True
               }
-      EqCodec val valCodec ->
+      EqCodec _ val valCodec ->
         pure $
           NamedSchema Nothing $
             let jsonVal = toJSONVia valCodec val
@@ -108,26 +108,26 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                       Aeson.Bool {} -> OpenApiBoolean
                       Aeson.Null -> OpenApiNull
                   }
-      BimapCodec _ _ c -> go c
-      ObjectOfCodec mname oc -> do
+      BimapCodec _ _ _ c -> go c
+      ObjectOfCodec _ mname oc -> do
         ss <- goObject oc
         pure $ NamedSchema mname $ combineObjectSchemas ss
-      EitherCodec u c1 c2 ->
+      EitherCodec _ u c1 c2 ->
         let orNull :: forall input output. ValueCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) NamedSchema
             orNull c = do
               ns <- go c
               pure $ ns & schema . nullable ?~ True
          in case (c1, c2) of
-              (NullCodec, c) -> orNull c
-              (c, NullCodec) -> orNull c
+              (NullCodec _, c) -> orNull c
+              (c, NullCodec _) -> orNull c
               _ -> do
                 ns1 <- go c1
                 ns2 <- go c2
                 combineSchemasOr u ns1 ns2
-      CommentCodec t c -> do
+      CommentCodec _ t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
-      ReferenceCodec n c -> do
+      ReferenceCodec _ n c -> do
         seenSchemas <- State.get
         case HashMap.lookup n seenSchemas of
           Nothing -> do
@@ -151,7 +151,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
 
     goObject :: ObjectCodec input output -> StateT (HashMap Text Schema) (Declare (Definitions Schema)) [Schema]
     goObject = \case
-      RequiredKeyCodec key vs mDoc -> do
+      RequiredKeyCodec _ key vs mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         pure
@@ -161,7 +161,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 _schemaType = Just OpenApiObject
               }
           ]
-      OptionalKeyCodec key vs mDoc -> do
+      OptionalKeyCodec _ key vs mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         pure
@@ -170,7 +170,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 _schemaType = Just OpenApiObject
               }
           ]
-      OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
+      OptionalKeyWithDefaultCodec _ key vs defaultValue mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
         let addDefaultToSchema propertySchema = propertySchema {_schemaDefault = Just $ toJSONVia vs defaultValue}
@@ -180,9 +180,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 _schemaType = Just OpenApiObject
               }
           ]
-      OptionalKeyWithOmittedDefaultCodec key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
-      PureCodec _ -> pure []
-      EitherCodec u oc1 oc2 -> do
+      OptionalKeyWithOmittedDefaultCodec _ key vs defaultValue mDoc -> goObject (optionalKeyWithDefaultCodec key vs defaultValue mDoc)
+      PureCodec _ _ -> pure []
+      EitherCodec _ u oc1 oc2 -> do
         s1s <- goObject oc1
         s2s <- goObject oc2
         (: []) . _namedSchemaSchema
@@ -190,7 +190,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
             u
             (NamedSchema Nothing (combineObjectSchemas s1s))
             (NamedSchema Nothing (combineObjectSchemas s2s))
-      DiscriminatedUnionCodec pn _ m -> do
+      DiscriminatedUnionCodec _ pn _ m -> do
         let d =
               Discriminator
                 { _discriminatorPropertyName = pn,
@@ -206,11 +206,11 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 _schemaOneOf = Just $ Foldable.toList ss
               }
           ]
-      ApCodec oc1 oc2 -> do
+      ApCodec _ oc1 oc2 -> do
         ss1 <- goObject oc1
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
-      BimapCodec _ _ oc -> goObject oc
+      BimapCodec _ _ _ oc -> goObject oc
 
     addMDoc :: Maybe Text -> Schema -> Schema
     addMDoc = maybe id addDoc
