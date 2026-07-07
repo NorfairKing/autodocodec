@@ -18,7 +18,7 @@ import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
 import qualified Data.Aeson as Aeson
 import Data.Data (typeRep)
-import Data.Dynamic (fromDynamic)
+import Data.Dynamic (fromDynamic, toDyn)
 import qualified Data.Foldable as Foldable
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -284,3 +284,27 @@ declareSpecificSchemaRef mName s =
       known <- looks (InsOrdHashMap.member n)
       when (not known) $ declare $ InsOrdHashMap.singleton n s
       pure $ Ref (Reference n)
+
+-- | Attach an OpenAPI-specific schema extension to a codec.
+--
+-- The given function is applied to the 'NamedSchema' produced for this codec,
+-- and may declare additional schema definitions.
+addOpenAPIExt ::
+  (NamedSchema -> Declare (Definitions Schema) NamedSchema) ->
+  ValueCodec input output ->
+  ValueCodec input output
+addOpenAPIExt f =
+  ExtensionCodec
+    (Map.singleton (typeRep (Proxy @OpenAPIExt)) (toDyn (OpenAPIExt f)))
+
+-- | Like 'addOpenAPIExt' but only transforms the inner 'Schema'.
+modifyOpenAPISchema ::
+  (Schema -> Schema) ->
+  ValueCodec input output ->
+  ValueCodec input output
+modifyOpenAPISchema f =
+  addOpenAPIExt (\(NamedSchema mName s) -> pure (NamedSchema mName (f s)))
+
+-- | Like 'modifyOpenAPISchema' but just replaces the inner 'Schema' with the schema defined by the proxy type.
+useOpenAPISchema :: (ToSchema a) => Proxy a -> ValueCodec input output -> ValueCodec input output
+useOpenAPISchema p = modifyOpenAPISchema (\_ -> toSchema p)
