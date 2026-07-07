@@ -71,9 +71,9 @@ toSeriesVia :: ObjectCodec a void -> a -> JSON.Series
 toSeriesVia = toSeriesViaExt vanillaToEncodingExt
 
 -- Everything below is for encoding 'Codec's at phases other than 'Vanilla',
--- i.e. codecs that may contain 'XCodec' "Trees That Grow" extension nodes.
+-- i.e. codecs that may contain 'XValCodec' "Trees That Grow" extension nodes.
 
--- | How to encode the 'XCodec' extension nodes of a given @phase@ to
+-- | How to encode the 'XValCodec' extension nodes of a given @phase@ to
 -- 'JSON.Value's and 'JSON.Object's.
 --
 -- An extension node is polymorphic in the codec context, so it may appear both
@@ -84,10 +84,10 @@ toSeriesVia = toSeriesViaExt vanillaToEncodingExt
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaToJSONExt'
 -- provides handlers that can never be called.
 data ToJSONExt phase = ToJSONExt
-  { -- | Encode an 'XCodec' value (recovered at 'XVal') to a 'JSON.Value'.
-    toJSONValueExt :: XXCodec phase -> XVal phase -> JSON.Value,
-    -- | Encode an 'XObjectCodec' value (recovered at 'XObjVal') to a 'JSON.Object'.
-    toJSONObjectExt :: XXObjectCodec phase -> XObjVal phase -> JSON.Object
+  { -- | Encode an 'XValCodec' value (recovered at 'XVal') to a 'JSON.Value'.
+    toJSONValueExt :: XXValCodec phase -> XVal phase -> JSON.Value,
+    -- | Encode an 'XObjCodec' value (recovered at 'XObj') to a 'JSON.Object'.
+    toJSONObjectExt :: XXObjCodec phase -> XObj phase -> JSON.Object
   }
 
 -- | The 'ToJSONExt' for the 'Vanilla' phase; its handlers are unreachable.
@@ -120,7 +120,7 @@ toJSONViaExt ext = flip go
         Right a2 -> go a2 c2
       CommentCodec _ _ c -> go a c
       ReferenceCodec _ _ c -> go a c
-      XCodec meta -> toJSONValueExt ext meta (coerce a)
+      XValCodec meta -> toJSONValueExt ext meta (coerce a)
 
 -- | Like 'toJSONObjectVia', but for a 'Codec' at any @phase@, given handlers
 -- for its extension nodes.
@@ -148,18 +148,18 @@ toJSONObjectViaExt ext = flip go
           (discriminatorValue, c) ->
             Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ go a c
       ApCodec _ oc1 oc2 -> go a oc1 <> go a oc2
-      XObjectCodec meta -> toJSONObjectExt ext meta (coerce a)
+      XObjCodec meta -> toJSONObjectExt ext meta (coerce a)
 
--- | How to encode the 'XCodec' extension nodes of a given @phase@ to
+-- | How to encode the 'XValCodec' extension nodes of a given @phase@ to
 -- 'JSON.Encoding's and 'JSON.Series'.
 --
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaToEncodingExt'
 -- provides handlers that can never be called.
 data ToEncodingExt phase = ToEncodingExt
-  { -- | Encode an 'XCodec' value (recovered at 'XVal') to a 'JSON.Encoding'.
-    toEncodingValueExt :: XXCodec phase -> XVal phase -> JSON.Encoding,
-    -- | Encode an 'XObjectCodec' value (recovered at 'XObjVal') to a 'JSON.Series'.
-    toSeriesExt :: XXObjectCodec phase -> XObjVal phase -> JSON.Series
+  { -- | Encode an 'XValCodec' value (recovered at 'XVal') to a 'JSON.Encoding'.
+    toEncodingValueExt :: XXValCodec phase -> XVal phase -> JSON.Encoding,
+    -- | Encode an 'XObjCodec' value (recovered at 'XObj') to a 'JSON.Series'.
+    toSeriesExt :: XXObjCodec phase -> XObj phase -> JSON.Series
   }
 
 -- | The 'ToEncodingExt' for the 'Vanilla' phase; its handlers are unreachable.
@@ -190,7 +190,7 @@ toEncodingViaExt ext = flip go
         Right a2 -> go a2 c2
       CommentCodec _ _ c -> go a c
       ReferenceCodec _ _ c -> go a c
-      XCodec meta -> toEncodingValueExt ext meta (coerce a)
+      XValCodec meta -> toEncodingValueExt ext meta (coerce a)
 
 -- | Like 'toSeriesVia', but for a 'Codec' at any @phase@, given handlers for
 -- its extension nodes.
@@ -218,4 +218,4 @@ toSeriesViaExt ext = flip goObject
           (discriminatorValue, c) ->
             JSON.pair (Compat.toKey propertyName) (JSON.toEncoding discriminatorValue) <> goObject a c
       ApCodec _ oc1 oc2 -> goObject a oc1 <> goObject a oc2
-      XObjectCodec meta -> toSeriesExt ext meta (coerce a)
+      XObjCodec meta -> toSeriesExt ext meta (coerce a)

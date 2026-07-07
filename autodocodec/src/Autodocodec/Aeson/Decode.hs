@@ -63,22 +63,22 @@ parseJSONContextVia :: Codec Vanilla context void a -> context -> JSON.Parser a
 parseJSONContextVia = parseJSONContextViaExt vanillaParseExt
 
 -- Everything below is for parsing 'Codec's at phases other than 'Vanilla',
--- i.e. codecs that may contain 'XCodec' "Trees That Grow" extension nodes.
+-- i.e. codecs that may contain 'XValCodec' "Trees That Grow" extension nodes.
 
--- | How to parse the 'XCodec' and 'XObjectCodec' extension nodes of a given
+-- | How to parse the 'XValCodec' and 'XObjCodec' extension nodes of a given
 -- @phase@.
 --
 -- Each handler receives the extension payload and the JSON at the node (a
--- 'JSON.Value' for 'XCodec', a 'JSON.Object' for 'XObjectCodec') and produces a
--- parser for the value (recovered at 'XVal' / 'XObjVal').
+-- 'JSON.Value' for 'XValCodec', a 'JSON.Object' for 'XObjCodec') and produces a
+-- parser for the value (recovered at 'XVal' / 'XObj').
 --
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaParseExt'
 -- provides handlers that can never be called.
 data ParseExt phase = ParseExt
-  { -- | Parse an 'XCodec' value from the 'JSON.Value' at the node.
-    parseValueExt :: XXCodec phase -> JSON.Value -> JSON.Parser (XVal phase),
-    -- | Parse an 'XObjectCodec' value from the 'JSON.Object' at the node.
-    parseObjectExt :: XXObjectCodec phase -> JSON.Object -> JSON.Parser (XObjVal phase)
+  { -- | Parse an 'XValCodec' value from the 'JSON.Value' at the node.
+    parseValueExt :: XXValCodec phase -> JSON.Value -> JSON.Parser (XVal phase),
+    -- | Parse an 'XObjCodec' value from the 'JSON.Object' at the node.
+    parseObjectExt :: XXObjCodec phase -> JSON.Object -> JSON.Parser (XObj phase)
   }
 
 -- | The 'ParseExt' for the 'Vanilla' phase; its handlers are unreachable.
@@ -229,8 +229,8 @@ parseJSONContextViaExt ext codec_ context_ =
           Just valueAtKey -> go (valueAtKey :: JSON.Value) c JSON.<?> Key key
       PureCodec _ a -> pure a
       ApCodec _ ocf oca -> go (value :: JSON.Object) ocf <*> go (value :: JSON.Object) oca
-      XCodec meta -> coerce <$> parseValueExt ext meta value
-      XObjectCodec meta -> coerce <$> parseObjectExt ext meta value
+      XValCodec meta -> coerce <$> parseValueExt ext meta value
+      XObjCodec meta -> coerce <$> parseObjectExt ext meta value
     -- A phase-polymorphic list parser, mirroring 'listCodec's parsing: parse an
     -- array and parse each element with the element codec. Inlined because the
     -- 'Vanilla'-pinned 'listCodec' would not typecheck at an arbitrary phase.

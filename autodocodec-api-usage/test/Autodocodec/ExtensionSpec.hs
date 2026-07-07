@@ -13,27 +13,27 @@ import qualified Data.Text as T
 import Test.Syd
 import Test.Syd.Validity
 
--- | A custom "Trees That Grow" phase with both a value-context ('XCodec') and
--- an object-context ('XObjectCodec') extension, each carrying 'Text' with
+-- | A custom "Trees That Grow" phase with both a value-context ('XValCodec') and
+-- an object-context ('XObjCodec') extension, each carrying 'Text' with
 -- caller-supplied semantics that no plain codec expresses:
 --
 -- * the value extension wraps the text in a reversible @shout:@ prefix, and
 -- * the object extension stores the text under a @wrapped@ key.
 data Ext
 
-type instance XXCodec Ext = ()
+type instance XXValCodec Ext = ()
 
 type instance XVal Ext = Text
 
-type instance XXObjectCodec Ext = ()
+type instance XXObjCodec Ext = ()
 
-type instance XObjVal Ext = Text
+type instance XObj Ext = Text
 
 valueExtCodec :: Codec Ext JSON.Value Text Text
-valueExtCodec = XCodec ()
+valueExtCodec = XValCodec ()
 
 objectExtCodec :: Codec Ext JSON.Object Text Text
-objectExtCodec = XObjectCodec ()
+objectExtCodec = XObjCodec ()
 
 toJSONExt :: ToJSONExt Ext
 toJSONExt =
@@ -54,7 +54,7 @@ parseExt =
 
 spec :: Spec
 spec = describe "extension codecs" $ do
-  describe "value context (XCodec)" $ do
+  describe "value context (XValCodec)" $ do
     it "encodes using the supplied handler" $
       toJSONViaExt toJSONExt valueExtCodec "hello" `shouldBe` JSON.String "shout:hello"
     it "roundtrips through toJSONViaExt and parseJSONViaExt" $
@@ -63,7 +63,7 @@ spec = describe "extension codecs" $ do
           (parseJSONViaExt parseExt valueExtCodec)
           (toJSONViaExt toJSONExt valueExtCodec t)
           `shouldBe` Just (t :: Text)
-  describe "object context (XObjectCodec)" $ do
+  describe "object context (XObjCodec)" $ do
     it "encodes using the supplied handler" $
       toJSONObjectViaExt toJSONExt objectExtCodec "hello"
         `shouldBe` KM.singleton "wrapped" (JSON.String "hello")

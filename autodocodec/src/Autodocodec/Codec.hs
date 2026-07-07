@@ -88,8 +88,8 @@ type role Codec _ _ representational representational
 -- The @phase@ type parameter is a "Trees That Grow" (Najd & Peyton Jones)
 -- index. Each constructor carries a per-constructor extension field, whose
 -- type is given by a type family (e.g. 'XNullCodec' for 'NullCodec'), and
--- there is a single extension constructor 'XCodec' whose payload type is given
--- by the 'XXCodec' family. This lets other phases decorate the tree (or add
+-- there is a single extension constructor 'XValCodec' whose payload type is given
+-- by the 'XXValCodec' family. This lets other phases decorate the tree (or add
 -- constructors) without touching this definition.
 --
 -- This library only ever instantiates @phase@ at the 'Vanilla' phase, at which
@@ -343,27 +343,27 @@ data Codec phase context input output where
   -- working). An extension-aware interpreter recovers the value with @coerce@
   -- and hands it to a caller-supplied handler; see @toJSONViaExt@ and friends.
   --
-  -- See 'XObjectCodec' for the /object/ context sibling.
+  -- See 'XObjCodec' for the /object/ context sibling.
   --
   -- At the 'Vanilla' phase the payload is uninhabited ('NoExtCon'), so this
   -- constructor cannot occur and pattern matches at 'Vanilla' need not mention
   -- it.
-  XCodec ::
+  XValCodec ::
     (Coercible input (XVal phase), Coercible output (XVal phase)) =>
-    !(XXCodec phase) ->
+    !(XXValCodec phase) ->
     ValueCodecAt phase input output
   -- | The "Trees That Grow" extension constructor for the /object/ context.
   --
-  -- This is the object-context sibling of 'XCodec': it stands in for an
+  -- This is the object-context sibling of 'XValCodec': it stands in for an
   -- 'ObjectCodec' rather than a 'ValueCodec', so its caller-supplied handlers
   -- contribute\/consume object fields (see @toJSONObjectViaExt@ and friends).
-  -- Its value is tied to a phase-chosen type 'XObjVal' via a 'Coercible'
-  -- constraint, exactly as 'XCodec' uses 'XVal'.
+  -- Its value is tied to a phase-chosen type 'XObj' via a 'Coercible'
+  -- constraint, exactly as 'XValCodec' uses 'XVal'.
   --
   -- At the 'Vanilla' phase the payload is uninhabited ('NoExtCon').
-  XObjectCodec ::
-    (Coercible input (XObjVal phase), Coercible output (XObjVal phase)) =>
-    !(XXObjectCodec phase) ->
+  XObjCodec ::
+    (Coercible input (XObj phase), Coercible output (XObj phase)) =>
+    !(XXObjCodec phase) ->
     ObjectCodecAt phase input output
 
 -- | Placeholder for a "Trees That Grow" extension field that carries no
@@ -377,8 +377,8 @@ instance Validity NoExtField
 noExtField :: NoExtField
 noExtField = NoExtField
 
--- | Payload for the 'XCodec' extension constructor in phases that add no
--- constructors. It is uninhabited, so 'XCodec' cannot be constructed and
+-- | Payload for the 'XValCodec' extension constructor in phases that add no
+-- constructors. It is uninhabited, so 'XValCodec' cannot be constructed and
 -- pattern matches on it are unreachable.
 data NoExtCon
 
@@ -445,20 +445,20 @@ type family XPureCodec phase
 
 type family XApCodec phase
 
--- | The payload carried by an 'XCodec' (value-context) extension node.
+-- | The payload carried by an 'XValCodec' (value-context) extension node.
 -- Uninhabited at 'Vanilla'.
-type family XXCodec phase
+type family XXValCodec phase
 
--- | The type a phase's 'XCodec' values are 'Coercible' to. Extension-aware
+-- | The type a phase's 'XValCodec' values are 'Coercible' to. Extension-aware
 -- interpreters recover the value at this type and hand it to a supplied handler.
 type family XVal phase
 
--- | The payload carried by an 'XObjectCodec' (object-context) extension node.
+-- | The payload carried by an 'XObjCodec' (object-context) extension node.
 -- Uninhabited at 'Vanilla'.
-type family XXObjectCodec phase
+type family XXObjCodec phase
 
--- | The type a phase's 'XObjectCodec' values are 'Coercible' to.
-type family XObjVal phase
+-- | The type a phase's 'XObjCodec' values are 'Coercible' to.
+type family XObj phase
 
 type instance XNullCodec Vanilla = NoExtField
 
@@ -504,13 +504,13 @@ type instance XPureCodec Vanilla = NoExtField
 
 type instance XApCodec Vanilla = NoExtField
 
-type instance XXCodec Vanilla = NoExtCon
+type instance XXValCodec Vanilla = NoExtCon
 
 type instance XVal Vanilla = NoExtCon
 
-type instance XXObjectCodec Vanilla = NoExtCon
+type instance XXObjCodec Vanilla = NoExtCon
 
-type instance XObjVal Vanilla = NoExtCon
+type instance XObj Vanilla = NoExtCon
 
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
