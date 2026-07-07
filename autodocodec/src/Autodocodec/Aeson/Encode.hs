@@ -83,14 +83,16 @@ toSeriesVia = toSeriesViaExt vanillaToEncodingExt
 --
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaToJSONExt'
 -- provides handlers that can never be called.
-newtype ToJSONExt phase = ToJSONExt
-  { -- | Encode an extension node's value (recovered at 'XVal') to a 'JSON.Value'.
-    toJSONValueExt :: XXCodec phase -> XVal phase -> JSON.Value
+data ToJSONExt phase = ToJSONExt
+  { -- | Encode an 'XCodec' value (recovered at 'XVal') to a 'JSON.Value'.
+    toJSONValueExt :: XXCodec phase -> XVal phase -> JSON.Value,
+    -- | Encode an 'XObjectCodec' value (recovered at 'XObjVal') to a 'JSON.Object'.
+    toJSONObjectExt :: XXObjectCodec phase -> XObjVal phase -> JSON.Object
   }
 
--- | The 'ToJSONExt' for the 'Vanilla' phase; its handler is unreachable.
+-- | The 'ToJSONExt' for the 'Vanilla' phase; its handlers are unreachable.
 vanillaToJSONExt :: ToJSONExt Vanilla
-vanillaToJSONExt = ToJSONExt (\x _ -> noExtCon x)
+vanillaToJSONExt = ToJSONExt (\x _ -> noExtCon x) (\x _ -> noExtCon x)
 
 -- | Like 'toJSONVia', but for a 'Codec' at any @phase@, given handlers for its
 -- extension nodes.
@@ -146,20 +148,23 @@ toJSONObjectViaExt ext = flip go
           (discriminatorValue, c) ->
             Compat.insert (Compat.toKey propertyName) (JSON.String discriminatorValue) $ go a c
       ApCodec _ oc1 oc2 -> go a oc1 <> go a oc2
+      XObjectCodec meta -> toJSONObjectExt ext meta (coerce a)
 
 -- | How to encode the 'XCodec' extension nodes of a given @phase@ to
 -- 'JSON.Encoding's and 'JSON.Series'.
 --
 -- At the 'Vanilla' phase there are no extension nodes, so 'vanillaToEncodingExt'
 -- provides handlers that can never be called.
-newtype ToEncodingExt phase = ToEncodingExt
-  { -- | Encode an extension node's value (recovered at 'XVal') to a 'JSON.Encoding'.
-    toEncodingValueExt :: XXCodec phase -> XVal phase -> JSON.Encoding
+data ToEncodingExt phase = ToEncodingExt
+  { -- | Encode an 'XCodec' value (recovered at 'XVal') to a 'JSON.Encoding'.
+    toEncodingValueExt :: XXCodec phase -> XVal phase -> JSON.Encoding,
+    -- | Encode an 'XObjectCodec' value (recovered at 'XObjVal') to a 'JSON.Series'.
+    toSeriesExt :: XXObjectCodec phase -> XObjVal phase -> JSON.Series
   }
 
--- | The 'ToEncodingExt' for the 'Vanilla' phase; its handler is unreachable.
+-- | The 'ToEncodingExt' for the 'Vanilla' phase; its handlers are unreachable.
 vanillaToEncodingExt :: ToEncodingExt Vanilla
-vanillaToEncodingExt = ToEncodingExt (\x _ -> noExtCon x)
+vanillaToEncodingExt = ToEncodingExt (\x _ -> noExtCon x) (\x _ -> noExtCon x)
 
 -- | Like 'toEncodingVia', but for a 'Codec' at any @phase@, given handlers for
 -- its extension nodes.
@@ -213,3 +218,4 @@ toSeriesViaExt ext = flip goObject
           (discriminatorValue, c) ->
             JSON.pair (Compat.toKey propertyName) (JSON.toEncoding discriminatorValue) <> goObject a c
       ApCodec _ oc1 oc2 -> goObject a oc1 <> goObject a oc2
+      XObjectCodec meta -> toSeriesExt ext meta (coerce a)

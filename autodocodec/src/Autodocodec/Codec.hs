@@ -333,15 +333,17 @@ data Codec phase context input output where
     ObjectCodecAt phase input (output -> newOutput) ->
     ObjectCodecAt phase input output ->
     ObjectCodecAt phase input newOutput
-  -- | The "Trees That Grow" extension constructor.
+  -- | The "Trees That Grow" extension constructor for the /value/ context.
   --
-  -- A phase may add new codec nodes here. Like the primitive codecs (e.g.
+  -- A phase may add new value codec nodes here. Like the primitive codecs (e.g.
   -- 'NumberCodec' constrains its value with @'Coercible' a 'Scientific'@), the
   -- value is tied to a phase-chosen type 'XVal' via a 'Coercible' constraint
   -- rather than through a type family on the value, so @input@\/@output@ keep
   -- role 'representational' (and thus @deriving newtype 'HasCodec'@ keeps
   -- working). An extension-aware interpreter recovers the value with @coerce@
   -- and hands it to a caller-supplied handler; see @toJSONViaExt@ and friends.
+  --
+  -- See 'XObjectCodec' for the /object/ context sibling.
   --
   -- At the 'Vanilla' phase the payload is uninhabited ('NoExtCon'), so this
   -- constructor cannot occur and pattern matches at 'Vanilla' need not mention
@@ -350,6 +352,19 @@ data Codec phase context input output where
     (Coercible input (XVal phase), Coercible output (XVal phase)) =>
     !(XXCodec phase) ->
     ValueCodecAt phase input output
+  -- | The "Trees That Grow" extension constructor for the /object/ context.
+  --
+  -- This is the object-context sibling of 'XCodec': it stands in for an
+  -- 'ObjectCodec' rather than a 'ValueCodec', so its caller-supplied handlers
+  -- contribute\/consume object fields (see @toJSONObjectViaExt@ and friends).
+  -- Its value is tied to a phase-chosen type 'XObjVal' via a 'Coercible'
+  -- constraint, exactly as 'XCodec' uses 'XVal'.
+  --
+  -- At the 'Vanilla' phase the payload is uninhabited ('NoExtCon').
+  XObjectCodec ::
+    (Coercible input (XObjVal phase), Coercible output (XObjVal phase)) =>
+    !(XXObjectCodec phase) ->
+    ObjectCodecAt phase input output
 
 -- | Placeholder for a "Trees That Grow" extension field that carries no
 -- information, used by the 'Vanilla' phase.
@@ -430,12 +445,20 @@ type family XPureCodec phase
 
 type family XApCodec phase
 
--- | The payload carried by an 'XCodec' extension node. Uninhabited at 'Vanilla'.
+-- | The payload carried by an 'XCodec' (value-context) extension node.
+-- Uninhabited at 'Vanilla'.
 type family XXCodec phase
 
 -- | The type a phase's 'XCodec' values are 'Coercible' to. Extension-aware
 -- interpreters recover the value at this type and hand it to a supplied handler.
 type family XVal phase
+
+-- | The payload carried by an 'XObjectCodec' (object-context) extension node.
+-- Uninhabited at 'Vanilla'.
+type family XXObjectCodec phase
+
+-- | The type a phase's 'XObjectCodec' values are 'Coercible' to.
+type family XObjVal phase
 
 type instance XNullCodec Vanilla = NoExtField
 
@@ -484,6 +507,10 @@ type instance XApCodec Vanilla = NoExtField
 type instance XXCodec Vanilla = NoExtCon
 
 type instance XVal Vanilla = NoExtCon
+
+type instance XXObjectCodec Vanilla = NoExtCon
+
+type instance XObjVal Vanilla = NoExtCon
 
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
