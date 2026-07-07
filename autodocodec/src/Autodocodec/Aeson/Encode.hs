@@ -88,6 +88,7 @@ toJSONVia = flip go
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
       CommentCodec _ c -> go a c
+      ExtensionCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
 
 -- | Implement 'JSON.toEncoding' via a type's codec.
@@ -140,6 +141,7 @@ toEncodingVia = flip go
       ValueCodec -> JSON.value (coerce a :: JSON.Value)
       EqCodec value c -> go value c
       BimapCodec _ g c -> go (g a) c
+      ExtensionCodec _ c -> go a c
       EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2

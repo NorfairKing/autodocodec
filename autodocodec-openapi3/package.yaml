@@ -19,6 +19,7 @@ library:
   dependencies:
   - aeson
   - autodocodec >= 0.4.0.0
+  - containers
   - unordered-containers
   - insert-ordered-containers
   - lens

@@ -36,6 +36,7 @@ library
       aeson
     , autodocodec >=0.4.0.0
     , base >=4.7 && <5
+    , containers
     , insert-ordered-containers
     , lens
     , mtl

@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Autodocodec.OpenAPI.Schema where
 
@@ -16,15 +17,21 @@ import Control.Monad.State.Lazy (StateT, evalStateT, runStateT)
 import qualified Control.Monad.State.Lazy as State
 import Control.Monad.Trans (lift)
 import qualified Data.Aeson as Aeson
+import Data.Data (typeRep)
+import Data.Dynamic (fromDynamic, toDyn)
 import qualified Data.Foldable as Foldable
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import qualified Data.Map as Map
 import Data.OpenApi as OpenAPI
 import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
+
+-- | Extension type for OpenAPI schema extensions.
+data OpenAPIExt = OpenAPIExt (NamedSchema -> Declare (Definitions Schema) NamedSchema)
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -127,6 +134,13 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
       CommentCodec t c -> do
         NamedSchema mName s <- go c
         pure $ NamedSchema mName $ addDoc t s
+      ExtensionCodec ext c ->
+        let f = case Map.lookup (typeRep (Proxy @OpenAPIExt)) ext >>= fromDynamic of
+              Just (OpenAPIExt f') -> f'
+              Nothing -> pure
+         in do
+              ns <- go c
+              lift $ f ns
       ReferenceCodec n c -> do
         seenSchemas <- State.get
         case HashMap.lookup n seenSchemas of
@@ -270,3 +284,27 @@ declareSpecificSchemaRef mName s =
       known <- looks (InsOrdHashMap.member n)
       when (not known) $ declare $ InsOrdHashMap.singleton n s
       pure $ Ref (Reference n)
+
+-- | Attach an OpenAPI-specific schema extension to a codec.
+--
+-- The given function is applied to the 'NamedSchema' produced for this codec,
+-- and may declare additional schema definitions.
+addOpenAPIExt ::
+  (NamedSchema -> Declare (Definitions Schema) NamedSchema) ->
+  ValueCodec input output ->
+  ValueCodec input output
+addOpenAPIExt f =
+  ExtensionCodec
+    (Map.singleton (typeRep (Proxy @OpenAPIExt)) (toDyn (OpenAPIExt f)))
+
+-- | Like 'addOpenAPIExt' but only transforms the inner 'Schema'.
+modifyOpenAPISchema ::
+  (Schema -> Schema) ->
+  ValueCodec input output ->
+  ValueCodec input output
+modifyOpenAPISchema f =
+  addOpenAPIExt (\(NamedSchema mName s) -> pure (NamedSchema mName (f s)))
+
+-- | Like 'modifyOpenAPISchema' but just replaces the inner 'Schema' with the schema defined by the proxy type.
+useOpenAPISchema :: (ToSchema a) => Proxy a -> ValueCodec input output -> ValueCodec input output
+useOpenAPISchema p = modifyOpenAPISchema (\_ -> toSchema p)

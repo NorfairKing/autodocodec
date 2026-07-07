@@ -98,6 +98,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
       CommentCodec _ c -> go c
+      ExtensionCodec _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
 -- [tag:NixOptionNullable]

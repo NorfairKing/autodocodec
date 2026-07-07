@@ -161,6 +161,7 @@ parseJSONContextVia codec_ context_ =
           Just (_, c) ->
             go value c
       CommentCodec _ c -> go value c
+      ExtensionCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: Compat.toKey k
