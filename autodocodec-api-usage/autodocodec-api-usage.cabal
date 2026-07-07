@@ -537,6 +537,7 @@ test-suite autodocodec-api-usage-test
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
       Autodocodec.ExactSpec
+      Autodocodec.ExtensionSpec
       Autodocodec.MultipartSpec
       Autodocodec.Nix.OptionsSpec
       Autodocodec.Nix.RenderSpec
