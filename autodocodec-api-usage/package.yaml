@@ -1,5 +1,5 @@
 name: autodocodec-api-usage
-version: 0.0.0.0
+version: 0.0.0.1
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
@@ -19,7 +19,7 @@ library:
   dependencies:
   - QuickCheck
   - aeson
-  - autodocodec >=0.2.0.0
+  - autodocodec >=0.6.0.0
   - autodocodec-openapi3
   - autodocodec-schema
   - autodocodec-servant-multipart

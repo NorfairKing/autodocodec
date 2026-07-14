@@ -3,7 +3,7 @@
 }:
 mkDerivation {
   pname = "autodocodec-swagger2";
-  version = "0.1.0.0";
+  version = "0.1.0.1";
   src = ./.;
   libraryHaskellDepends = [
     aeson autodocodec base insert-ordered-containers scientific

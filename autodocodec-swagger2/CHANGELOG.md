@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.0.1] - 2026-07-14
+
+### Changed
+
+* Lower bound on `autodocodec >=0.6`
+
 ## [0.1.0.0] - 2024-07-29
 
 * Dropped support for orphan instances.
