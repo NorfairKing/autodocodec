@@ -8,22 +8,76 @@ ObjectOfCodec
         (ApCodec
            (ApCodec
               (BimapCodec
-                 _ _ (RequiredKeyCodec "1" (Just "text 1") (StringCodec Nothing)))
+                 _
+                 _
+                 (RequiredKeyCodec
+                    "1"
+                    (Just "text 1")
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         })))
               (BimapCodec
-                 _ _ (RequiredKeyCodec "2" (Just "text 2") (StringCodec Nothing))))
+                 _
+                 _
+                 (RequiredKeyCodec
+                    "2"
+                    (Just "text 2")
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         }))))
            (BimapCodec
-              _ _ (RequiredKeyCodec "3" (Just "text 3") (StringCodec Nothing))))
+              _
+              _
+              (RequiredKeyCodec
+                 "3"
+                 (Just "text 3")
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      }))))
         (ApCodec
            (ApCodec
               (BimapCodec
                  _
                  _
-                 (RequiredKeyCodec "1old" (Just "text 1") (StringCodec Nothing)))
+                 (RequiredKeyCodec
+                    "1old"
+                    (Just "text 1")
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         })))
               (BimapCodec
                  _
                  _
-                 (RequiredKeyCodec "2old" (Just "text 2") (StringCodec Nothing))))
+                 (RequiredKeyCodec
+                    "2old"
+                    (Just "text 2")
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         }))))
            (BimapCodec
               _
               _
-              (RequiredKeyCodec "3old" (Just "text 3") (StringCodec Nothing))))))
+              (RequiredKeyCodec
+                 "3old"
+                 (Just "text 3")
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      }))))))

@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           autodocodec-api-usage
-version:        0.0.0.0
+version:        0.0.0.1
 synopsis:       Autodocodec api usage tests
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
@@ -37,6 +37,8 @@ extra-source-files:
     test_resources/error/recursive-error-recurse-string.txt
     test_resources/error/scientific-error-string.txt
     test_resources/error/string-error-object.txt
+    test_resources/error/string-with-bounds-error-too-long.txt
+    test_resources/error/string-with-bounds-error-too-short.txt
     test_resources/error/text-error-bool.txt
     test_resources/error/word-error-negative.txt
     test_resources/error/word8-error-300.txt
@@ -56,6 +58,8 @@ extra-source-files:
     test_resources/exact-error/recursive-error-unrecognised.txt
     test_resources/exact-error/scientific-error-null.txt
     test_resources/exact-error/scientific-error-string.txt
+    test_resources/exact-error/string-with-bounds-error-too-long.txt
+    test_resources/exact-error/string-with-bounds-error-too-short.txt
     test_resources/exact-error/text-error-null.txt
     test_resources/exact-error/text-error-number.txt
     test_resources/exact-error/text-error-string.txt
@@ -107,6 +111,7 @@ extra-source-files:
     test_resources/json-schema/semigroup-last.json
     test_resources/json-schema/set-text.json
     test_resources/json-schema/shape.json
+    test_resources/json-schema/string-with-bounds.json
     test_resources/json-schema/string.json
     test_resources/json-schema/text.json
     test_resources/json-schema/these.json
@@ -295,6 +300,7 @@ extra-source-files:
     test_resources/openapi-schema/semigroup-last.json
     test_resources/openapi-schema/set-text.json
     test_resources/openapi-schema/shape.json
+    test_resources/openapi-schema/string-with-bounds.json
     test_resources/openapi-schema/string.json
     test_resources/openapi-schema/text.json
     test_resources/openapi-schema/these.json
@@ -356,6 +362,7 @@ extra-source-files:
     test_resources/show-codec/semigroup-last.txt
     test_resources/show-codec/set-text.txt
     test_resources/show-codec/shape.txt
+    test_resources/show-codec/string-with-bounds.txt
     test_resources/show-codec/string.txt
     test_resources/show-codec/text.txt
     test_resources/show-codec/these.txt
@@ -420,6 +427,7 @@ extra-source-files:
     test_resources/swagger-schema/semigroup-last.json
     test_resources/swagger-schema/set-text.json
     test_resources/swagger-schema/shape.json
+    test_resources/swagger-schema/string-with-bounds.json
     test_resources/swagger-schema/string.json
     test_resources/swagger-schema/text.json
     test_resources/swagger-schema/these.json
@@ -476,6 +484,7 @@ extra-source-files:
     test_resources/yaml-schema/scientific.txt
     test_resources/yaml-schema/set-text.txt
     test_resources/yaml-schema/shape.txt
+    test_resources/yaml-schema/string-with-bounds.txt
     test_resources/yaml-schema/string.txt
     test_resources/yaml-schema/text.txt
     test_resources/yaml-schema/these.txt
@@ -507,7 +516,7 @@ library
   build-depends:
       QuickCheck
     , aeson
-    , autodocodec >=0.2.0.0
+    , autodocodec >=0.6.0.0
     , autodocodec-openapi3
     , autodocodec-schema
     , autodocodec-servant-multipart

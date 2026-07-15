@@ -59,6 +59,7 @@ spec = do
   swaggerSchemaSpec @Text "text"
   swaggerSchemaSpec @LT.Text "lazy-text"
   swaggerSchemaSpec @String "string"
+  swaggerSchemaSpec @StringWithBounds "string-with-bounds"
   swaggerSchemaSpec @Scientific "scientific"
   swaggerSchemaSpec @JSON.Object "object"
   swaggerSchemaSpec @JSON.Value "value"

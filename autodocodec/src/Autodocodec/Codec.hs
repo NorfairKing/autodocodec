@@ -98,6 +98,8 @@ data Codec context input output where
     (Coercible a Text, Coercible b Text) =>
     -- | Name of the @string@, for error messages and documentation.
     Maybe Text ->
+    -- | Bounds for the string, these are checked and documented
+    StringBounds ->
     ValueCodec a b
   -- | Encode 'Integer' to a @number@ value, and decode a @number@ value as an 'Integer'.
   --
@@ -296,6 +298,32 @@ data Codec context input output where
     ObjectCodec input output ->
     ObjectCodec input newOutput
 
+data StringBounds = StringBounds
+  { -- | Lower bound, inclusive. A string is valid if its length is greater than, or equal to, this value.
+    stringBoundsMinLength :: !(Maybe Natural),
+    -- | Upper bound, inclusive. A string is valid if its length is less than, or equal to, this value.
+    stringBoundsMaxLength :: !(Maybe Natural)
+  }
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity StringBounds where
+  validate StringBounds {..} =
+    mconcat
+      [ validate stringBoundsMinLength,
+        validate stringBoundsMaxLength
+      ]
+
+emptyStringBounds :: StringBounds
+emptyStringBounds = StringBounds Nothing Nothing
+
+checkStringBounds :: StringBounds -> Text -> Either String Text
+checkStringBounds StringBounds {..} s =
+  case stringBoundsMinLength of
+    Just lo | T.length s < fromIntegral lo -> Left $ unwords ["String", show s, "is shorter than the lower bound", show lo]
+    _ -> case stringBoundsMaxLength of
+      Just hi | T.length s > fromIntegral hi -> Left $ unwords ["String", show s, "is longer than the upper bound", show hi]
+      _ -> Right s
+
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
     boundsLower :: !(Maybe a),
@@ -410,7 +438,7 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
     go d = \case
       NullCodec -> pure $ showString "NullCodec"
       BoolCodec mName -> pure $ showParen (d > 10) $ showString "BoolCodec " . showsPrec 11 mName
-      StringCodec mName -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName
+      StringCodec mName mbs -> pure $ showParen (d > 10) $ showString "StringCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       IntegerCodec mName mbs -> pure $ showParen (d > 10) $ showString "IntegerCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       NumberCodec mName mbs -> pure $ showParen (d > 10) $ showString "NumberCodec " . showsPrec 11 mName . showString " " . showsPrec 11 mbs
       ArrayOfCodec mName c -> (\s -> showParen (d > 10) $ showString "ArrayOfCodec " . showsPrec 11 mName . showString " " . s) <$> go 11 c
@@ -1328,7 +1356,23 @@ boolCodec = BoolCodec Nothing
 --
 -- > textCodec = StringCodec Nothing
 textCodec :: JSONCodec Text
-textCodec = StringCodec Nothing
+textCodec = StringCodec Nothing emptyStringBounds
+
+-- | Codec for 'Text' values with bounds
+--
+-- During parsing, only 'Text' values within the given boundaries are accepted.
+--
+-- During rendering, the value is not checked and is simply output as is.
+--
+-- === Example usage
+--
+-- >>> JSON.parseMaybe (parseJSONVia (textWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10})) (String "hello")
+-- Just "hello"
+--
+-- >>> JSON.parseMaybe (parseJSONVia (textWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 4})) (String "hello")
+-- Nothing
+textWithBoundsCodec :: StringBounds -> JSONCodec Text
+textWithBoundsCodec bounds = StringCodec Nothing bounds
 
 -- | Codec for 'String' values
 --
@@ -1352,6 +1396,35 @@ textCodec = StringCodec Nothing
 -- This is a 'String' version of 'textCodec'.
 stringCodec :: JSONCodec String
 stringCodec = dimapCodec T.unpack T.pack textCodec
+
+-- | Codec for 'String' values with bounds
+--
+-- During parsing, only 'String' values within the given boundaries are accepted.
+--
+-- During rendering, the value is not checked and is simply output as is.
+--
+-- === Example usage
+--
+-- >>> JSON.parseMaybe (parseJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10})) (String "hello")
+-- Just "hello"
+--
+-- >>> JSON.parseMaybe (parseJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 4})) (String "hello")
+-- Nothing
+--
+--
+-- === WARNING
+--
+-- This codec uses 'T.unpack' and 'T.pack' to dimap a 'textWithBoundsCodec', so it __does not roundtrip__.
+--
+-- >>> toJSONVia (stringWithBoundsCodec StringBounds { stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 10}) "\55296"
+-- String "\65533"
+--
+--
+-- ==== API Note
+--
+-- This is a 'String' version of 'textWithBoundsCodec'.
+stringWithBoundsCodec :: StringBounds -> JSONCodec String
+stringWithBoundsCodec bounds = dimapCodec T.unpack T.pack (textWithBoundsCodec bounds)
 
 -- | Codec for 'Scientific' values
 --

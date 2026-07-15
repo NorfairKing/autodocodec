@@ -36,6 +36,7 @@ spec = do
   yamlSchemaSpec @Text "text"
   yamlSchemaSpec @LT.Text "lazy-text"
   yamlSchemaSpec @String "string"
+  yamlSchemaSpec @StringWithBounds "string-with-bounds"
   yamlSchemaSpec @Scientific "scientific"
   yamlSchemaSpec @JSON.Object "object"
   yamlSchemaSpec @JSON.Value "value"

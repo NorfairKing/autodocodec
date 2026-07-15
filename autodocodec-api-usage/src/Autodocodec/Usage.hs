@@ -116,6 +116,41 @@ instance HasCodec Shape where
     ShapeSquare -> "square"
     ShapeRectangle -> "rectangle"
 
+-- | A 'Text' with a minimum and maximum length, to exercise 'StringBounds'.
+newtype StringWithBounds = StringWithBounds {unStringWithBounds :: Text}
+  deriving stock (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec StringWithBounds)
+
+instance Validity StringWithBounds where
+  validate (StringWithBounds t) =
+    mconcat
+      [ delve "unStringWithBounds" t,
+        declare "The length is at least 2" $ T.length t >= 2,
+        declare "The length is at most 10" $ T.length t <= 10
+      ]
+
+instance NFData StringWithBounds
+
+instance GenValid StringWithBounds where
+  genValid = do
+    n <- choose (2, 10)
+    StringWithBounds . T.pack <$> vectorOf n (elements ['a' .. 'z'])
+  shrinkValid =
+    filter isValid
+      . map (StringWithBounds . T.pack)
+      . shrinkValid
+      . T.unpack
+      . unStringWithBounds
+
+instance HasCodec StringWithBounds where
+  codec =
+    dimapCodec StringWithBounds unStringWithBounds $
+      textWithBoundsCodec
+        StringBounds
+          { stringBoundsMinLength = Just 2,
+            stringBoundsMaxLength = Just 10
+          }
+
 -- | A complex example type
 data Example = Example
   { exampleText :: !Text,

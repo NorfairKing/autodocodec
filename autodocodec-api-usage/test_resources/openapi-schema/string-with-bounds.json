@@ -1,0 +1,17 @@
+{
+    "components": {
+        "schemas": {
+            "StringWithBounds": {
+                "maxLength": 10,
+                "minLength": 2,
+                "type": "string"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

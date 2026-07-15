@@ -56,6 +56,9 @@ spec = do
   aesonCodecSpec @Text
   aesonCodecErrorSpec @Text "text-error-bool" "true"
   aesonCodecSpec @LT.Text
+  aesonCodecSpec @StringWithBounds
+  aesonCodecErrorSpec @StringWithBounds "string-with-bounds-error-too-short" "\"a\""
+  aesonCodecErrorSpec @StringWithBounds "string-with-bounds-error-too-long" "\"aaaaaaaaaaa\""
   aesonCodecErrorSpec @LT.Text "lazy-text-error-null" "null"
   xdescribe "does not hold" $ aesonCodecSpec @String
   aesonCodecErrorSpec @String "string-error-object" "{}"

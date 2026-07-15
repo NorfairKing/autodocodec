@@ -3,17 +3,57 @@ BimapCodec
   _
   (EitherCodec
      DisjointUnion
-     (BimapCodec _ _ (EqCodec "Apple" (StringCodec Nothing)))
+     (BimapCodec
+        _
+        _
+        (EqCodec
+           "Apple"
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                })))
      (BimapCodec
         _
         _
         (EitherCodec
            DisjointUnion
-           (BimapCodec _ _ (EqCodec "Orange" (StringCodec Nothing)))
+           (BimapCodec
+              _
+              _
+              (EqCodec
+                 "Orange"
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })))
            (BimapCodec
               _
               _
               (EitherCodec
                  DisjointUnion
-                 (BimapCodec _ _ (EqCodec "Banana" (StringCodec Nothing)))
-                 (BimapCodec _ _ (EqCodec "Melon" (StringCodec Nothing))))))))
+                 (BimapCodec
+                    _
+                    _
+                    (EqCodec
+                       "Banana"
+                       (StringCodec
+                          Nothing
+                          StringBounds
+                            { stringBoundsMinLength = Nothing
+                            , stringBoundsMaxLength = Nothing
+                            })))
+                 (BimapCodec
+                    _
+                    _
+                    (EqCodec
+                       "Melon"
+                       (StringCodec
+                          Nothing
+                          StringBounds
+                            { stringBoundsMinLength = Nothing
+                            , stringBoundsMaxLength = Nothing
+                            }))))))))

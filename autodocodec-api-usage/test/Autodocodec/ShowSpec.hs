@@ -43,6 +43,7 @@ spec = do
   showCodecSpec @Text "text"
   showCodecSpec @LT.Text "lazy-text"
   showCodecSpec @String "string"
+  showCodecSpec @StringWithBounds "string-with-bounds"
   showCodecSpec @Scientific "scientific"
   showCodecSpec @JSON.Object "object"
   showCodecSpec @JSON.Value "value"

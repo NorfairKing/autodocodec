@@ -50,6 +50,7 @@ spec = do
   yamlCodecSpec @Ordering
   xdescribe "does not hold" $ yamlCodecSpec @Char
   yamlCodecSpec @Text
+  yamlCodecSpec @StringWithBounds
   yamlCodecSpec @LT.Text
   xdescribe "does not hold" $ yamlCodecSpec @String
   xdescribe "does not hold" $ yamlCodecSpec @Scientific

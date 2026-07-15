@@ -137,7 +137,7 @@ goValue = \case
   AnySchema -> [[fore yellow "<any>"]]
   NullSchema -> [[fore yellow "null"]]
   BoolSchema -> [[fore yellow "<boolean>"]]
-  StringSchema -> [[fore yellow "<string>"]]
+  StringSchema bounds -> stringBoundsChunks bounds
   IntegerSchema bounds -> integerBoundsChunks bounds
   NumberSchema _ -> [[fore yellow "<number>"]] -- TODO bounds?
   ArraySchema s ->
@@ -160,6 +160,19 @@ goValue = \case
   WithDefSchema defs (RefSchema _) -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : goValue s') (M.toList defs)
   WithDefSchema defs s -> concatMap (\(name, s') -> [fore cyan $ chunk $ "def: " <> name] : goValue s') (M.toList defs) ++ goValue s
   where
+    stringBoundsChunks :: StringBounds -> [[Chunk]]
+    stringBoundsChunks sb =
+      [ fore yellow "<string>" : case (stringBoundsMinLength sb, stringBoundsMaxLength sb) of
+          (Nothing, Nothing) -> []
+          (Just l, Nothing) ->
+            [" # ", fore green $ chunk $ T.pack $ "at least " <> show l <> " characters"]
+          (Nothing, Just u) ->
+            [" # ", fore green $ chunk $ T.pack $ "at most " <> show u <> " characters"]
+          (Just l, Just u) ->
+            [ " # ",
+              fore green $ chunk $ T.pack $ "between " <> show l <> " and " <> show u <> " characters"
+            ]
+      ]
     integerBoundsChunks :: Bounds Integer -> [[Chunk]]
     integerBoundsChunks nb =
       [ fore yellow "<integer>" : case guessIntegerBoundsSymbolic nb of

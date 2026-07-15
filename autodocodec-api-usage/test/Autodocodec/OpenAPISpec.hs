@@ -63,6 +63,7 @@ spec = do
   openAPISchemaSpec @Text "text"
   openAPISchemaSpec @LT.Text "lazy-text"
   openAPISchemaSpec @String "string"
+  openAPISchemaSpec @StringWithBounds "string-with-bounds"
   openAPISchemaSpec @Scientific "scientific"
   openAPISchemaSpec @JSON.Object "object"
   openAPISchemaSpec @JSON.Value "value"

@@ -1,0 +1,9 @@
+BimapCodec
+  _
+  _
+  (StringCodec
+     Nothing
+     StringBounds
+       { stringBoundsMinLength = Just 2
+       , stringBoundsMaxLength = Just 10
+       })

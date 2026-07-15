@@ -43,7 +43,14 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
               { _schemaType = Just OpenApiNull
               }
       BoolCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
-      StringCodec mname -> lift $ NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      StringCodec mname StringBounds {..} -> do
+        s <- lift $ declareSchema (Proxy :: Proxy Text)
+        pure $
+          NamedSchema mname $
+            s
+              { _schemaMinLength = fromIntegral <$> stringBoundsMinLength,
+                _schemaMaxLength = fromIntegral <$> stringBoundsMaxLength
+              }
       IntegerCodec mname mBounds -> do
         s <- lift $ declareSchema (Proxy :: Proxy Integer)
         let addNumberBounds Bounds {..} s_ =

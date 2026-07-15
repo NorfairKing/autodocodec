@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0.2] - 2026-07-14
+
+### Changed
+
+* Lower bound on `autodocodec >=0.6`
+
 ## [0.3.0.1] - 2025-07-09
 
 * Fix discriminated union OpenAPI schema generation (see #61 for more info)

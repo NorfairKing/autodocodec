@@ -51,11 +51,31 @@ ObjectOfCodec
            (RequiredKeyCodec
               "required-non-empty"
               (Just "required non-empty list")
-              (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing))))))
+              (BimapCodec
+                 _
+                 _
+                 (ArrayOfCodec
+                    Nothing
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         }))))))
      (BimapCodec
         _
         _
         (OptionalKeyCodec
            "optional-non-empty"
            (Just "optional non-empty list")
-           (BimapCodec _ _ (ArrayOfCodec Nothing (StringCodec Nothing))))))
+           (BimapCodec
+              _
+              _
+              (ArrayOfCodec
+                 Nothing
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      }))))))

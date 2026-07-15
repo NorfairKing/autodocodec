@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0.0] - 2026-07-14
+
+This is technically a breaking change but it's unlikely that you'll need to
+change any of your codecs.
+
+Thanks to Andreas Ländle (@alaendle) for contributing this feature.
+
+### Changed
+
+* Changed `StringCodec` to include `StringBounds` to represent the minimal/maximal length of a string.
+
+### Added
+
+* `textWithBoundsCodec`
+* `stringWithBoundsCodec`
+
 ## [0.5.0.0] - 2025-06-20
 
 This is technically a breaking change but it's unlikely that you'll need to

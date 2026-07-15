@@ -1,1 +1,11 @@
-CommentCodec "Day" (BimapCodec _ _ (StringCodec Nothing))
+CommentCodec
+  "Day"
+  (BimapCodec
+     _
+     _
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Nothing
+          , stringBoundsMaxLength = Nothing
+          }))

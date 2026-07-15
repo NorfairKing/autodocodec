@@ -1,4 +1,12 @@
 BimapCodec
   _
   _
-  (EitherCodec PossiblyJointUnion NullCodec (StringCodec Nothing))
+  (EitherCodec
+     PossiblyJointUnion
+     NullCodec
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Nothing
+          , stringBoundsMaxLength = Nothing
+          }))

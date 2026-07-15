@@ -8,4 +8,9 @@ BimapCodec
         _
         (IntegerCodec
            Nothing Bounds { boundsLower = Just 0 , boundsUpper = Just 255 }))
-     (StringCodec Nothing))
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Nothing
+          , stringBoundsMaxLength = Nothing
+          }))

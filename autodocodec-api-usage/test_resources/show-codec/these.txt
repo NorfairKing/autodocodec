@@ -9,7 +9,17 @@ ObjectOfCodec
            _
            (ApCodec
               (BimapCodec
-                 _ _ (RequiredKeyCodec "text" Nothing (StringCodec Nothing)))
+                 _
+                 _
+                 (RequiredKeyCodec
+                    "text"
+                    Nothing
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         })))
               (BimapCodec
                  _
                  _
@@ -28,7 +38,17 @@ ObjectOfCodec
        )
      , ( "this"
        , BimapCodec
-           _ _ (RequiredKeyCodec "text" Nothing (StringCodec Nothing))
+           _
+           _
+           (RequiredKeyCodec
+              "text"
+              Nothing
+              (StringCodec
+                 Nothing
+                 StringBounds
+                   { stringBoundsMinLength = Nothing
+                   , stringBoundsMaxLength = Nothing
+                   }))
        )
      , ( "that"
        , BimapCodec

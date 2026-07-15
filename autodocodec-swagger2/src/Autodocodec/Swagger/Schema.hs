@@ -40,7 +40,17 @@ declareNamedSchemaVia c' Proxy = go c'
                     }
               }
       BoolCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Bool)
-      StringCodec mname -> NamedSchema mname <$> declareSchema (Proxy :: Proxy Text)
+      StringCodec mname mBounds -> do
+        s <- declareSchema (Proxy :: Proxy Text)
+        let addStringBounds StringBounds {..} s_ =
+              s_
+                { _schemaParamSchema =
+                    (_schemaParamSchema s_)
+                      { _paramSchemaMinLength = fromIntegral <$> stringBoundsMinLength,
+                        _paramSchemaMaxLength = fromIntegral <$> stringBoundsMaxLength
+                      }
+                }
+        pure $ NamedSchema mname $ addStringBounds mBounds s
       IntegerCodec mname mBounds -> do
         s <- declareSchema (Proxy :: Proxy Integer)
         let addNumberBounds Bounds {..} s_ =

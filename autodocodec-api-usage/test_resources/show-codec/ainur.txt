@@ -12,13 +12,32 @@ BimapCodec
               (RequiredKeyCodec
                  "domain"
                  (Just "Domain which the Valar rules over")
-                 (StringCodec Nothing)))
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })))
            (BimapCodec
               _
               _
               (RequiredKeyCodec
-                 "name" (Just "Name of the Valar") (StringCodec Nothing)))))
+                 "name"
+                 (Just "Name of the Valar")
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })))))
      (ObjectOfCodec
         (Just "Maiar")
         (RequiredKeyCodec
-           "name" (Just "Name of the Maiar") (StringCodec Nothing))))
+           "name"
+           (Just "Name of the Maiar")
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                }))))

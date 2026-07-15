@@ -1,1 +1,11 @@
-CommentCodec "ZonedTime" (BimapCodec _ _ (StringCodec Nothing))
+CommentCodec
+  "ZonedTime"
+  (BimapCodec
+     _
+     _
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Nothing
+          , stringBoundsMaxLength = Nothing
+          }))

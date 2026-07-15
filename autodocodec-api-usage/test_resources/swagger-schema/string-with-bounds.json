@@ -1,0 +1,15 @@
+{
+    "definitions": {
+        "StringWithBounds": {
+            "maxLength": 10,
+            "minLength": 2,
+            "type": "string"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

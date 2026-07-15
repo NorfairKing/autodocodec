@@ -58,6 +58,9 @@ spec = do
   exactCodecErrorSpec @Text "text-error-null" JSON.Null
   exactCodecErrorSpec @Text "text-error-number" (JSON.Number 7)
   exactCodecSpec @LT.Text
+  exactCodecSpec @StringWithBounds
+  exactCodecErrorSpec @StringWithBounds "string-with-bounds-error-too-short" (JSON.String "a")
+  exactCodecErrorSpec @StringWithBounds "string-with-bounds-error-too-long" (JSON.String "aaaaaaaaaaa")
   xdescribe "does not hold" $ exactCodecSpec @String
   exactCodecSpec @Scientific
   exactCodecErrorSpec @Scientific "scientific-error-null" JSON.Null

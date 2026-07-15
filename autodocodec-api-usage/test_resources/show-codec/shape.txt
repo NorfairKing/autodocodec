@@ -3,11 +3,41 @@ BimapCodec
   _
   (EitherCodec
      DisjointUnion
-     (BimapCodec _ _ (EqCodec "circle" (StringCodec Nothing)))
+     (BimapCodec
+        _
+        _
+        (EqCodec
+           "circle"
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                })))
      (BimapCodec
         _
         _
         (EitherCodec
            DisjointUnion
-           (BimapCodec _ _ (EqCodec "square" (StringCodec Nothing)))
-           (BimapCodec _ _ (EqCodec "rectangle" (StringCodec Nothing))))))
+           (BimapCodec
+              _
+              _
+              (EqCodec
+                 "square"
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })))
+           (BimapCodec
+              _
+              _
+              (EqCodec
+                 "rectangle"
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      }))))))
