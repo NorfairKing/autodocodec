@@ -12,7 +12,7 @@ import Autodocodec
 import Control.Monad
 import Data.Foldable (toList)
 import qualified Data.HashMap.Strict as HashMap
-import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import qualified Data.HashMap.Strict.InsOrd.Compat as InsOrdHashMap
 import Data.List
 import Data.Proxy
 import Data.Scientific
