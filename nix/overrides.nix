@@ -33,6 +33,7 @@ let
     autodocodec = autodocodecPkg "autodocodec";
     autodocodec-api-usage = autodocodecPkg "autodocodec-api-usage";
     autodocodec-exact = autodocodecPkg "autodocodec-exact";
+    autodocodec-http-api-data = autodocodecPkg "autodocodec-http-api-data";
     autodocodec-nix = autodocodecPkg "autodocodec-nix";
     autodocodec-openapi3 = autodocodecPkg "autodocodec-openapi3";
     autodocodec-schema = autodocodecPkg "autodocodec-schema";

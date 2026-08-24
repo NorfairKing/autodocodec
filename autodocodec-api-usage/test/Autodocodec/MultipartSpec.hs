@@ -33,6 +33,17 @@ deriving instance (Eq (MultipartResult tag)) => Eq (MultipartData tag)
 
 spec :: Spec
 spec = do
+  describe "decoding errors" $ do
+    it "names the key that is missing" $
+      (fromMultipartViaCodec memptyMultipartData :: Either String Via)
+        `shouldBe` Left "Failed to parse key \"one\": expected exactly one value, found none."
+    it "names the key that has too many values and says how many" $
+      ( fromMultipartViaCodec
+          (MultipartData [Input "one" "a", Input "one" "b", Input "two" "c"] []) ::
+          Either String Via
+      )
+        `shouldBe` Left "Failed to parse key \"one\": expected exactly one value, found 2."
+
   xdescribe "does not hold." $ multipartCodecSpec @Example
   multipartCodecSpec @Via
   multipartCodecSpec @LegacyValue

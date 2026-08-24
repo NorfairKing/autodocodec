@@ -13,6 +13,7 @@ module Autodocodec.Multipart where
 import Autodocodec
 import Data.Aeson as JSON
 import Data.Aeson.Types as JSON
+import Data.Bifunctor (first)
 import qualified Data.ByteString.Lazy as LB
 import Data.Coerce (coerce)
 import Data.Foldable
@@ -127,6 +128,12 @@ fromMultipartViaCodec = fromMultipartVia (objectCodec @a)
 fromMultipartVia :: ObjectCodec void a -> MultipartData tag -> Either String a
 fromMultipartVia = flip go
   where
+    -- Name the key in whatever failed under it. This error reaches whoever
+    -- submitted the form, often as an HTTP response body, so "which key" is the
+    -- first thing it has to say.
+    inKey :: Text -> Either String b -> Either String b
+    inKey key = first $ \err -> concat ["Failed to parse key ", show key, ": ", err]
+
     go :: MultipartData tag -> ObjectCodec void a -> Either String a
     go mpd = \case
       BimapCodec from _ c -> go mpd c >>= from
@@ -154,20 +161,20 @@ fromMultipartVia = flip go
         case HashMap.lookup discriminatorValue m of
           Nothing -> Left $ "Unexpected discriminator value: " <> show discriminatorValue
           Just (_, c) -> go mpd c
-      RequiredKeyCodec key vc _ -> do
+      RequiredKeyCodec key vc _ -> inKey key $ do
         values <- lookupLInput key mpd
         coerce $ goValue values vc
-      OptionalKeyCodec key vc _ -> do
+      OptionalKeyCodec key vc _ -> inKey key $ do
         values <- lookupLInput key mpd
         coerce $ case values of
           [] -> pure Nothing
           _ -> Just <$> goValue values vc
-      OptionalKeyWithDefaultCodec key vc defaultValue _ -> do
+      OptionalKeyWithDefaultCodec key vc defaultValue _ -> inKey key $ do
         values <- lookupLInput key mpd
         coerce $ case values of
           [] -> pure defaultValue
           _ -> goValue values vc
-      OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ -> do
+      OptionalKeyWithOmittedDefaultCodec key vc defaultValue _ -> inKey key $ do
         values <- lookupLInput key mpd
         coerce $ case values of
           [] -> pure defaultValue
@@ -202,7 +209,8 @@ fromMultipartVia = flip go
       ArrayOfCodec _ vc -> coerce $ V.fromList <$> mapM (`goSingleValue` vc) (toList ts)
       vc -> case ts of
         [t] -> goSingleValue t vc
-        _ -> Left "Expected exactly one value."
+        [] -> Left "expected exactly one value, found none."
+        _ -> Left $ concat ["expected exactly one value, found ", show (length ts), "."]
 
     goSingleValue :: Text -> ValueCodec void a -> Either String a
     goSingleValue t = \case

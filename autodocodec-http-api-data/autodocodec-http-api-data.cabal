@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           autodocodec-servant-multipart
-version:        0.0.0.4
-synopsis:       Autodocodec interpreters for Servant Multipart
+name:           autodocodec-http-api-data
+version:        0.0.0.0
+synopsis:       Autodocodec interpreters for http-api-data
 homepage:       https://github.com/NorfairKing/autodocodec#readme
 bug-reports:    https://github.com/NorfairKing/autodocodec/issues
 author:         Tom Sydney Kerckhove
 maintainer:     syd@cs-syd.eu
-copyright:      2022 Tom Sydney Kerckhove
+copyright:      2026 Tom Sydney Kerckhove
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
@@ -25,9 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      Autodocodec.Multipart
+      Autodocodec.FormUrlEncoded
   other-modules:
-      Paths_autodocodec_servant_multipart
+      Paths_autodocodec_http_api_data
   hs-source-dirs:
       src
   build-depends:
@@ -35,8 +35,7 @@ library
     , autodocodec >=0.6.0.0
     , base >=4.7 && <5
     , bytestring
-    , servant-multipart
-    , servant-multipart-api
+    , http-api-data
     , text
     , unordered-containers
     , vector

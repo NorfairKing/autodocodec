@@ -3,6 +3,7 @@ packages:
 - autodocodec
 - autodocodec-api-usage
 - autodocodec-exact
+- autodocodec-http-api-data
 - autodocodec-nix
 - autodocodec-openapi3
 - autodocodec-schema

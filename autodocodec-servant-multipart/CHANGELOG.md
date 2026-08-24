@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.0.4] - 2026-08-24
+
+### Changed
+
+* Decoding errors now name the key that failed, and say how many values were
+  found when exactly one was expected.
+
 ## [0.0.0.3] - 2026-07-14
 
 ### Changed

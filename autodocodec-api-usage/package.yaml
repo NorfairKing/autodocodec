@@ -20,6 +20,7 @@ library:
   - QuickCheck
   - aeson
   - autodocodec >=0.6.0.0
+  - autodocodec-http-api-data
   - autodocodec-openapi3
   - autodocodec-schema
   - autodocodec-servant-multipart
@@ -31,6 +32,7 @@ library:
   - genvalidity-aeson
   - genvalidity-scientific
   - genvalidity-text
+  - http-api-data
   - openapi3
   - scientific
   - servant-multipart
@@ -57,6 +59,7 @@ tests:
     - autodocodec
     - autodocodec-api-usage
     - autodocodec-exact
+    - autodocodec-http-api-data
     - autodocodec-openapi3
     - autodocodec-schema
     - autodocodec-servant-multipart
@@ -75,6 +78,7 @@ tests:
     - genvalidity-sydtest-aeson
     - genvalidity-text
     - genvalidity-time
+    - http-api-data
     - openapi3
     - pretty-show
     - safe-coloured-text
@@ -84,6 +88,7 @@ tests:
     - sydtest
     - sydtest-aeson
     - text
+    - unordered-containers
     - time
     - yaml
     - vector

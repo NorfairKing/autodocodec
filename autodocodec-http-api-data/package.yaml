@@ -1,11 +1,11 @@
-name: autodocodec-servant-multipart
-version: 0.0.0.4
+name: autodocodec-http-api-data
+version: 0.0.0.0
 github: "NorfairKing/autodocodec"
 license: MIT
 author: "Tom Sydney Kerckhove"
 maintainer: "syd@cs-syd.eu"
-copyright: "2022 Tom Sydney Kerckhove"
-synopsis: Autodocodec interpreters for Servant Multipart
+copyright: "2026 Tom Sydney Kerckhove"
+synopsis: Autodocodec interpreters for http-api-data
 
 extra-source-files:
 - LICENSE
@@ -20,8 +20,7 @@ library:
   - aeson
   - autodocodec >=0.6.0.0
   - bytestring
-  - servant-multipart
-  - servant-multipart-api
+  - http-api-data
   - text
   - unordered-containers
   - vector

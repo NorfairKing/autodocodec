@@ -17,6 +17,7 @@ module Autodocodec.Usage where
 
 import Autodocodec
 import Autodocodec.Aeson ()
+import Autodocodec.FormUrlEncoded ()
 import Autodocodec.Multipart
 import Autodocodec.OpenAPI ()
 import Autodocodec.OpenAPI.DerivingVia (AutodocodecOpenApi)
@@ -45,6 +46,7 @@ import GHC.Generics (Generic)
 import Servant.Multipart
 import Servant.Multipart.API as Servant
 import Test.QuickCheck
+import Web.FormUrlEncoded
 
 -- | A type that's encoded as @null@.
 data NullUnit = NullUnit
@@ -294,6 +296,72 @@ instance ToMultipart tag Example where
       )
       []
 
+instance FromForm Example where
+  fromForm form =
+    Example
+      <$> lookupUnique "text" form
+      <*> ( lookupUnique "bool" form >>= \case
+              "true" -> Right True
+              "false" -> Right False
+              _ -> Left "Unknown bool"
+          )
+      <*> ( lookupUnique "maybe" form >>= \case
+              "null" -> Right Nothing
+              t -> Right (Just t)
+          )
+      <*> lookupMaybe "optional" form
+      <*> ( lookupMaybe "optional-or-null" form >>= \case
+              Nothing -> Right Nothing
+              Just "null" -> Right Nothing
+              Just t -> Right (Just t)
+          )
+      <*> (fromMaybe "foobar" <$> lookupMaybe "optional-with-default" form)
+      <*> pure (lookupAll "optional-with-null-default" form)
+      <*> pure (lookupAll "single-or-list" form)
+      <*> ( lookupUnique "fruit" form >>= \case
+              "Apple" -> Right Apple
+              "Orange" -> Right Orange
+              "Banana" -> Right Banana
+              "Melon" -> Right Melon
+              _ -> Left "unknown fruit"
+          )
+      <*> ( lookupUnique "shape" form >>= \case
+              "circle" -> Right ShapeCircle
+              "square" -> Right ShapeSquare
+              "rectangle" -> Right ShapeRectangle
+              _ -> Left "unknown shape"
+          )
+
+-- Built without the helpers in Autodocodec.FormUrlEncoded, so that comparing
+-- this against the interpreter compares two independent spellings.
+instance ToForm Example where
+  toForm Example {..} =
+    Form $
+      HashMap.fromList $
+        concat
+          [ [ ("text", [exampleText]),
+              ("bool", [if exampleBool then "true" else "false"]),
+              ("maybe", [fromMaybe "null" exampleRequiredMaybe]),
+              ("optional-with-default", [exampleOptionalWithDefault]),
+              ("fruit", [T.pack $ show exampleFruit]),
+              ( "shape",
+                [ case exampleShape of
+                    ShapeCircle -> "circle"
+                    ShapeSquare -> "square"
+                    ShapeRectangle -> "rectangle"
+                ]
+              )
+            ],
+            [("optional", [o]) | o <- maybeToList exampleOptional],
+            [("optional-or-null", [o]) | o <- maybeToList exampleOptionalOrNull],
+            [ ("optional-with-null-default", exampleOptionalWithNullDefault)
+            | not (null exampleOptionalWithNullDefault)
+            ],
+            [ ("single-or-list", exampleSingleOrList)
+            | not (null exampleSingleOrList)
+            ]
+          ]
+
 newtype Derived = Derived {unDerived :: Example}
   deriving stock (Show, Eq, Generic)
   deriving newtype (Validity, GenValid, FromJSON, ToJSON)
@@ -308,7 +376,9 @@ data ListsExample = ListsExample
   deriving (Show, Eq, Generic)
   deriving
     ( Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via Autodocodec ListsExample
   deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi ListsExample)
@@ -463,7 +533,9 @@ data Via = Via
     ( FromJSON,
       ToJSON,
       Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via (Autodocodec Via)
   deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Via
@@ -525,7 +597,9 @@ data LegacyValue = LegacyValue
     ( FromJSON,
       ToJSON,
       Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via (Autodocodec LegacyValue)
   deriving (OpenAPI.ToSchema) via AutodocodecOpenApi LegacyValue
@@ -567,7 +641,9 @@ data LegacyObject = LegacyObject
     ( FromJSON,
       ToJSON,
       Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via (Autodocodec LegacyObject)
   deriving (OpenAPI.ToSchema) via AutodocodecOpenApi LegacyObject
@@ -707,7 +783,9 @@ data These
     ( FromJSON,
       ToJSON,
       Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via (Autodocodec These)
   deriving (OpenAPI.ToSchema) via AutodocodecOpenApi These
@@ -750,7 +828,9 @@ data Expression
     ( FromJSON,
       ToJSON,
       Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via (Autodocodec Expression)
   deriving (OpenAPI.ToSchema) via AutodocodecOpenApi Expression
@@ -824,7 +904,9 @@ data Overlap
   deriving (FromJSON, ToJSON) via Autodocodec Overlap
   deriving
     ( Servant.FromMultipart tag,
-      Servant.ToMultipart tag
+      Servant.ToMultipart tag,
+      FromForm,
+      ToForm
     )
     via Autodocodec Overlap
   deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi Overlap)
