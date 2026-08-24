@@ -37,6 +37,7 @@ library
       Paths_autodocodec
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -61,7 +62,7 @@ test-suite autodocodec-doctest
       Paths_autodocodec
   hs-source-dirs:
       doctest/
-  ghc-options: -main-is DocTest -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef -main-is DocTest -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
     , doctest

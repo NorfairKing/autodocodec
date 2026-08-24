@@ -11,6 +11,15 @@ extra-source-files:
 - LICENSE
 - CHANGELOG.md
 
+ghc-options:
+- -Wall
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wpartial-fields
+- -Widentities
+- -Wredundant-constraints
+- -Wcpp-undef
+
 dependencies:
 - base >= 4.7 && < 5
 

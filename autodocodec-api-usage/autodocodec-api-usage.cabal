@@ -513,6 +513,7 @@ library
       Paths_autodocodec_api_usage
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef
   build-depends:
       QuickCheck
     , aeson
@@ -560,7 +561,7 @@ test-suite autodocodec-api-usage-test
       Paths_autodocodec_api_usage
   hs-source-dirs:
       test/
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef -threaded -rtsopts -with-rtsopts=-N
   build-tool-depends:
       sydtest-discover:sydtest-discover
   build-depends:
@@ -612,7 +613,7 @@ benchmark autodocodec-api-usage-bench
       Paths_autodocodec_api_usage
   hs-source-dirs:
       bench/
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
     , aeson

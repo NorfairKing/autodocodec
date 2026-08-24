@@ -11,6 +11,15 @@ extra-source-files:
 - LICENSE
 - test_resources/**/*
 
+ghc-options:
+- -Wall
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wpartial-fields
+- -Widentities
+- -Wredundant-constraints
+- -Wcpp-undef
+
 dependencies:
 - base >= 4.7 && < 5
 
@@ -52,7 +61,6 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -Wall
     dependencies:
     - QuickCheck
     - aeson
@@ -101,7 +109,6 @@ benchmarks:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -Wall
     dependencies:
     - QuickCheck
     - aeson

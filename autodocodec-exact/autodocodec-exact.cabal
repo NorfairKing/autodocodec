@@ -30,6 +30,7 @@ library
       Paths_autodocodec_exact
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef
   build-depends:
       aeson
     , aeson-pretty
