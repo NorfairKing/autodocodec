@@ -20,6 +20,7 @@
     sydtest.flake = false;
     opt-env-conf.url = "github:NorfairKing/opt-env-conf";
     opt-env-conf.flake = false;
+    release-to-hackage.url = "github:NorfairKing/release-to-hackage";
   };
 
   outputs =
@@ -34,6 +35,7 @@
     , fast-myers-diff
     , sydtest
     , opt-env-conf
+    , release-to-hackage
     }:
     let
       system = "x86_64-linux";
@@ -54,7 +56,13 @@
     {
       overrides.${system} = pkgs.callPackage ./nix/overrides.nix { };
       overlays.${system} = import ./nix/overlay.nix;
-      packages.${system} = haskellPackages.autodocodecPackages;
+      packages.${system} = haskellPackages.autodocodecPackages // {
+        release-to-hackage = release-to-hackage.lib.${system}.makeHackageRelease {
+          packages = removeAttrs haskellPackages.autodocodecPackages [
+            "autodocodec-api-usage"
+          ];
+        };
+      };
       checks.${system} =
         let
           backwardCompatibilityCheckFor = nixpkgs: (haskellPackagesFor nixpkgs).autodocodecRelease;
@@ -99,10 +107,6 @@
           cabal-install
         ] ++ self.checks.${system}.pre-commit.enabledPackages;
         shellHook = self.checks.${system}.pre-commit.shellHook;
-      };
-      nix-ci.cachix = {
-        name = "autodocodec";
-        public-key = "autodocodec.cachix.org-1:UU3l42g+wSr6tzvawO/oDLo+5yC5BJiATnoV4/AViMs=";
       };
     };
 }
