@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.1.0] - 2026-10-06
+
+### Changed
+
+* A comment on a field's codec, from `<?>` or `<??>`, now ends up in the
+  generated option's `description` after the field's own description.
+  It used to be dropped, so documentation written on a shared type's codec
+  never reached the NixOS module generated from it.
+  This includes a field built with `optionalFieldOrNullWith`, whose codec sits
+  under the `EitherCodec` that `maybeCodec` is.
+
 ## [0.1.0.2] - 2026-07-14
 
 ### Changed

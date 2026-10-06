@@ -86,6 +86,8 @@ spec = do
   nixOptionTypeSpec @Via "via"
   nixOptionsSpec @Via "via"
   nixOptionTypeSpec @VeryComment "very-comment"
+  nixOptionTypeSpec @CommentedFields "commented-fields"
+  nixOptionsSpec @CommentedFields "commented-fields"
   nixOptionTypeSpec @LegacyValue "legacy-value"
   nixOptionsSpec @LegacyValue "legacy-value"
   nixOptionTypeSpec @LegacyObject "legacy-object"

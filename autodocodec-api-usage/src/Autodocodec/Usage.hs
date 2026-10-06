@@ -558,6 +558,47 @@ instance GenValid Via where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
+-- | A type whose fields are documented on their codecs rather than beside
+-- their keys, which is where a shared type's documentation has to live.
+data CommentedFields = CommentedFields
+  { commentedFieldsRequired :: !Text,
+    commentedFieldsOptional :: !(Maybe Text),
+    commentedFieldsDefaulted :: !Text,
+    commentedFieldsUndescribed :: !Text,
+    commentedFieldsOrNull :: !(Maybe Text)
+  }
+  deriving stock (Show, Eq, Generic)
+  deriving
+    ( FromJSON,
+      ToJSON
+    )
+    via (Autodocodec CommentedFields)
+
+instance Validity CommentedFields
+
+instance NFData CommentedFields
+
+instance GenValid CommentedFields where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance HasCodec CommentedFields where
+  codec = object "CommentedFields" objectCodec
+
+instance HasObjectCodec CommentedFields where
+  objectCodec =
+    CommentedFields
+      <$> requiredFieldWith "required" (codec <?> "more about the required field") "the required field"
+        .= commentedFieldsRequired
+      <*> optionalFieldWith "optional" (codec <??> ["more about the optional field", "on a second line"]) "the optional field"
+        .= commentedFieldsOptional
+      <*> optionalFieldWithOmittedDefaultWith "defaulted" (codec <?> "more about the defaulted field") "default" "the defaulted field"
+        .= commentedFieldsDefaulted
+      <*> requiredFieldWith' "undescribed" (codec <?> "all this field has to say")
+        .= commentedFieldsUndescribed
+      <*> optionalFieldOrNullWith "or-null" (codec <?> "more about the or-null field") "the or-null field"
+        .= commentedFieldsOrNull
+
 -- | A type with a heavily-commented codec
 data VeryComment = VeryComment
   deriving stock (Show, Eq, Generic)

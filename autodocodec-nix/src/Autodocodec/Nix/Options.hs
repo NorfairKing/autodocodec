@@ -141,7 +141,7 @@ objectCodecNixOptions = simplifyOptions . go False
                     else id
                 )
                   $ valueCodecNixOptionType o,
-              optionDescription = mDesc,
+              optionDescription = optionDescriptionFor mDesc o,
               optionDefault =
                 if b
                   then Just JSON.Null
@@ -151,7 +151,7 @@ objectCodecNixOptions = simplifyOptions . go False
         M.singleton key $
           Option
             { optionType = OptionTypeNullOr <$> valueCodecNixOptionType o,
-              optionDescription = mDesc,
+              optionDescription = optionDescriptionFor mDesc o,
               optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
             }
       OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
@@ -159,7 +159,7 @@ objectCodecNixOptions = simplifyOptions . go False
           key
           Option
             { optionType = valueCodecNixOptionType c,
-              optionDescription = mDesc,
+              optionDescription = optionDescriptionFor mDesc c,
               optionDefault = Just $ toJSONVia c defaultValue
             }
       OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
@@ -167,7 +167,7 @@ objectCodecNixOptions = simplifyOptions . go False
           key
           Option
             { optionType = valueCodecNixOptionType c,
-              optionDescription = mDesc,
+              optionDescription = optionDescriptionFor mDesc c,
               optionDefault = Just $ toJSONVia c defaultValue
             }
       PureCodec _ -> M.empty
@@ -190,6 +190,42 @@ objectCodecNixOptions = simplifyOptions . go False
               <$> optionType o1
               <*> optionType o2
         }
+
+-- | What an option says about itself: the field's own description, and then
+-- whatever comments the codec under it carries.
+--
+-- Both, because the two say the same kind of thing in two places. A field's
+-- description is written where the field is and a comment is written where
+-- the type is, and whoever reads the generated option wants what each of them
+-- knows. Keeping only the description is how documentation written with
+-- '<?>' silently fails to reach a NixOS module.
+optionDescriptionFor :: Maybe Text -> ValueCodec input output -> Maybe Text
+optionDescriptionFor mDesc c =
+  case filter (not . T.null) $ map T.strip $ maybeToList mDesc ++ valueCodecComments c of
+    [] -> Nothing
+    ds -> Just $ T.intercalate "\n" ds
+
+-- | The comments on a value codec, outermost first.
+--
+-- Through a 'BimapCodec' as 'valueCodecNixOptionType' is, because a codec
+-- written for one type in terms of another is still that type's codec, and a
+-- comment on the one underneath documents it.
+--
+-- Through the 'EitherCodec' that 'maybeCodec' is, for the same reason: a
+-- codec made nullable is still that codec, and 'optionalFieldOrNullWith'
+-- builds its field that way, so a comment there would otherwise be the one
+-- kind that silently went missing.
+--
+-- Not into any other 'EitherCodec', nor into an 'ArrayOfCodec', whose
+-- comments are about something the option is made of rather than about the
+-- option.
+valueCodecComments :: ValueCodec input output -> [Text]
+valueCodecComments = \case
+  CommentCodec comment c -> comment : valueCodecComments c
+  BimapCodec _ _ c -> valueCodecComments c
+  EitherCodec _ NullCodec c -> valueCodecComments c
+  EitherCodec _ c NullCodec -> valueCodecComments c
+  _ -> []
 
 data Option = Option
   { optionType :: !(Maybe OptionType),

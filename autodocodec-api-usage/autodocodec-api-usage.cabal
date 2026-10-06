@@ -160,6 +160,8 @@ extra-source-files:
     test_resources/nix/options/ainur-type.nix
     test_resources/nix/options/bool-type.nix
     test_resources/nix/options/char-type.nix
+    test_resources/nix/options/commented-fields-options.nix
+    test_resources/nix/options/commented-fields-type.nix
     test_resources/nix/options/const-type.nix
     test_resources/nix/options/day-type.nix
     test_resources/nix/options/derived-type.nix
