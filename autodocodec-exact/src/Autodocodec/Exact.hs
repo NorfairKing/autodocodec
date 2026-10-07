@@ -27,6 +27,7 @@ module Autodocodec.Exact
     parseExactJSONObjectVia,
     --
     ExactParseError (..),
+    ExactParseErrorMessage (..),
     prettyExactParseError,
     ExactParseWarning (..),
     prettyExactParseWarning,

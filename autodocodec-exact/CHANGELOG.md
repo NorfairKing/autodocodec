@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* `ExactParseErrorMessage` and its constructors are now exported.
+  `ExactParseError` already exposed the field that holds one, so there was no
+  way to look at a parse error without them.
+
 ## [0.0.0.2] - 2026-07-14
 
 ### Changed
