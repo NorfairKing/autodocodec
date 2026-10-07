@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+* `optionalFieldOrNullWithOmittedDefault`, `optionalFieldOrNullWithOmittedDefault'`,
+  `optionalFieldOrNullWithOmittedDefaultWith` and
+  `optionalFieldOrNullWithOmittedDefaultWith'` now omit the key when the value
+  is the default value, as they document, instead of encoding `null`.
+  Both encodings parse back to the default value, so this changes the output
+  rather than what can be read.
+
+
 ## [0.6.0.0] - 2026-07-14
 
 This is technically a breaking change but it's unlikely that you'll need to

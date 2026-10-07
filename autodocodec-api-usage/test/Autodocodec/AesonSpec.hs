@@ -110,6 +110,7 @@ spec = do
   aesonCodecSpec @Derived
   aesonCodecSpec @Recursive
   aesonCodecSpec @ListsExample
+  aesonCodecSpec @OptionalFields
   aesonCodecErrorSpec @Recursive "recursive-error-recurse-string" "{\"recurse\": {\"recurse\": {\"recurse\": \"hello\"}}}"
   aesonCodecSpec @MutuallyRecursiveA
   aesonCodecSpec @Via

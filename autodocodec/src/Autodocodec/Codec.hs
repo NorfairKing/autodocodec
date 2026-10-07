@@ -1178,7 +1178,11 @@ optionalFieldOrNullWithOmittedDefaultWith key c defaultValue doc = dimapCodec f 
     f = \case
       Just v -> v
       Nothing -> defaultValue
-    g v = if v == defaultValue then Nothing else Just v
+    -- Not 'if v == defaultValue then Nothing else Just v': the underlying
+    -- codec omits the key when what it is given equals its own default, which
+    -- is 'Just defaultValue', so answering 'Nothing' for the default value is
+    -- what would write @null@ instead of omitting the key.
+    g = Just
 
 -- | Like 'optionalFieldWithOmittedDefaultWith'', but the value may also be
 -- @null@ and that will be interpreted as the default value.
@@ -1193,10 +1197,11 @@ optionalFieldOrNullWithOmittedDefaultWith' ::
   ObjectCodec output output
 optionalFieldOrNullWithOmittedDefaultWith' key c defaultValue = dimapCodec f g $ optionalFieldWithOmittedDefaultWith' key (maybeCodec c) (Just defaultValue)
   where
+    -- See the note on 'optionalFieldOrNullWithOmittedDefaultWith'.
     f = \case
       Just v -> v
       Nothing -> defaultValue
-    g v = if v == defaultValue then Nothing else Just v
+    g = Just
 
 -- | An optional, or null, field
 --

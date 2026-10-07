@@ -420,6 +420,107 @@ instance HasObjectCodec ListsExample where
       <*> requiredField "required-non-empty" "required non-empty list" .= listsExampleRequiredNonEmpty
       <*> optionalField "optional-non-empty" "optional non-empty list" .= listsExampleOptionalNonEmpty
 
+-- | An example of the members of the @optionalField@ family that the other
+-- example types do not use.
+--
+-- Most of them are the primed variants, the ones that take no documentation.
+data OptionalFields = OptionalFields
+  { optionalFieldsOptional :: !(Maybe Text),
+    optionalFieldsOptionalOrNull :: !(Maybe Text),
+    optionalFieldsOptionalOrNullWith :: !(Maybe Text),
+    optionalFieldsWithDefault :: !Text,
+    optionalFieldsOrNullWithDefault :: !Text,
+    optionalFieldsOrNullWithDefaultUndocumented :: !Text,
+    optionalFieldsWithOmittedDefault :: !Text,
+    optionalFieldsOrNullWithOmittedDefault :: !Text,
+    optionalFieldsOrNullWithOmittedDefaultUndocumented :: !Text
+  }
+  deriving (Show, Eq, Generic)
+  deriving (OpenAPI.ToSchema) via (AutodocodecOpenApi OptionalFields)
+  deriving (Swagger.ToSchema) via (AutodocodecSwagger OptionalFields)
+
+instance Validity OptionalFields
+
+instance NFData OptionalFields
+
+instance GenValid OptionalFields where
+  genValid =
+    OptionalFields
+      <$> genValid
+      <*> genValid
+      <*> genValid
+      <*> genOptionalFieldsText
+      <*> genOptionalFieldsText
+      <*> genOptionalFieldsText
+      <*> genOptionalFieldsText
+      <*> genOptionalFieldsText
+      <*> genOptionalFieldsText
+  shrinkValid = shrinkValidStructurally
+
+-- | The default value that every defaulted field of 'OptionalFields' uses.
+defaultOptionalFieldsText :: Text
+defaultOptionalFieldsText = "default"
+
+-- | A generator that produces 'defaultOptionalFieldsText' often.
+--
+-- Whether a defaulted field is omitted depends on whether it holds its
+-- default value, so a generator that practically never produces the default
+-- would leave half of every such field's behaviour ungenerated.
+genOptionalFieldsText :: Gen Text
+genOptionalFieldsText = oneof [pure defaultOptionalFieldsText, genValid]
+
+instance ToJSON OptionalFields where
+  toJSON OptionalFields {..} =
+    let orNull t = if t == defaultOptionalFieldsText then JSON.Null else JSON.toJSON t
+     in JSON.object $
+          concat
+            [ ["optional" JSON..= t | t <- maybeToList optionalFieldsOptional],
+              ["optional-or-null" JSON..= t | t <- maybeToList optionalFieldsOptionalOrNull],
+              ["optional-or-null-with" JSON..= t | t <- maybeToList optionalFieldsOptionalOrNullWith],
+              [ "with-default" JSON..= optionalFieldsWithDefault,
+                "or-null-with-default" JSON..= orNull optionalFieldsOrNullWithDefault,
+                "or-null-with-default-undocumented" JSON..= orNull optionalFieldsOrNullWithDefaultUndocumented
+              ],
+              [ "with-omitted-default" JSON..= optionalFieldsWithOmittedDefault
+              | optionalFieldsWithOmittedDefault /= defaultOptionalFieldsText
+              ],
+              [ "or-null-with-omitted-default" JSON..= optionalFieldsOrNullWithOmittedDefault
+              | optionalFieldsOrNullWithOmittedDefault /= defaultOptionalFieldsText
+              ],
+              [ "or-null-with-omitted-default-undocumented" JSON..= optionalFieldsOrNullWithOmittedDefaultUndocumented
+              | optionalFieldsOrNullWithOmittedDefaultUndocumented /= defaultOptionalFieldsText
+              ]
+            ]
+
+instance FromJSON OptionalFields where
+  parseJSON = JSON.withObject "OptionalFields" $ \o ->
+    OptionalFields
+      <$> o JSON..:? "optional"
+      <*> o JSON..:? "optional-or-null"
+      <*> o JSON..:? "optional-or-null-with"
+      <*> o JSON..:? "with-default" JSON..!= defaultOptionalFieldsText
+      <*> (fromMaybe defaultOptionalFieldsText <$> o JSON..:? "or-null-with-default")
+      <*> (fromMaybe defaultOptionalFieldsText <$> o JSON..:? "or-null-with-default-undocumented")
+      <*> o JSON..:? "with-omitted-default" JSON..!= defaultOptionalFieldsText
+      <*> (fromMaybe defaultOptionalFieldsText <$> o JSON..:? "or-null-with-omitted-default")
+      <*> (fromMaybe defaultOptionalFieldsText <$> o JSON..:? "or-null-with-omitted-default-undocumented")
+
+instance HasCodec OptionalFields where
+  codec = object "OptionalFields" objectCodec
+
+instance HasObjectCodec OptionalFields where
+  objectCodec =
+    OptionalFields
+      <$> optionalField' "optional" .= optionalFieldsOptional
+      <*> optionalFieldOrNull' "optional-or-null" .= optionalFieldsOptionalOrNull
+      <*> optionalFieldOrNullWith' "optional-or-null-with" codec .= optionalFieldsOptionalOrNullWith
+      <*> optionalFieldWithDefault' "with-default" defaultOptionalFieldsText .= optionalFieldsWithDefault
+      <*> optionalFieldOrNullWithDefault "or-null-with-default" defaultOptionalFieldsText "an or-null field with a default" .= optionalFieldsOrNullWithDefault
+      <*> optionalFieldOrNullWithDefault' "or-null-with-default-undocumented" defaultOptionalFieldsText .= optionalFieldsOrNullWithDefaultUndocumented
+      <*> optionalFieldWithOmittedDefault' "with-omitted-default" defaultOptionalFieldsText .= optionalFieldsWithOmittedDefault
+      <*> optionalFieldOrNullWithOmittedDefault "or-null-with-omitted-default" defaultOptionalFieldsText "an or-null field with an omitted default" .= optionalFieldsOrNullWithOmittedDefault
+      <*> optionalFieldOrNullWithOmittedDefault' "or-null-with-omitted-default-undocumented" defaultOptionalFieldsText .= optionalFieldsOrNullWithOmittedDefaultUndocumented
+
 -- | A simple Recursive type
 --
 -- We use this example to make sure that:
