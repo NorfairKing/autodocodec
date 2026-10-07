@@ -1635,8 +1635,14 @@ unsafeUnboundedNaturalCodec :: JSONCodec Natural
 unsafeUnboundedNaturalCodec =
   bimapCodec go fromIntegral scientificCodec
   where
-    go s = case Scientific.floatingOrInteger s :: Either Float Natural of
-      Right i -> Right i
+    -- Via 'Integer' rather than straight to 'Natural': 'floatingOrInteger'
+    -- reaches its result type through 'fromInteger', and 'fromInteger' into
+    -- 'Natural' throws on a negative number, so asking it for a 'Natural'
+    -- turns a number this codec should refuse into an arithmetic underflow.
+    go s = case Scientific.floatingOrInteger s :: Either Float Integer of
+      Right i
+        | i < 0 -> Left ("Number is negative: " <> show s)
+        | otherwise -> Right (fromInteger i)
       Left _ -> Left ("Number is not an integer: " <> show s)
 
 -- | A codec for a literal piece of 'Text'.

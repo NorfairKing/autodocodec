@@ -550,6 +550,7 @@ test-suite autodocodec-api-usage-test
   other-modules:
       Autodocodec.Aeson.SchemaSpec
       Autodocodec.AesonSpec
+      Autodocodec.CodecSpec
       Autodocodec.ExactSpec
       Autodocodec.FormUrlEncodedSpec
       Autodocodec.MultipartSpec

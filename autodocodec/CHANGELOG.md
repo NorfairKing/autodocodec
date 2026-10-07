@@ -11,6 +11,9 @@
   Both encodings parse back to the default value, so this changes the output
   rather than what can be read.
 
+* `unsafeUnboundedNaturalCodec` no longer throws an arithmetic underflow when
+  it is given a negative number.  It fails to parse instead.
+
 
 ## [0.6.0.0] - 2026-07-14
 
