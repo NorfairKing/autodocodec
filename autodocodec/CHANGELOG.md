@@ -14,6 +14,10 @@
 * `unsafeUnboundedNaturalCodec` no longer throws an arithmetic underflow when
   it is given a negative number.  It fails to parse instead.
 
+### Removed
+
+* The `Result` newtype and its instances.
+  Nothing used it: it was left over from the time codecs it was written for.
 
 ## [0.6.0.0] - 2026-07-14
 

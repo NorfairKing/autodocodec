@@ -6,7 +6,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
@@ -2089,17 +2088,6 @@ codecViaAeson ::
   Text ->
   JSONCodec a
 codecViaAeson doc = bimapCodec (JSON.parseEither JSON.parseJSON) JSON.toJSON valueCodec <?> doc
-
--- Could get this from https://hackage.haskell.org/package/either-result-0.3.1.0/docs/Control-Monad-Result.html#t:Result
--- but just reimplementing here to avoid a dependency, as it's not exported anyway
--- (well it is actually, until we give this module an explicit export list).
--- We need to do this because `Either String a` doesn't have a `MonadFail` instance,
--- but `Time.iso8601ParseM` expects it's return value to have a `MonadFail` instance.
-newtype Result a = Result {runResult :: Either String a}
-  deriving newtype (Functor, Applicative, Monad)
-
-instance MonadFail Result where
-  fail = Result . Left
 
 -- TODO 'aeson' has it's own custom datetime serialising code in the module @Data.Aeson.Encoding.Builder@:
 -- The core function here is `Data.Aeson.Encoding.Builder.timeOfDay64`.
