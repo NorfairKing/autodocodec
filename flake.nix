@@ -9,6 +9,8 @@
     nixpkgs-25_11.url = "github:NixOS/nixpkgs?ref=nixos-25.11";
     horizon-advance.url = "git+https://gitlab.horizon-haskell.net/package-sets/horizon-advance";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    weeder-nix.url = "github:NorfairKing/weeder-nix";
+    weeder-nix.flake = false;
     validity.url = "github:NorfairKing/validity";
     validity.flake = false;
     safe-coloured-text.url = "github:NorfairKing/safe-coloured-text";
@@ -28,6 +30,7 @@
     , nixpkgs-25_11
     , horizon-advance
     , pre-commit-hooks
+    , weeder-nix
     , validity
     , safe-coloured-text
     , fast-myers-diff
@@ -37,7 +40,13 @@
     }:
     let
       system = "x86_64-linux";
-      nixpkgsFor = nixpkgs: import nixpkgs { inherit system; config.allowUnfree = true; };
+      nixpkgsFor = nixpkgs: import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [
+          (import (weeder-nix + "/nix/overlay.nix"))
+        ];
+      };
       pkgs = nixpkgsFor nixpkgs;
       allOverrides = pkgs.lib.composeManyExtensions [
         (pkgs.callPackage (fast-myers-diff + "/nix/overrides.nix") { })
@@ -73,6 +82,15 @@
         backwardCompatibilityChecks // {
           forwardCompatibility = horizonPkgs.autodocodecRelease;
           release = haskellPackages.autodocodecRelease;
+          weeder-check = pkgs.weeder-nix.makeWeederCheck {
+            weederToml = ./weeder.toml;
+            inherit haskellPackages;
+            packages = builtins.attrNames haskellPackages.autodocodecPackages;
+            # The test suites count as users, and the libraries have no roots
+            # of their own, so anything no test reaches is a weed.  That makes
+            # this check assert that the whole library is tested.
+            includeTests = true;
+          };
           pre-commit = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
@@ -102,6 +120,7 @@
         buildInputs = with pkgs; [
           zlib
           cabal-install
+          haskellPackages.weeder
         ] ++ self.checks.${system}.pre-commit.enabledPackages;
         shellHook = self.checks.${system}.pre-commit.shellHook;
       };

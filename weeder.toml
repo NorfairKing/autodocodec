@@ -1,0 +1,21 @@
+unused-types = true
+type-class-roots = false
+roots = [
+  "^Main.main$",
+  # The doctest suite is built with -main-is DocTest, so its entry point is
+  # not in Main.
+  "^DocTest.main$",
+  "^Paths_.*",
+]
+# Autodocodec.Usage exists to be an example of the API for readers and a corpus
+# for the tests, so nothing in it has to be used to earn its place.
+root-modules = [
+  "^Autodocodec.Usage$",
+]
+root-instances = [
+  { module = "Autodocodec/Usage\\.hs$" },
+  # Weeder's own defaults, which naming root-instances at all would otherwise
+  # replace.  These classes are reached through literals rather than by name.
+  { class = "\\.IsString$" },
+  { class = "\\.IsList$" },
+]
