@@ -131,6 +131,26 @@ spec = do
   aesonCodecSpec @(Const Text Void)
   aesonCodecSpec @Overlap
 
+  describe "OptionalFields" $
+    it "omits every field that is at an omitted default" $
+      toJSONViaCodec
+        OptionalFields
+          { optionalFieldsOptional = Nothing,
+            optionalFieldsOptionalOrNull = Nothing,
+            optionalFieldsOptionalOrNullWith = Nothing,
+            optionalFieldsWithDefault = defaultOptionalFieldsText,
+            optionalFieldsOrNullWithDefault = defaultOptionalFieldsText,
+            optionalFieldsOrNullWithDefaultUndocumented = defaultOptionalFieldsText,
+            optionalFieldsWithOmittedDefault = defaultOptionalFieldsText,
+            optionalFieldsOrNullWithOmittedDefault = defaultOptionalFieldsText,
+            optionalFieldsOrNullWithOmittedDefaultUndocumented = defaultOptionalFieldsText
+          }
+        `shouldBe` JSON.object
+          [ "with-default" JSON..= defaultOptionalFieldsText,
+            "or-null-with-default" JSON..= JSON.Null,
+            "or-null-with-default-undocumented" JSON..= JSON.Null
+          ]
+
   describe "the object-level helpers" $ do
     it "roundtrips an object through toJSONObjectViaCodec and parseJSONObjectViaCodec" $
       forAllValid $ \(a :: Example) ->
