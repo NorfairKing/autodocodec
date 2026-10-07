@@ -1,0 +1,22 @@
+[37mrequired[m: # [31mrequired[m
+  # the required field
+  # more about the required field
+  [33m<string>[m
+[37moptional[m: # [34moptional[m
+  # the optional field
+  # more about the optional field
+  # on a second line
+  [33m<string>[m
+[37mdefaulted[m: # [34moptional[m
+  # default: [35mdefault[m
+  # the defaulted field
+  # more about the defaulted field
+  [33m<string>[m
+[37mundescribed[m: # [31mrequired[m
+  # all this field has to say
+  [33m<string>[m
+[37mor-null[m: # [34moptional[m
+  # the or-null field
+  # [32mor null[m
+  # more about the or-null field
+  [33m<string>[m

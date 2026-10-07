@@ -1,0 +1,39 @@
+{
+    "anyOf": [
+        {
+            "properties": {
+                "string": {
+                    "$comment": "string for a",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "a"
+                }
+            },
+            "required": [
+                "string",
+                "type"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "int": {
+                    "$comment": "int for b",
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                },
+                "type": {
+                    "const": "b"
+                }
+            },
+            "required": [
+                "int",
+                "type"
+            ],
+            "type": "object"
+        }
+    ],
+    "type": "object"
+}

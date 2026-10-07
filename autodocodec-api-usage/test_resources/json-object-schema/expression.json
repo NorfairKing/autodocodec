@@ -1,0 +1,123 @@
+{
+    "oneOf": [
+        {
+            "properties": {
+                "left": {
+                    "$defs": {
+                        "Expression": {
+                            "$comment": "Expression",
+                            "oneOf": [
+                                {
+                                    "properties": {
+                                        "left": {
+                                            "$ref": "#/$defs/Expression"
+                                        },
+                                        "right": {
+                                            "$ref": "#/$defs/Expression"
+                                        },
+                                        "type": {
+                                            "const": "product"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "right",
+                                        "left"
+                                    ],
+                                    "type": "object"
+                                },
+                                {
+                                    "properties": {
+                                        "left": {
+                                            "$ref": "#/$defs/Expression"
+                                        },
+                                        "right": {
+                                            "$ref": "#/$defs/Expression"
+                                        },
+                                        "type": {
+                                            "const": "sum"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "right",
+                                        "left"
+                                    ],
+                                    "type": "object"
+                                },
+                                {
+                                    "properties": {
+                                        "type": {
+                                            "const": "literal"
+                                        },
+                                        "value": {
+                                            "maximum": 9223372036854775807,
+                                            "minimum": -9223372036854775808,
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": [
+                                        "type",
+                                        "value"
+                                    ],
+                                    "type": "object"
+                                }
+                            ],
+                            "type": "object"
+                        }
+                    },
+                    "$ref": "#/$defs/Expression"
+                },
+                "right": {
+                    "$ref": "#/$defs/Expression"
+                },
+                "type": {
+                    "const": "product"
+                }
+            },
+            "required": [
+                "type",
+                "right",
+                "left"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "left": {
+                    "$ref": "#/$defs/Expression"
+                },
+                "right": {
+                    "$ref": "#/$defs/Expression"
+                },
+                "type": {
+                    "const": "sum"
+                }
+            },
+            "required": [
+                "type",
+                "right",
+                "left"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "type": {
+                    "const": "literal"
+                },
+                "value": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "type",
+                "value"
+            ],
+            "type": "object"
+        }
+    ],
+    "type": "object"
+}

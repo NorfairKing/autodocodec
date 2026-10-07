@@ -9,6 +9,7 @@ import Autodocodec
 import Autodocodec.Usage
 import Data.Aeson (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson as JSON
+import Data.Aeson.Encoding (encodingToLazyByteString)
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString.Lazy as LB
 import Data.DList (DList)
@@ -129,6 +130,23 @@ spec = do
   aesonCodecSpec @(Monoid.Last Text)
   aesonCodecSpec @(Const Text Void)
   aesonCodecSpec @Overlap
+
+  describe "the object-level helpers" $ do
+    it "roundtrips an object through toJSONObjectViaCodec and parseJSONObjectViaCodec" $
+      forAllValid $ \(a :: Example) ->
+        JSON.parseEither parseJSONObjectViaCodec (toJSONObjectViaCodec a) `shouldBe` Right a
+
+    it "roundtrips an object through toJSONObjectVia and parseJSONObjectVia" $
+      forAllValid $ \(a :: Example) ->
+        JSON.parseEither
+          (parseJSONObjectVia (objectCodec @Example))
+          (toJSONObjectVia (objectCodec @Example) a)
+          `shouldBe` Right a
+
+    it "encodes through toSeriesViaCodec what it encodes through toJSONObjectViaCodec" $
+      forAllValid $ \(a :: Example) ->
+        JSON.decode (encodingToLazyByteString (JSON.pairs (toSeriesViaCodec a)))
+          `shouldBe` Just (JSON.Object (toJSONObjectViaCodec a))
 
 aesonCodecErrorSpec ::
   forall a.

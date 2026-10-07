@@ -1,0 +1,76 @@
+{
+    "properties": {
+        "optional": {
+            "type": "string"
+        },
+        "optional-or-null": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "optional-or-null-with": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "or-null-with-default": {
+            "$comment": "an or-null field with a default",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "or-null-with-default-undocumented": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "or-null-with-omitted-default": {
+            "$comment": "an or-null field with an omitted default",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "or-null-with-omitted-default-undocumented": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "with-default": {
+            "type": "string"
+        },
+        "with-omitted-default": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}

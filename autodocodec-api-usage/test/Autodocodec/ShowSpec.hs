@@ -80,6 +80,7 @@ spec = do
   showCodecSpec @Derived "derived"
   showCodecSpec @Recursive "recursive"
   showCodecSpec @ListsExample "lists-example"
+  showCodecSpec @OptionalFields "optional-fields"
   showCodecSpec @MutuallyRecursiveA "mutually-recursive"
   showCodecSpec @Via "via"
   showCodecSpec @VeryComment "very-comment"

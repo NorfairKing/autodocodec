@@ -1,0 +1,17 @@
+{
+    "properties": {
+        "one": {
+            "$comment": "first field",
+            "type": "string"
+        },
+        "two": {
+            "$comment": "second field",
+            "type": "string"
+        }
+    },
+    "required": [
+        "two",
+        "one"
+    ],
+    "type": "object"
+}

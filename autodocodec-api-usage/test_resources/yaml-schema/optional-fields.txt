@@ -1,0 +1,33 @@
+# OptionalFields
+[37moptional[m: # [34moptional[m
+  [33m<string>[m
+[37moptional-or-null[m: # [34moptional[m
+  # [32mor null[m
+  [33m<string>[m
+[37moptional-or-null-with[m: # [34moptional[m
+  # [32mor null[m
+  [33m<string>[m
+[37mwith-default[m: # [34moptional[m
+  # default: [35mdefault[m
+  [33m<string>[m
+[37mor-null-with-default[m: # [34moptional[m
+  # default: [35mdefault[m
+  # an or-null field with a default
+  # [32mor null[m
+  [33m<string>[m
+[37mor-null-with-default-undocumented[m: # [34moptional[m
+  # default: [35mdefault[m
+  # [32mor null[m
+  [33m<string>[m
+[37mwith-omitted-default[m: # [34moptional[m
+  # default: [35mdefault[m
+  [33m<string>[m
+[37mor-null-with-omitted-default[m: # [34moptional[m
+  # default: [35mdefault[m
+  # an or-null field with an omitted default
+  # [32mor null[m
+  [33m<string>[m
+[37mor-null-with-omitted-default-undocumented[m: # [34moptional[m
+  # default: [35mdefault[m
+  # [32mor null[m
+  [33m<string>[m

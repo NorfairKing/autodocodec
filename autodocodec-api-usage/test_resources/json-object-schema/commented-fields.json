@@ -1,0 +1,37 @@
+{
+    "properties": {
+        "defaulted": {
+            "$comment": "the defaulted field\nmore about the defaulted field",
+            "type": "string"
+        },
+        "optional": {
+            "$comment": "the optional field\nmore about the optional field\non a second line\n",
+            "type": "string"
+        },
+        "or-null": {
+            "$comment": "the or-null field",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$comment": "more about the or-null field",
+                    "type": "string"
+                }
+            ]
+        },
+        "required": {
+            "$comment": "the required field\nmore about the required field",
+            "type": "string"
+        },
+        "undescribed": {
+            "$comment": "all this field has to say",
+            "type": "string"
+        }
+    },
+    "required": [
+        "undescribed",
+        "required"
+    ],
+    "type": "object"
+}

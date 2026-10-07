@@ -1,0 +1,14 @@
+# any of
+[ # A
+  type: # required
+    a
+  text: # required
+    # text for a
+    <string>
+, # B
+  type: # required
+    b
+  int: # required
+    # int for b
+    <integer> # 64 bit signed integer
+]

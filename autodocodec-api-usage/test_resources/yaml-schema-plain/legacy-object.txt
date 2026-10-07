@@ -1,0 +1,45 @@
+# LegacyObject
+# any of
+[ 1: # required
+    # text 1
+    <string>
+, 1old: # required
+    # text 1
+    <string>
+]
+# any of
+[ 2: # required
+    # text 2
+    <string>
+, 2old: # required
+    # text 2
+    <string>
+]
+# any of
+[ 3: # required
+    # text 3
+    <string>
+, 3old: # required
+    # text 3
+    <string>
+]
+# any of
+[ newest: # required
+    # newest key
+    <string>
+, newer: # required
+    # newer key
+    <string>
+, new: # required
+    # new key
+    <string>
+, old: # required
+    # old key
+    <string>
+, older: # required
+    # older key
+    <string>
+, oldest: # required
+    # oldest key
+    <string>
+]

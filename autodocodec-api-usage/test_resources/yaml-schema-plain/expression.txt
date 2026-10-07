@@ -1,0 +1,20 @@
+def: Expression
+# Expression
+# one of
+[ left: # required
+    ref: Expression
+  right: # required
+    ref: Expression
+  type: # required
+    product
+, left: # required
+    ref: Expression
+  right: # required
+    ref: Expression
+  type: # required
+    sum
+, value: # required
+    <integer> # 64 bit signed integer
+  type: # required
+    literal
+]

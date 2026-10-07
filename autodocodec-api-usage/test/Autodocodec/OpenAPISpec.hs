@@ -106,6 +106,8 @@ spec = do
   openAPISchemaSpecViaDeclareSchemaRef @Derived "derived"
   openAPISchemaSpec @ListsExample "lists-example"
   openAPISchemaSpecViaDeclareSchemaRef @ListsExample "lists-example"
+  openAPISchemaSpec @OptionalFields "optional-fields"
+  openAPISchemaSpecViaDeclareSchemaRef @OptionalFields "optional-fields"
   openAPISchemaSpec @Recursive "recursive"
   openAPISchemaSpecViaDeclareSchemaRef @Recursive "recursive"
   openAPISchemaSpec @MutuallyRecursiveA "mutually-recursive"

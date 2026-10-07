@@ -88,6 +88,8 @@ tests:
     - genvalidity-time
     - http-api-data
     - openapi3
+    - path
+    - path-io
     - pretty-show
     - safe-coloured-text
     - scientific

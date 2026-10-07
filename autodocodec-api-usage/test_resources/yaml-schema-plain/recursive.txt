@@ -1,0 +1,9 @@
+def: recursive
+# any of
+[ # base case
+  <integer> # 64 bit signed integer
+, # Recurse
+  recurse: # required
+    # recursive case
+    ref: recursive
+]

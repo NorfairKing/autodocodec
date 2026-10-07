@@ -1,0 +1,58 @@
+{
+    "components": {
+        "schemas": {
+            "OptionalFields": {
+                "properties": {
+                    "optional": {
+                        "type": "string"
+                    },
+                    "optional-or-null": {
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "optional-or-null-with": {
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "or-null-with-default": {
+                        "default": "default",
+                        "description": "an or-null field with a default",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "or-null-with-default-undocumented": {
+                        "default": "default",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "or-null-with-omitted-default": {
+                        "default": "default",
+                        "description": "an or-null field with an omitted default",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "or-null-with-omitted-default-undocumented": {
+                        "default": "default",
+                        "nullable": true,
+                        "type": "string"
+                    },
+                    "with-default": {
+                        "default": "default",
+                        "type": "string"
+                    },
+                    "with-omitted-default": {
+                        "default": "default",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "openapi": "3.0.0",
+    "paths": {}
+}

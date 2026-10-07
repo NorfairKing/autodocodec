@@ -1,0 +1,6 @@
+# one of
+[ Apple
+, Orange
+, Banana
+, Melon
+]

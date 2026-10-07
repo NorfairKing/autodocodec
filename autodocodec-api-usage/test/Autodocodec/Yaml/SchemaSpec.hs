@@ -84,6 +84,18 @@ spec = do
   yamlSchemaSpec @MultilineDefault "multiline-default"
   yamlSchemaSpec @Overlap "overlap"
 
+  yamlObjectSchemaSpec @Example "example"
+  yamlObjectSchemaSpec @ListsExample "lists-example"
+  yamlObjectSchemaSpec @Via "via"
+  yamlObjectSchemaSpec @CommentedFields "commented-fields"
+  yamlObjectSchemaSpec @LegacyValue "legacy-value"
+  yamlObjectSchemaSpec @LegacyObject "legacy-object"
+  yamlObjectSchemaSpec @These "these"
+  yamlObjectSchemaSpec @Expression "expression"
+  yamlObjectSchemaSpec @Overlap "overlap"
+  yamlSchemaSpec @OptionalFields "optional-fields"
+  yamlObjectSchemaSpec @OptionalFields "optional-fields"
+
 yamlSchemaSpec ::
   forall a.
   ( Typeable a,
@@ -95,4 +107,29 @@ yamlSchemaSpec filePath = do
   it ("outputs the same schema as before for " <> nameOf @a) $
     pureGoldenTextFile
       ("test_resources/yaml-schema/" <> filePath <> ".txt")
-      (renderChunksText With24BitColours $ schemaChunksViaCodec @a)
+      (renderChunksText With24BitColours (schemaChunksViaCodec @a))
+  it ("outputs the same plain schema as before for " <> nameOf @a) $
+    pureGoldenTextFile
+      ("test_resources/yaml-schema-plain/" <> filePath <> ".txt")
+      (renderPlainSchemaViaCodec @a)
+  it ("renders the schema's chunks in colour for " <> nameOf @a) $
+    renderColouredSchemaViaCodec @a `shouldBe` renderChunksText With24BitColours (schemaChunksViaCodec @a)
+
+yamlObjectSchemaSpec ::
+  forall a.
+  ( Typeable a,
+    HasObjectCodec a
+  ) =>
+  FilePath ->
+  Spec
+yamlObjectSchemaSpec filePath = do
+  it ("outputs the same object schema as before for " <> nameOf @a) $
+    pureGoldenTextFile
+      ("test_resources/yaml-object-schema/" <> filePath <> ".txt")
+      (renderChunksText With24BitColours (objectSchemaChunksViaCodec @a))
+  it ("outputs the same plain object schema as before for " <> nameOf @a) $
+    pureGoldenTextFile
+      ("test_resources/yaml-object-schema-plain/" <> filePath <> ".txt")
+      (renderPlainObjectSchemaViaCodec @a)
+  it ("renders the object schema's chunks in colour for " <> nameOf @a) $
+    renderColouredObjectSchemaViaCodec @a `shouldBe` renderChunksText With24BitColours (objectSchemaChunksViaCodec @a)

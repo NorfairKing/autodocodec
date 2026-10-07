@@ -1,0 +1,6 @@
+def: MutuallyRecursiveA
+# MutuallyRecursiveA
+relationshipToB: # required
+  # MutuallyRecursiveB
+  relationshipToA: # optional
+    ref: MutuallyRecursiveA

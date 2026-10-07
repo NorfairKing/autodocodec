@@ -109,8 +109,22 @@ spec = do
   jsonSchemaSpec @(Const Text Void) "const"
   jsonSchemaSpec @Overlap "overlap"
 
+  jsonObjectSchemaSpec @Example "example"
+  jsonObjectSchemaSpec @ListsExample "lists-example"
+  jsonObjectSchemaSpec @Via "via"
+  jsonObjectSchemaSpec @CommentedFields "commented-fields"
+  jsonObjectSchemaSpec @LegacyValue "legacy-value"
+  jsonObjectSchemaSpec @LegacyObject "legacy-object"
+  jsonObjectSchemaSpec @These "these"
+  jsonObjectSchemaSpec @Expression "expression"
+  jsonObjectSchemaSpec @Overlap "overlap"
+  jsonSchemaSpec @OptionalFields "optional-fields"
+  jsonObjectSchemaSpec @OptionalFields "optional-fields"
+
   describe "JSONSchema" $ do
     genValidSpec @JSONSchema
+    eqSpec @JSONSchema
+    ordSpec @JSONSchema
     xdescribe "does not hold because this property does not hold for Scientific values like -7.85483897507979979e17" $
       it "roundtrips through json and back" $
         forAllValid $ \jsonSchema ->
@@ -126,6 +140,8 @@ spec = do
                          in encodedAgain `shouldBe` encoded
   describe "ObjectSchema" $ do
     genValidSpec @ObjectSchema
+    eqSpec @ObjectSchema
+    ordSpec @ObjectSchema
     it "roundtrips through object and back" $
       forAllValid $ \objectSchema ->
         -- We use the reencode version to survive the ordering change through map
@@ -138,6 +154,20 @@ spec = do
                  in context decodedCtx $
                       let encodedAgain = JSON.encode (decoded :: ObjectSchema)
                        in encodedAgain `shouldBe` encoded
+
+  describe "StringBounds" $ do
+    genValidSpec @StringBounds
+    eqSpec @StringBounds
+    ordSpec @StringBounds
+
+  describe "Bounds" $ do
+    genValidSpec @(Bounds Scientific)
+    eqSpec @(Bounds Scientific)
+    ordSpec @(Bounds Scientific)
+
+  describe "KeyRequirement" $ do
+    genValidSpec @KeyRequirement
+    ordSpec @KeyRequirement
 
 instance GenValid JSONSchema where
   shrinkValid = \case
@@ -227,6 +257,45 @@ instance GenValid StringBounds where
 instance GenValid KeyRequirement where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+jsonObjectSchemaSpec ::
+  forall a.
+  ( Show a,
+    Typeable a,
+    GenValid a,
+    HasObjectCodec a
+  ) =>
+  FilePath ->
+  Spec
+jsonObjectSchemaSpec filePath =
+  describe ("jsonObjectSchemaSpec @" <> nameOf @a) $ do
+    it "outputs the same object schema as before" $
+      pureGoldenJSONFile
+        ("test_resources/json-object-schema/" <> filePath <> ".json")
+        (JSON.toJSON (jsonObjectSchemaViaCodec @a))
+    it "validates all encoded values" $
+      forAllValid $ \(a :: a) ->
+        let schema = ObjectSchema (jsonObjectSchemaViaCodec @a)
+            encoded = JSON.Object (toJSONObjectViaCodec a)
+         in if validateObjectAccordingTo encoded schema
+              then pure ()
+              else
+                expectationFailure $
+                  unlines
+                    [ "Generated value did not pass the JSON Schema validation, but it should have",
+                      unwords
+                        [ "value",
+                          ppShow a
+                        ],
+                      unwords
+                        [ "encoded",
+                          ppShow encoded
+                        ],
+                      unwords
+                        [ "schema",
+                          ppShow schema
+                        ]
+                    ]
 
 jsonSchemaSpec ::
   forall a.

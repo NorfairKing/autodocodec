@@ -1,0 +1,13 @@
+# MultilineDefault
+value: # optional
+  # default: 
+  #   one: foo
+  #   two: bar
+  # a field with a multi-line default value
+  # Via
+  one: # required
+    # first field
+    <string>
+  two: # required
+    # second field
+    <string>

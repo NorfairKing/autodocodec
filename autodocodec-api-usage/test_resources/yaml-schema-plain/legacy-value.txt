@@ -1,0 +1,21 @@
+# LegacyValue
+# any of
+[ 1: # required
+    # text 1
+    <string>
+  2: # required
+    # text 2
+    <string>
+  3: # required
+    # text 3
+    <string>
+, 1old: # required
+    # text 1
+    <string>
+  2old: # required
+    # text 2
+    <string>
+  3old: # required
+    # text 3
+    <string>
+]

@@ -36,6 +36,11 @@ spec = do
       toFormVia sharedKeyCodec ("b", "a")
         `shouldBe` Form (HashMap.singleton "k" ["b", "a"])
 
+  describe "fromFormVia" $
+    it "decodes what toFormVia encoded" $
+      forAllValid $ \(a :: Via) ->
+        fromFormVia (objectCodec @Via) (toFormVia (objectCodec @Via) a) `shouldBe` Right a
+
   describe "decoding errors" $ do
     it "names the key that is missing" $
       (fromFormViaCodec emptyForm :: Either String Via)

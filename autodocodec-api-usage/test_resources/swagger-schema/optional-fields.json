@@ -1,0 +1,45 @@
+{
+    "definitions": {
+        "OptionalFields": {
+            "default": "default",
+            "properties": {
+                "optional": {
+                    "type": "string"
+                },
+                "optional-or-null": {
+                    "additionalProperties": true
+                },
+                "optional-or-null-with": {
+                    "additionalProperties": true
+                },
+                "or-null-with-default": {
+                    "additionalProperties": true,
+                    "description": "an or-null field with a default"
+                },
+                "or-null-with-default-undocumented": {
+                    "additionalProperties": true
+                },
+                "or-null-with-omitted-default": {
+                    "additionalProperties": true,
+                    "description": "an or-null field with an omitted default"
+                },
+                "or-null-with-omitted-default-undocumented": {
+                    "additionalProperties": true
+                },
+                "with-default": {
+                    "type": "string"
+                },
+                "with-omitted-default": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {},
+    "swagger": "2.0"
+}

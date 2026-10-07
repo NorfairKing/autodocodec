@@ -18,6 +18,7 @@ import Data.GenValidity.DNonEmpty ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import qualified Data.Map.Strict as M
 import qualified Data.Monoid as Monoid
 import Data.Scientific
 import Data.Semigroup (Dual)
@@ -107,6 +108,44 @@ spec = do
   nixOptionTypeSpec @(Const Text Void) "const"
   nixOptionTypeSpec @Overlap "overlap"
   nixOptionsSpec @Overlap "overlap"
+  nixOptionTypeSpec @OptionalFields "optional-fields"
+  nixOptionsSpec @OptionalFields "optional-fields"
+
+  describe "simplifyOptionType" $ do
+    it "collapses a nullOr of a nullOr" $
+      simplifyOptionType (OptionTypeNullOr (OptionTypeNullOr (OptionTypeSimple "lib.types.str")))
+        `shouldBe` OptionTypeNullOr (OptionTypeSimple "lib.types.str")
+
+    it "collapses a nullOr of null" $
+      simplifyOptionType (OptionTypeNullOr OptionTypeNull) `shouldBe` OptionTypeNull
+
+    it "merges the enums in a oneOf" $
+      simplifyOptionType (OptionTypeOneOf [OptionTypeEnum [ExprLitString "a"], OptionTypeEnum [ExprLitString "b"]])
+        `shouldBe` OptionTypeEnum [ExprLitString "a", ExprLitString "b"]
+
+  describe "simplifyOption" $
+    it "simplifies the option's type" $
+      simplifyOption (emptyOption {optionType = Just (OptionTypeNullOr OptionTypeNull)})
+        `shouldBe` emptyOption {optionType = Just OptionTypeNull}
+
+  describe "renderOption" $
+    it "renders an option with nothing set as before" $
+      pureGoldenTextFile
+        "test_resources/nix/options/empty-option.nix"
+        (renderOption emptyOption)
+
+  describe "optionExpr" $
+    it "builds what optionExpression builds" $
+      optionExpr emptyOption `shouldBe` optionExpression emptyOption
+
+  describe "optionsExpr" $
+    it "builds what optionsExpression builds" $
+      let options = M.singleton "foo" emptyOption
+       in optionsExpr options `shouldBe` optionsExpression options
+
+  describe "optionTypeExpr" $
+    it "builds what optionTypeExpression builds" $
+      optionTypeExpr OptionTypeNull `shouldBe` optionTypeExpression OptionTypeNull
 
 nixOptionsSpec ::
   forall a.

@@ -1,0 +1,47 @@
+text: # required
+  # a text
+  <string>
+bool: # required
+  # a bool
+  <boolean>
+maybe: # required
+  # a maybe text
+  # or null
+  <string>
+optional: # optional
+  # an optional text
+  <string>
+optional-or-null: # optional
+  # an optional-or-null text
+  # or null
+  <string>
+optional-with-default: # optional
+  # default: foobar
+  # an optional text with a default
+  <string>
+optional-with-null-default: # optional
+  # default: []
+  # an optional list of texts with a default empty list where the empty list would be omitted
+  - <string>
+single-or-list: # optional
+  # default: []
+  # an optional list that can also be specified as a single element
+  # any of
+  [ <string>
+  , - <string>
+  ]
+fruit: # required
+  # fruit!!
+  # one of
+  [ Apple
+  , Orange
+  , Banana
+  , Melon
+  ]
+shape: # required
+  # shape!?
+  # one of
+  [ circle
+  , square
+  , rectangle
+  ]

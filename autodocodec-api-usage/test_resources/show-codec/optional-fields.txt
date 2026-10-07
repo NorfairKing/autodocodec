@@ -1,0 +1,160 @@
+ObjectOfCodec
+  (Just "OptionalFields")
+  (ApCodec
+     (ApCodec
+        (ApCodec
+           (ApCodec
+              (ApCodec
+                 (ApCodec
+                    (ApCodec
+                       (ApCodec
+                          (BimapCodec
+                             _
+                             _
+                             (OptionalKeyCodec
+                                "optional"
+                                Nothing
+                                (StringCodec
+                                   Nothing
+                                   StringBounds
+                                     { stringBoundsMinLength = Nothing
+                                     , stringBoundsMaxLength = Nothing
+                                     })))
+                          (BimapCodec
+                             _
+                             _
+                             (OptionalKeyCodec
+                                "optional-or-null"
+                                Nothing
+                                (BimapCodec
+                                   _
+                                   _
+                                   (EitherCodec
+                                      PossiblyJointUnion
+                                      NullCodec
+                                      (StringCodec
+                                         Nothing
+                                         StringBounds
+                                           { stringBoundsMinLength = Nothing
+                                           , stringBoundsMaxLength = Nothing
+                                           }))))))
+                       (BimapCodec
+                          _
+                          _
+                          (OptionalKeyCodec
+                             "optional-or-null-with"
+                             Nothing
+                             (BimapCodec
+                                _
+                                _
+                                (EitherCodec
+                                   PossiblyJointUnion
+                                   NullCodec
+                                   (StringCodec
+                                      Nothing
+                                      StringBounds
+                                        { stringBoundsMinLength = Nothing
+                                        , stringBoundsMaxLength = Nothing
+                                        }))))))
+                    (BimapCodec
+                       _
+                       _
+                       (OptionalKeyWithDefaultCodec
+                          "with-default"
+                          (StringCodec
+                             Nothing
+                             StringBounds
+                               { stringBoundsMinLength = Nothing
+                               , stringBoundsMaxLength = Nothing
+                               })
+                          _
+                          Nothing)))
+                 (BimapCodec
+                    _
+                    _
+                    (OptionalKeyWithDefaultCodec
+                       "or-null-with-default"
+                       (BimapCodec
+                          _
+                          _
+                          (EitherCodec
+                             PossiblyJointUnion
+                             NullCodec
+                             (StringCodec
+                                Nothing
+                                StringBounds
+                                  { stringBoundsMinLength = Nothing
+                                  , stringBoundsMaxLength = Nothing
+                                  })))
+                       _
+                       (Just "an or-null field with a default"))))
+              (BimapCodec
+                 _
+                 _
+                 (OptionalKeyWithDefaultCodec
+                    "or-null-with-default-undocumented"
+                    (BimapCodec
+                       _
+                       _
+                       (EitherCodec
+                          PossiblyJointUnion
+                          NullCodec
+                          (StringCodec
+                             Nothing
+                             StringBounds
+                               { stringBoundsMinLength = Nothing
+                               , stringBoundsMaxLength = Nothing
+                               })))
+                    _
+                    Nothing)))
+           (BimapCodec
+              _
+              _
+              (OptionalKeyWithOmittedDefaultCodec
+                 "with-omitted-default"
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })
+                 _
+                 Nothing)))
+        (BimapCodec
+           _
+           _
+           (OptionalKeyWithOmittedDefaultCodec
+              "or-null-with-omitted-default"
+              (BimapCodec
+                 _
+                 _
+                 (EitherCodec
+                    PossiblyJointUnion
+                    NullCodec
+                    (StringCodec
+                       Nothing
+                       StringBounds
+                         { stringBoundsMinLength = Nothing
+                         , stringBoundsMaxLength = Nothing
+                         })))
+              _
+              (Just "an or-null field with an omitted default"))))
+     (BimapCodec
+        _
+        _
+        (OptionalKeyWithOmittedDefaultCodec
+           "or-null-with-omitted-default-undocumented"
+           (BimapCodec
+              _
+              _
+              (EitherCodec
+                 PossiblyJointUnion
+                 NullCodec
+                 (StringCodec
+                    Nothing
+                    StringBounds
+                      { stringBoundsMinLength = Nothing
+                      , stringBoundsMaxLength = Nothing
+                      })))
+           _
+           Nothing)))

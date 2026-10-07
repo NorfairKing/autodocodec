@@ -1,0 +1,16 @@
+# one of
+[ text: # required
+    <string>
+  int: # required
+    <integer> # 64 bit signed integer
+  type: # required
+    both
+, text: # required
+    <string>
+  type: # required
+    this
+, int: # required
+    <integer> # 64 bit signed integer
+  type: # required
+    that
+]

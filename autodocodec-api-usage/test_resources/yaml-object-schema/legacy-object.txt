@@ -1,0 +1,44 @@
+# [32many of[m
+[ [37m1[m: # [31mrequired[m
+    # text 1
+    [33m<string>[m
+, [37m1old[m: # [31mrequired[m
+    # text 1
+    [33m<string>[m
+]
+# [32many of[m
+[ [37m2[m: # [31mrequired[m
+    # text 2
+    [33m<string>[m
+, [37m2old[m: # [31mrequired[m
+    # text 2
+    [33m<string>[m
+]
+# [32many of[m
+[ [37m3[m: # [31mrequired[m
+    # text 3
+    [33m<string>[m
+, [37m3old[m: # [31mrequired[m
+    # text 3
+    [33m<string>[m
+]
+# [32many of[m
+[ [37mnewest[m: # [31mrequired[m
+    # newest key
+    [33m<string>[m
+, [37mnewer[m: # [31mrequired[m
+    # newer key
+    [33m<string>[m
+, [37mnew[m: # [31mrequired[m
+    # new key
+    [33m<string>[m
+, [37mold[m: # [31mrequired[m
+    # old key
+    [33m<string>[m
+, [37molder[m: # [31mrequired[m
+    # older key
+    [33m<string>[m
+, [37moldest[m: # [31mrequired[m
+    # oldest key
+    [33m<string>[m
+]

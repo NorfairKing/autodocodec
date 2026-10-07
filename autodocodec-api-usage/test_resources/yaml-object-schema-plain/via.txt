@@ -1,0 +1,6 @@
+one: # required
+  # first field
+  <string>
+two: # required
+  # second field
+  <string>

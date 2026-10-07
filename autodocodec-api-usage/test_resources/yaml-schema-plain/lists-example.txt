@@ -1,0 +1,15 @@
+# ListsExample
+possibly-empty-with-omitted-default: # optional
+  # default: []
+  # possibly empty list with omitted default empty list
+  - <integer> # 64 bit signed integer
+possibly-empty-with-default: # optional
+  # default: []
+  # possibly empty list with default empty list
+  - <integer> # 64 bit signed integer
+required-non-empty: # required
+  # required non-empty list
+  - <string>
+optional-non-empty: # optional
+  # optional non-empty list
+  - <string>

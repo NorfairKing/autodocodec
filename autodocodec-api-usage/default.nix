@@ -6,8 +6,8 @@
 , genvalidity-aeson, genvalidity-containers, genvalidity-criterion
 , genvalidity-dlist, genvalidity-scientific, genvalidity-sydtest
 , genvalidity-sydtest-aeson, genvalidity-text, genvalidity-time
-, http-api-data, lib, openapi3, pretty-show, QuickCheck
-, safe-coloured-text, scientific, servant-multipart
+, http-api-data, lib, openapi3, path, path-io, pretty-show
+, QuickCheck, safe-coloured-text, scientific, servant-multipart
 , servant-multipart-api, swagger2, sydtest, sydtest-aeson
 , sydtest-discover, text, time, unordered-containers, vector, yaml
 }:
@@ -31,9 +31,10 @@ mkDerivation {
     base bytestring containers dlist genvalidity genvalidity-aeson
     genvalidity-containers genvalidity-dlist genvalidity-scientific
     genvalidity-sydtest genvalidity-sydtest-aeson genvalidity-text
-    genvalidity-time http-api-data openapi3 pretty-show QuickCheck
-    safe-coloured-text scientific servant-multipart-api swagger2
-    sydtest sydtest-aeson text time unordered-containers vector yaml
+    genvalidity-time http-api-data openapi3 path path-io pretty-show
+    QuickCheck safe-coloured-text scientific servant-multipart-api
+    swagger2 sydtest sydtest-aeson text time unordered-containers
+    vector yaml
   ];
   testToolDepends = [ sydtest-discover ];
   benchmarkHaskellDepends = [

@@ -1,0 +1,6 @@
+# one of
+[ Left: # required
+    <any>
+, Right: # required
+    <boolean>
+]

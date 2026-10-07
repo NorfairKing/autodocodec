@@ -1,0 +1,13 @@
+# any of
+[ # Valar
+  domain: # required
+    # Domain which the Valar rules over
+    <string>
+  name: # required
+    # Name of the Valar
+    <string>
+, # Maiar
+  name: # required
+    # Name of the Maiar
+    <string>
+]

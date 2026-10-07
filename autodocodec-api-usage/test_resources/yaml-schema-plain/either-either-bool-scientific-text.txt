@@ -1,0 +1,11 @@
+# one of
+[ Left: # required
+    # one of
+    [ Left: # required
+        <boolean>
+    , Right: # required
+        <number>
+    ]
+, Right: # required
+    <string>
+]

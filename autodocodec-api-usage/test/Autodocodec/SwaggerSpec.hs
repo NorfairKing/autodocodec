@@ -8,6 +8,7 @@ module Autodocodec.SwaggerSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Swagger
+import Autodocodec.Swagger.DerivingVia (AutodocodecSwagger)
 import Autodocodec.Usage
 import qualified Data.Aeson as JSON
 import Data.DList (DList)
@@ -98,6 +99,16 @@ spec = do
   swaggerSchemaSpec @Derived "derived"
   swaggerSchemaSpec @Recursive "recursive"
   swaggerSchemaSpec @ListsExample "lists-example"
+  swaggerSchemaSpec @OptionalFields "optional-fields"
+
+  describe "AutodocodecSwagger" $
+    it "declares the schema that the type's codec declares" $
+      Swagger.runDeclare
+        (Swagger.declareNamedSchema (Proxy :: Proxy (AutodocodecSwagger Example)))
+        mempty
+        `shouldBe` Swagger.runDeclare
+          (declareNamedSchemaViaCodec (Proxy :: Proxy Example))
+          mempty
   swaggerSchemaSpec @MutuallyRecursiveA "mutually-recursive"
   swaggerSchemaSpec @Via "via"
   swaggerSchemaSpec @VeryComment "very-comment"

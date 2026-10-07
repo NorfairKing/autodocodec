@@ -1,0 +1,22 @@
+required: # required
+  # the required field
+  # more about the required field
+  <string>
+optional: # optional
+  # the optional field
+  # more about the optional field
+  # on a second line
+  <string>
+defaulted: # optional
+  # default: default
+  # the defaulted field
+  # more about the defaulted field
+  <string>
+undescribed: # required
+  # all this field has to say
+  <string>
+or-null: # optional
+  # the or-null field
+  # or null
+  # more about the or-null field
+  <string>

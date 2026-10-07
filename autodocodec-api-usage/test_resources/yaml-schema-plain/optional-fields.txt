@@ -1,0 +1,33 @@
+# OptionalFields
+optional: # optional
+  <string>
+optional-or-null: # optional
+  # or null
+  <string>
+optional-or-null-with: # optional
+  # or null
+  <string>
+with-default: # optional
+  # default: default
+  <string>
+or-null-with-default: # optional
+  # default: default
+  # an or-null field with a default
+  # or null
+  <string>
+or-null-with-default-undocumented: # optional
+  # default: default
+  # or null
+  <string>
+with-omitted-default: # optional
+  # default: default
+  <string>
+or-null-with-omitted-default: # optional
+  # default: default
+  # an or-null field with an omitted default
+  # or null
+  <string>
+or-null-with-omitted-default-undocumented: # optional
+  # default: default
+  # or null
+  <string>

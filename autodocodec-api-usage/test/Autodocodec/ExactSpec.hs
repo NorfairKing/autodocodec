@@ -109,6 +109,40 @@ spec = do
   exactCodecErrorSpec @Recursive "recursive-error-long-context" (JSON.Object (Compat.fromList [("recurse", JSON.Object (Compat.fromList [("recurse", JSON.String "hi")]))]))
   exactCodecWarningsSpec @Recursive "recursive-error-unrecognised" (JSON.Object (Compat.fromList [("recurse", JSON.Object (Compat.fromList [("recurse", JSON.Number 5), ("foo", JSON.Null)])), ("bar", JSON.Null), ("baz", JSON.Null)]))
   exactCodecSpec @ListsExample
+  exactCodecSpec @OptionalFields
+
+  describe "parseExactJSONObjectViaCodec" $ do
+    it "parses an object that the codec encoded" $
+      forAllValid $ \(a :: Example) ->
+        parseExactJSONObjectViaCodec (toJSONObjectViaCodec a) `shouldBe` Right (a, [])
+
+    it "says which required key is missing, and where" $
+      ( parseExactJSONObjectViaCodec (Compat.fromList []) ::
+          Either ExactParseError (Example, [ExactParseWarning])
+      )
+        `shouldBe` Left
+          ExactParseError
+            { exactParseErrorMessage = ExactParseErrorMissingRequiredKey "text" (Compat.fromList []),
+              exactParseErrorContext = ExactParseContext []
+            }
+
+  describe "parseExactJSONObjectVia" $
+    it "parses an object that the codec encoded" $
+      forAllValid $ \(a :: Example) ->
+        parseExactJSONObjectVia (objectCodec @Example) (toJSONObjectViaCodec a)
+          `shouldBe` Right (a, [])
+
+  describe "ExactParseContext" $ do
+    it "appends the pieces of both contexts, outermost first" $
+      ExactParseContext [ExactParseContextPieceArrayIndex 0]
+        <> ExactParseContext [ExactParseContextPieceArrayIndex 1]
+        `shouldBe` ExactParseContext
+          [ ExactParseContextPieceArrayIndex 0,
+            ExactParseContextPieceArrayIndex 1
+          ]
+
+    it "is empty when it has no pieces" $
+      (mempty :: ExactParseContext) `shouldBe` ExactParseContext []
   exactCodecSpec @MutuallyRecursiveA
   exactCodecSpec @Via
   exactCodecSpec @VeryComment

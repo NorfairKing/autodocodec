@@ -7,8 +7,9 @@ module Autodocodec.YamlSpec (spec) where
 
 import Autodocodec
 import Autodocodec.Usage
-import Autodocodec.Yaml.Encode
+import Autodocodec.Yaml
 import qualified Data.Aeson as JSON
+import qualified Data.ByteString as SB
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
@@ -39,6 +40,9 @@ import Data.Word
 import Data.Yaml as Yaml
 import Data.Yaml.Builder as YamlBuilder
 import Numeric.Natural
+import Path
+import Path.IO
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import Test.Syd.Validity.Utils
@@ -106,6 +110,34 @@ spec = do
   yamlCodecSpec @(Monoid.Last Text)
   yamlCodecSpec @(Const Text Void)
   yamlCodecSpec @Overlap
+  yamlCodecSpec @OptionalFields
+
+  describe "readFirstYamlConfigFile" $ do
+    it "finds nothing if none of the files exist" $
+      withSystemTempDir "autodocodec-test" $ \tdir -> do
+        p <- resolveFile tdir "no-such-file.yaml"
+        mExample <- readFirstYamlConfigFile [p]
+        mExample `shouldBe` (Nothing :: Maybe Example)
+
+    it "reads the first file that exists, not the ones after it" $
+      forAllValid $ \example -> ioProperty $
+        withSystemTempDir "autodocodec-test" $ \tdir -> do
+          missing <- resolveFile tdir "no-such-file.yaml"
+          p <- resolveFile tdir "config.yaml"
+          later <- resolveFile tdir "later.yaml"
+          SB.writeFile (fromAbsFile p) (encodeYamlViaCodec (example :: Example))
+          SB.writeFile (fromAbsFile later) "this is not valid yaml for an Example"
+          mExample <- readFirstYamlConfigFile [missing, p, later]
+          mExample `shouldBe` Just example
+
+  describe "readYamlConfigFile" $
+    it "reads back what encodeYamlViaCodec wrote" $
+      forAllValid $ \example -> ioProperty $
+        withSystemTempDir "autodocodec-test" $ \tdir -> do
+          p <- resolveFile tdir "config.yaml"
+          SB.writeFile (fromAbsFile p) (encodeYamlViaCodec (example :: Example))
+          mExample <- readYamlConfigFile p
+          mExample `shouldBe` Just example
 
 yamlCodecSpec ::
   forall a.
@@ -131,6 +163,20 @@ yamlCodecSpec = describe (nameOf @a) $ do
               ]
        in context ctx $
             case errOrDecoded of
+              Left err -> expectationFailure $ Yaml.prettyPrintParseException err
+              Right actual -> actual `shouldBe` a
+  it "roundtrips through a yaml bytestring" $
+    forAllValid $ \(a :: a) ->
+      let encoded = encodeYamlViaCodec a
+          ctx =
+            unlines
+              [ "Encoded to this value:",
+                ppShow encoded,
+                "with this codec",
+                showCodecABit (codec @a)
+              ]
+       in context ctx $
+            case eitherDecodeYamlViaCodec encoded of
               Left err -> expectationFailure $ Yaml.prettyPrintParseException err
               Right actual -> actual `shouldBe` a
   it "roundtrips through yaml and back" $

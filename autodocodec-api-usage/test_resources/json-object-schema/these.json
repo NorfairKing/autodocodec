@@ -1,0 +1,58 @@
+{
+    "oneOf": [
+        {
+            "properties": {
+                "int": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "both"
+                }
+            },
+            "required": [
+                "type",
+                "int",
+                "text"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "this"
+                }
+            },
+            "required": [
+                "type",
+                "text"
+            ],
+            "type": "object"
+        },
+        {
+            "properties": {
+                "int": {
+                    "maximum": 9223372036854775807,
+                    "minimum": -9223372036854775808,
+                    "type": "integer"
+                },
+                "type": {
+                    "const": "that"
+                }
+            },
+            "required": [
+                "type",
+                "int"
+            ],
+            "type": "object"
+        }
+    ],
+    "type": "object"
+}
