@@ -1,15 +1,12 @@
 { lib }:
 {
   optional = lib.mkOption {
-    default = null;
-    type = lib.types.nullOr lib.types.str;
+    type = lib.types.str;
   };
   optional-or-null = lib.mkOption {
-    default = null;
     type = lib.types.nullOr lib.types.str;
   };
   optional-or-null-with = lib.mkOption {
-    default = null;
     type = lib.types.nullOr lib.types.str;
   };
   or-null-with-default = lib.mkOption {

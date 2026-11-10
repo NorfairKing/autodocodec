@@ -11,6 +11,7 @@ import Autodocodec.Usage as Usage
 import qualified Data.Aeson as JSON
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
+import Data.Functor (($>))
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity.DList ()
@@ -110,6 +111,39 @@ spec = do
   nixOptionsSpec @Overlap "overlap"
   nixOptionTypeSpec @OptionalFields "optional-fields"
   nixOptionsSpec @OptionalFields "optional-fields"
+
+  describe "renderNixOptionTypeVia" $
+    -- The flake's unset-options-check evaluates this file, so it holds every
+    -- kind of field whose being left out matters.
+    it "outputs the same nix type as before for every kind of field" $
+      let nested :: JSONCodec ()
+          nested =
+            object "Nested" $
+              optionalField' @Text "one" .= const Nothing
+                *> optionalField' @Text "two" .= const Nothing
+                $> ()
+          unsettable :: JSONCodec ()
+          unsettable =
+            object "Unsettable" $
+              requiredField' @Text "required" .= const ""
+                *> requiredField' @(Maybe Text) "nullable" .= const Nothing
+                *> optionalField' @Text "optional" .= const Nothing
+                *> optionalFieldOrNull' @Text "optional-or-null" .= const Nothing
+                *> optionalFieldWithDefault' @Text "with-default" "default" .= const "default"
+                *> optionalFieldWithDefault' @(Maybe Text) "null-default" Nothing .= const Nothing
+                *> optionalFieldWith' "nested" nested .= const Nothing
+                *> optionalFieldOrNullWith' "nested-or-null" nested .= const Nothing
+                *> optionalFieldWith' "list" (listCodec nested) .= const Nothing
+                *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
+                *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
+                *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
+                *> optionalField' @Text "1st" .= const Nothing
+                *> optionalField' @Recursive "recursive" .= const Nothing
+                *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing
+                $> ()
+       in pureGoldenTextFile
+            "test_resources/nix/options/unsettable-type.nix"
+            (renderNixOptionTypeVia unsettable)
 
   describe "simplifyOptionType" $ do
     it "collapses a nullOr of a nullOr" $

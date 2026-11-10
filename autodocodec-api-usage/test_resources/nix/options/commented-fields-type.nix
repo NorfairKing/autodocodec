@@ -1,18 +1,28 @@
 { lib }:
-lib.types.submodule {
+lib.types.submodule ({ config, options, ... }:
+{
   options = {
+    __defined = lib.mkOption {
+      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+        defaulted = config.defaulted;
+        optional = config.optional;
+        or-null = config.or-null;
+        required = config.required;
+        undescribed = config.undescribed;
+      };
+      internal = true;
+      readOnly = true;
+    };
     defaulted = lib.mkOption {
       default = "default";
       description = "the defaulted field\nmore about the defaulted field";
       type = lib.types.str;
     };
     optional = lib.mkOption {
-      default = null;
       description = "the optional field\nmore about the optional field\non a second line";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     or-null = lib.mkOption {
-      default = null;
       description = "the or-null field\nmore about the or-null field";
       type = lib.types.nullOr lib.types.str;
     };
@@ -25,4 +35,4 @@ lib.types.submodule {
       type = lib.types.str;
     };
   };
-}
+})

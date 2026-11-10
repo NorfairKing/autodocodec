@@ -1,6 +1,23 @@
 { lib }:
-lib.types.submodule {
+lib.types.submodule ({ config, options, ... }:
+{
   options = {
+    __defined = lib.mkOption {
+      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+        bool = config.bool;
+        fruit = config.fruit;
+        maybe = config.maybe;
+        optional = config.optional;
+        optional-or-null = config.optional-or-null;
+        optional-with-default = config.optional-with-default;
+        optional-with-null-default = config.optional-with-null-default;
+        shape = config.shape;
+        single-or-list = config.single-or-list;
+        text = config.text;
+      };
+      internal = true;
+      readOnly = true;
+    };
     bool = lib.mkOption {
       description = "a bool";
       type = lib.types.bool;
@@ -19,12 +36,10 @@ lib.types.submodule {
       type = lib.types.nullOr lib.types.str;
     };
     optional = lib.mkOption {
-      default = null;
       description = "an optional text";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     optional-or-null = lib.mkOption {
-      default = null;
       description = "an optional-or-null text";
       type = lib.types.nullOr lib.types.str;
     };
@@ -59,4 +74,4 @@ lib.types.submodule {
       type = lib.types.str;
     };
   };
-}
+})

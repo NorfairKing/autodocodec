@@ -18,12 +18,10 @@
     type = lib.types.nullOr lib.types.str;
   };
   optional = lib.mkOption {
-    default = null;
     description = "an optional text";
-    type = lib.types.nullOr lib.types.str;
+    type = lib.types.str;
   };
   optional-or-null = lib.mkOption {
-    default = null;
     description = "an optional-or-null text";
     type = lib.types.nullOr lib.types.str;
   };

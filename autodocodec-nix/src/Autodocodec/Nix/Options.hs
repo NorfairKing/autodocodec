@@ -93,26 +93,22 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
       ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
-      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
+      ObjectOfCodec _ oc -> Just $ OptionTypeSubmodule $ objectCodecNixOptions oc
       EqCodec v c -> Just $ OptionTypeEnum [toNixExpressionVia c v]
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
       CommentCodec _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
--- [tag:NixOptionNullable]
--- Note about nullable options:
--- It's not technically accurate to represent optional fields as the 'null' value in Nix,
--- but Nix isn't very good at optional values at all, so we use 'null' for both
--- optional fields and nullable fields.
--- If Nix options ever figure out how to do optional fields, we'll use that
--- instead.
+-- | A key that may be left out gets an option without a default, so that
+-- leaving it out and setting it to 'null' can be told apart.
+-- Reading such an option throws, so every generated submodule has a read-only
+-- @__defined@ option instead: what was defined in it, and nothing that was not.
 objectCodecNixOptions :: ObjectCodec input output -> Map Text Option
-objectCodecNixOptions = simplifyOptions . go False
+objectCodecNixOptions = simplifyOptions . go
   where
-    -- The bool means 'force optional'
-    go :: Bool -> ObjectCodec input output -> Map Text Option
-    go b = \case
+    go :: ObjectCodec input output -> Map Text Option
+    go = \case
       DiscriminatedUnionCodec k _ m ->
         M.insert
           k
@@ -130,30 +126,10 @@ objectCodecNixOptions = simplifyOptions . go False
                     optionDefault = Nothing
                   }
             )
-          $ map (go b . snd)
+          $ map (go . snd)
           $ HM.elems m
-      RequiredKeyCodec key o mDesc ->
-        M.singleton key $
-          Option
-            { optionType =
-                ( if b
-                    then fmap OptionTypeNullOr
-                    else id
-                )
-                  $ valueCodecNixOptionType o,
-              optionDescription = optionDescriptionFor mDesc o,
-              optionDefault =
-                if b
-                  then Just JSON.Null
-                  else Nothing -- [ref:NixOptionNullable]
-            }
-      OptionalKeyCodec key o mDesc ->
-        M.singleton key $
-          Option
-            { optionType = OptionTypeNullOr <$> valueCodecNixOptionType o,
-              optionDescription = optionDescriptionFor mDesc o,
-              optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
-            }
+      RequiredKeyCodec key o mDesc -> M.singleton key $ undefaultedOption o mDesc
+      OptionalKeyCodec key o mDesc -> M.singleton key $ undefaultedOption o mDesc
       OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
         M.singleton
           key
@@ -171,9 +147,16 @@ objectCodecNixOptions = simplifyOptions . go False
               optionDefault = Just $ toJSONVia c defaultValue
             }
       PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.unionWith mergeOption (go b c1) (go b c2)
-      BimapCodec _ _ c -> go b c
-      EitherCodec _ c1 c2 -> M.unionWith mergeOption (go True c1) (go True c2)
+      ApCodec c1 c2 -> M.unionWith mergeOption (go c1) (go c2)
+      BimapCodec _ _ c -> go c
+      EitherCodec _ c1 c2 -> M.unionWith mergeOption (go c1) (go c2)
+    undefaultedOption :: ValueCodec input output -> Maybe Text -> Option
+    undefaultedOption c mDesc =
+      Option
+        { optionType = valueCodecNixOptionType c,
+          optionDescription = optionDescriptionFor mDesc c,
+          optionDefault = Nothing
+        }
     -- This throwing away of the description and the default is not ideal but
     -- better than just taking the first option.
     mergeOption :: Option -> Option -> Option
@@ -339,10 +322,7 @@ optionExpression Option {..} =
             [ [("type", optionTypeExpression typ) | typ <- maybeToList optionType],
               [("description", ExprLitString d) | d <- maybeToList optionDescription],
               case optionDefault of
-                Nothing -> case optionType of
-                  -- Automatically give submodule options a default of the empty set.
-                  Just (OptionTypeSubmodule _) -> [("default", ExprAttrSet M.empty)]
-                  _ -> []
+                Nothing -> []
                 Just d -> [("default", toNixExpressionViaCodec d)]
             ]
     )
@@ -381,4 +361,78 @@ optionTypeExpression = go
       OptionTypeSubmodule os ->
         ExprAp
           (ExprVar "lib.types.submodule")
-          (ExprAttrSet (M.singleton "options" (optionsExpression os)))
+          ( ExprFun ["config", "options", "..."] $
+              ExprAttrSet $
+                M.singleton "options" $
+                  ExprAttrSet $
+                    M.insert "__defined" (definedOptionExpression os) $
+                      M.map optionExpression os
+          )
+
+definedOptionExpression :: Map Text Option -> Expression
+definedOptionExpression os =
+  ExprAp (ExprVar "lib.mkOption") $
+    ExprAttrSet $
+      M.fromList
+        [ ("internal", ExprLitBool True),
+          ("readOnly", ExprLitBool True),
+          ( "default",
+            ExprAp
+              (ExprAp (ExprVar "lib.filterAttrs") (ExprVar "(name: _: options.${name}.isDefined)"))
+              (ExprAttrSet (M.mapWithKey definedField os))
+          )
+        ]
+  where
+    definedField :: Text -> Option -> Expression
+    definedField key o =
+      let value = concat ["config.", T.unpack (nixAttrKey key)]
+       in ExprVar $ T.pack $ fromMaybe value $ optionType o >>= definedValue value
+
+-- | The defined part of a value of the given type, or 'Nothing' if that is
+-- the whole value.
+--
+-- Of a @oneOf@, the first alternative that has the shape of the value is
+-- looked into, as that is the one the module system merged it with.
+definedValue :: String -> OptionType -> Maybe String
+definedValue value = \case
+  OptionTypeSubmodule _ -> Just $ concat [value, ".__defined"]
+  OptionTypeNullOr t -> (\d -> unwords ["if", value, "== null then null else", d]) <$> definedValue value t
+  OptionTypeListOf t -> (\d -> unwords ["map (v:", d ++ ")", value]) <$> definedValue "v" t
+  OptionTypeAttrsOf t -> (\d -> unwords ["lib.mapAttrs (_: v:", d ++ ")", value]) <$> definedValue "v" t
+  OptionTypeOneOf ts ->
+    let alternative :: OptionType -> Maybe (String, String)
+        alternative t = (,) <$> shapeCheck value t <*> definedValue value t
+     in case concatMap (mapMaybe alternative . oneOfAlternatives) ts of
+          [] -> Nothing
+          as -> Just $ foldr (\(check, d) rest -> unwords ["if", check, "then", d, "else", rest]) value as
+  OptionTypeNull -> Nothing
+  OptionTypeSimple _ -> Nothing
+  OptionTypeEnum _ -> Nothing
+
+-- | The alternatives of a @oneOf@ that a value can have, with nested ones
+-- flattened.
+--
+-- A null has no alternative of its own, so it is left as it is.
+oneOfAlternatives :: OptionType -> [OptionType]
+oneOfAlternatives = \case
+  OptionTypeOneOf ts -> concatMap oneOfAlternatives ts
+  OptionTypeNullOr t -> oneOfAlternatives t
+  OptionTypeNull -> []
+  t@(OptionTypeSimple _) -> [t]
+  t@(OptionTypeEnum _) -> [t]
+  t@(OptionTypeListOf _) -> [t]
+  t@(OptionTypeAttrsOf _) -> [t]
+  t@(OptionTypeSubmodule _) -> [t]
+
+-- | Whether a value has the shape of the given type, for the types that
+-- 'definedValue' looks into.
+shapeCheck :: String -> OptionType -> Maybe String
+shapeCheck value = \case
+  OptionTypeSubmodule _ -> Just $ unwords [value, "? __defined"]
+  OptionTypeListOf _ -> Just $ unwords ["builtins.isList", value]
+  OptionTypeAttrsOf _ -> Just $ unwords ["builtins.isAttrs", value]
+  OptionTypeNullOr _ -> Nothing
+  OptionTypeOneOf _ -> Nothing
+  OptionTypeNull -> Nothing
+  OptionTypeSimple _ -> Nothing
+  OptionTypeEnum _ -> Nothing

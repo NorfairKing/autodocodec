@@ -1,6 +1,16 @@
 { lib }:
-lib.types.submodule {
+lib.types.submodule ({ config, options, ... }:
+{
   options = {
+    __defined = lib.mkOption {
+      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+        int = config.int;
+        text = config.text;
+        type = config.type;
+      };
+      internal = true;
+      readOnly = true;
+    };
     int = lib.mkOption {
       type = lib.types.int;
     };
@@ -15,4 +25,4 @@ lib.types.submodule {
       ];
     };
   };
-}
+})

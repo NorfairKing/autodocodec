@@ -79,6 +79,7 @@
         in
         backwardCompatibilityChecks // {
           release = haskellPackages.autodocodecRelease;
+          unset-options-check = pkgs.callPackage ./nix/unset-options-check.nix { };
           weeder-check = pkgs.weeder-nix.makeWeederCheck {
             weederToml = ./weeder.toml;
             inherit haskellPackages;

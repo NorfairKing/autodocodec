@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0.0] - 2026-11-11
+
+### Changed
+
+* A key that may be left out gets an option without a default, instead of one
+  that defaults to `null`, so that leaving it out and setting it to `null` can
+  be told apart.
+  An option only has a default when the codec has one, so it is `null` only
+  when the codec's default is.
+  Reading an option that was not defined throws, so every generated submodule
+  has a read-only `__defined` option that holds only the options that were
+  defined, which is what to hand to the codec.
+* A submodule option no longer gets a default of `{ }`, because the codec has
+  no such default.
+
+### Added
+
+* `nixAttrKey` in `Autodocodec.Nix.Expression`.
+
 ## [0.1.1.0] - 2026-10-06
 
 ### Changed

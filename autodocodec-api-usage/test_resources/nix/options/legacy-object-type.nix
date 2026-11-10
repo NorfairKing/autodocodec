@@ -1,65 +1,72 @@
 { lib }:
-lib.types.submodule {
+lib.types.submodule ({ config, options, ... }:
+{
   options = {
     "1" = lib.mkOption {
-      default = null;
       description = "text 1";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     "1old" = lib.mkOption {
-      default = null;
       description = "text 1";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     "2" = lib.mkOption {
-      default = null;
       description = "text 2";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     "2old" = lib.mkOption {
-      default = null;
       description = "text 2";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     "3" = lib.mkOption {
-      default = null;
       description = "text 3";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     "3old" = lib.mkOption {
-      default = null;
       description = "text 3";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
+    };
+    __defined = lib.mkOption {
+      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+        "1" = config."1";
+        "1old" = config."1old";
+        "2" = config."2";
+        "2old" = config."2old";
+        "3" = config."3";
+        "3old" = config."3old";
+        new = config.new;
+        newer = config.newer;
+        newest = config.newest;
+        old = config.old;
+        older = config.older;
+        oldest = config.oldest;
+      };
+      internal = true;
+      readOnly = true;
     };
     new = lib.mkOption {
-      default = null;
       description = "new key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     newer = lib.mkOption {
-      default = null;
       description = "newer key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     newest = lib.mkOption {
-      default = null;
       description = "newest key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     old = lib.mkOption {
-      default = null;
       description = "old key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     older = lib.mkOption {
-      default = null;
       description = "older key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
     oldest = lib.mkOption {
-      default = null;
       description = "oldest key";
-      type = lib.types.nullOr lib.types.str;
+      type = lib.types.str;
     };
   };
-}
+})

@@ -1,10 +1,20 @@
 { lib }:
-lib.types.submodule {
+lib.types.submodule ({ config, options, ... }:
+{
   options = {
+    __defined = lib.mkOption {
+      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+        optional-non-empty = config.optional-non-empty;
+        possibly-empty-with-default = config.possibly-empty-with-default;
+        possibly-empty-with-omitted-default = config.possibly-empty-with-omitted-default;
+        required-non-empty = config.required-non-empty;
+      };
+      internal = true;
+      readOnly = true;
+    };
     optional-non-empty = lib.mkOption {
-      default = null;
       description = "optional non-empty list";
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      type = lib.types.listOf lib.types.str;
     };
     possibly-empty-with-default = lib.mkOption {
       default = [];
@@ -21,4 +31,4 @@ lib.types.submodule {
       type = lib.types.listOf lib.types.str;
     };
   };
-}
+})

@@ -1,9 +1,8 @@
 { lib }:
 {
   optional-non-empty = lib.mkOption {
-    default = null;
     description = "optional non-empty list";
-    type = lib.types.nullOr (lib.types.listOf lib.types.str);
+    type = lib.types.listOf lib.types.str;
   };
   possibly-empty-with-default = lib.mkOption {
     default = [];
