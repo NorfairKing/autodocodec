@@ -19,7 +19,6 @@ import Data.GenValidity.DNonEmpty ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
-import qualified Data.Map.Strict as M
 import qualified Data.Monoid as Monoid
 import Data.Scientific
 import Data.Semigroup (Dual)
