@@ -137,6 +137,7 @@ spec = do
                 *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
                 *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
                 *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
                 *> optionalField' @Text "1st" .= const Nothing
                 *> optionalField' @Recursive "recursive" .= const Nothing
                 *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing

@@ -67,6 +67,10 @@ let
       definition = required // { either-list = [{ one = "1"; } { }]; };
       expected = withDefaults // { either-list = [{ one = "1"; } { }]; };
     };
+    "keeps a list in a oneOf as it was written when an earlier alternative takes anything" = {
+      definition = required // { value-or-list = [{ one = "1"; }]; };
+      expected = withDefaults // { value-or-list = [{ one = "1"; }]; };
+    };
     "keeps a defined option whose name needs quoting" = {
       definition = required // { "1st" = "1"; };
       expected = withDefaults // { "1st" = "1"; };

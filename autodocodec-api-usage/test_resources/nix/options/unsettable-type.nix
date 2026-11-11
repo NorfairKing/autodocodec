@@ -21,6 +21,7 @@ lib.types.submodule ({ config, options, ... }:
         optional-or-null = config.optional-or-null;
         recursive = config.recursive;
         required = config.required;
+        value-or-list = config.value-or-list;
         with-default = config.with-default;
       };
       internal = true;
@@ -207,6 +208,30 @@ lib.types.submodule ({ config, options, ... }:
     recursive = lib.mkOption { };
     required = lib.mkOption {
       type = lib.types.str;
+    };
+    value-or-list = lib.mkOption {
+      type = lib.types.oneOf [
+        lib.types.unspecified
+        (lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+        {
+          options = {
+            __defined = lib.mkOption {
+              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+                one = config.one;
+                two = config.two;
+              };
+              internal = true;
+              readOnly = true;
+            };
+            one = lib.mkOption {
+              type = lib.types.str;
+            };
+            two = lib.mkOption {
+              type = lib.types.str;
+            };
+          };
+        })))
+      ];
     };
     with-default = lib.mkOption {
       default = "default";

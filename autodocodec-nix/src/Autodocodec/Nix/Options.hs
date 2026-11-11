@@ -393,6 +393,8 @@ definedOptionExpression os =
 --
 -- Of a @oneOf@, the first alternative that has the shape of the value is
 -- looked into, as that is the one the module system merged it with.
+-- No alternative after one that takes any value is, because the module system
+-- never gets to it.
 definedValue :: String -> OptionType -> Maybe String
 definedValue value = \case
   OptionTypeSubmodule _ -> Just $ concat [value, ".__defined"]
@@ -402,7 +404,7 @@ definedValue value = \case
   OptionTypeOneOf ts ->
     let alternative :: OptionType -> Maybe (String, String)
         alternative t = (,) <$> shapeCheck value t <*> definedValue value t
-     in case concatMap (mapMaybe alternative . oneOfAlternatives) ts of
+     in case mapMaybe alternative $ takeWhile (not . takesAnyValue) $ concatMap oneOfAlternatives ts of
           [] -> Nothing
           as -> Just $ foldr (\(check, d) rest -> unwords ["if", check, "then", d, "else", rest]) value as
   OptionTypeNull -> Nothing
@@ -423,6 +425,19 @@ oneOfAlternatives = \case
   t@(OptionTypeListOf _) -> [t]
   t@(OptionTypeAttrsOf _) -> [t]
   t@(OptionTypeSubmodule _) -> [t]
+
+-- | Whether every value has the type, so that the module system merges any
+-- value of a @oneOf@ with it once it gets to it.
+takesAnyValue :: OptionType -> Bool
+takesAnyValue = \case
+  OptionTypeSimple s -> s `elem` ["lib.types.anything", "lib.types.unspecified"]
+  OptionTypeNull -> False
+  OptionTypeEnum _ -> False
+  OptionTypeNullOr _ -> False
+  OptionTypeListOf _ -> False
+  OptionTypeAttrsOf _ -> False
+  OptionTypeOneOf _ -> False
+  OptionTypeSubmodule _ -> False
 
 -- | Whether a value has the shape of the given type, for the types that
 -- 'definedValue' looks into.
