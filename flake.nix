@@ -18,7 +18,7 @@
     fast-myers-diff.flake = false;
     sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
-    opt-env-conf.url = "github:NorfairKing/opt-env-conf";
+    opt-env-conf.url = "github:NorfairKing/opt-env-conf?ref=nix-unset-options";
     opt-env-conf.flake = false;
     release-to-hackage.url = "github:NorfairKing/release-to-hackage";
   };
