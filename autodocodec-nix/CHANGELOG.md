@@ -7,13 +7,25 @@
 * A key that may be left out gets an option without a default, instead of one
   that defaults to `null`, so that leaving it out and setting it to `null` can
   be told apart.
+  Its type no longer admits `null` unless its codec does.
   An option only has a default when the codec has one, so it is `null` only
   when the codec's default is.
+  A key in more than one alternative of an object only keeps its default when
+  every alternative has the same one.
   Reading an option that was not defined throws, so every generated submodule
   has a read-only `__defined` option that holds only the options that were
   defined, which is what to hand to the codec.
+  A generated submodule is therefore a function of `config` and `options`.
 * A submodule option no longer gets a default of `{ }`, because the codec has
   no such default.
+
+### Removed
+
+* `renderNixOptionsVia`, `renderNixOptionsViaCodec`, `optionsExpression` and
+  `optionsExpr`.
+  A set of options has no `__defined` of its own, so it cannot be written out
+  whole any more.
+  Use the submodule type from `renderNixOptionTypeVia` instead.
 
 ### Added
 

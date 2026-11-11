@@ -80,26 +80,18 @@ spec = do
   nixOptionTypeSpec @Shape "shape"
   nixOptionTypeSpec @Example "example"
   nixOptionTypeSpec @Derived "derived"
-  nixOptionsSpec @Example "example"
   nixOptionTypeSpec @Recursive "recursive"
   nixOptionTypeSpec @ListsExample "lists-example"
-  nixOptionsSpec @ListsExample "lists-example"
   nixOptionTypeSpec @MutuallyRecursiveA "mutually-recursive"
   nixOptionTypeSpec @Via "via"
-  nixOptionsSpec @Via "via"
   nixOptionTypeSpec @VeryComment "very-comment"
   nixOptionTypeSpec @CommentedFields "commented-fields"
-  nixOptionsSpec @CommentedFields "commented-fields"
   nixOptionTypeSpec @LegacyValue "legacy-value"
-  nixOptionsSpec @LegacyValue "legacy-value"
   nixOptionTypeSpec @LegacyObject "legacy-object"
-  nixOptionsSpec @LegacyObject "legacy-object"
   nixOptionTypeSpec @Ainur "ainur"
   nixOptionTypeSpec @War "war"
   nixOptionTypeSpec @These "these"
-  nixOptionsSpec @These "these"
   nixOptionTypeSpec @Usage.Expression "expression"
-  nixOptionsSpec @Usage.Expression "expression"
   nixOptionTypeSpec @(Identity Text) "identity"
   nixOptionTypeSpec @(Dual Text) "dual"
   nixOptionTypeSpec @(Semigroup.First Text) "semigroup-first"
@@ -108,9 +100,7 @@ spec = do
   nixOptionTypeSpec @(Monoid.Last Text) "monoid-last"
   nixOptionTypeSpec @(Const Text Void) "const"
   nixOptionTypeSpec @Overlap "overlap"
-  nixOptionsSpec @Overlap "overlap"
   nixOptionTypeSpec @OptionalFields "optional-fields"
-  nixOptionsSpec @OptionalFields "optional-fields"
 
   describe "renderNixOptionTypeVia" $
     -- The flake's unset-options-check evaluates this file, so it holds every
@@ -122,6 +112,20 @@ spec = do
               optionalField' @Text "one" .= const Nothing
                 *> optionalField' @Text "two" .= const Nothing
                 $> ()
+          -- Both alternatives have a mode, but only one has a default for it.
+          eitherObject :: JSONCodec ()
+          eitherObject =
+            object "EitherObject" $
+              dimapCodec (const ()) (const (Left ())) $
+                eitherCodec
+                  ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
+                      *> requiredField' @Text "a" .= const ""
+                      $> ()
+                  )
+                  ( optionalField' @Int "mode" .= const Nothing
+                      *> requiredField' @Text "b" .= const ""
+                      $> ()
+                  )
           unsettable :: JSONCodec ()
           unsettable =
             object "Unsettable" $
@@ -138,6 +142,10 @@ spec = do
                 *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
                 *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
                 *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "strings-or-list" (eitherCodec (listCodec (codec @Text)) (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "either-object" eitherObject .= const Nothing
+                *> optionalFieldWith' "list-of-nullable" (listCodec (maybeCodec nested)) .= const Nothing
+                *> optionalFieldWith' "list-of-lists" (listCodec (listCodec nested)) .= const Nothing
                 *> optionalField' @Text "1st" .= const Nothing
                 *> optionalField' @Recursive "recursive" .= const Nothing
                 *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing
@@ -173,25 +181,9 @@ spec = do
     it "builds what optionExpression builds" $
       optionExpr emptyOption `shouldBe` optionExpression emptyOption
 
-  describe "optionsExpr" $
-    it "builds what optionsExpression builds" $
-      let options = M.singleton "foo" emptyOption
-       in optionsExpr options `shouldBe` optionsExpression options
-
   describe "optionTypeExpr" $
     it "builds what optionTypeExpression builds" $
       optionTypeExpr OptionTypeNull `shouldBe` optionTypeExpression OptionTypeNull
-
-nixOptionsSpec ::
-  forall a.
-  (HasObjectCodec a) =>
-  FilePath ->
-  Spec
-nixOptionsSpec filePath =
-  it "outputs the same nix type as before" $
-    pureGoldenTextFile
-      ("test_resources/nix/options/" <> filePath <> "-options.nix")
-      (renderNixOptionsViaCodec @a)
 
 nixOptionTypeSpec ::
   forall a.

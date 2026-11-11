@@ -10,9 +10,7 @@
 module Autodocodec.Nix.Options
   ( -- * Producing a Nixos module type
     renderNixOptionTypeViaCodec,
-    renderNixOptionsViaCodec,
     renderNixOptionTypeVia,
-    renderNixOptionsVia,
     valueCodecNixOptionType,
     objectCodecNixOptions,
     Option (..),
@@ -25,8 +23,6 @@ module Autodocodec.Nix.Options
     withNixArgs,
     optionExpression,
     optionExpr,
-    optionsExpression,
-    optionsExpr,
     optionTypeExpression,
     optionTypeExpr,
     renderExpression,
@@ -49,19 +45,11 @@ import qualified Data.Text as T
 renderNixOptionTypeViaCodec :: forall a. (HasCodec a) => Text
 renderNixOptionTypeViaCodec = renderNixOptionTypeVia (codec @a)
 
-renderNixOptionsViaCodec :: forall a. (HasObjectCodec a) => Text
-renderNixOptionsViaCodec = renderNixOptionsVia (objectCodec @a)
-
 renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
   renderOptionType
     . fromMaybe (OptionTypeSimple "lib.types.anything")
     . valueCodecNixOptionType
-
-renderNixOptionsVia :: ObjectCodec input output -> Text
-renderNixOptionsVia =
-  renderOptions
-    . objectCodecNixOptions
 
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
 valueCodecNixOptionType = fmap simplifyOptionType . go
@@ -157,12 +145,18 @@ objectCodecNixOptions = simplifyOptions . go
           optionDescription = optionDescriptionFor mDesc c,
           optionDefault = Nothing
         }
-    -- This throwing away of the description and the default is not ideal but
-    -- better than just taking the first option.
+    -- Keeping only the first description is not ideal but better than
+    -- dropping both.
+    -- A default is only kept when both agree on it, because the value of the
+    -- option is written out whichever alternative the rest of the value is for.
     mergeOption :: Option -> Option -> Option
     mergeOption o1 o2 =
       o1
-        { optionType =
+        { optionDefault =
+            if optionDefault o1 == optionDefault o2
+              then optionDefault o1
+              else Nothing,
+          optionType =
             ( \ot1 ot2 ->
                 simplifyOptionType $
                   OptionTypeOneOf
@@ -299,9 +293,6 @@ simplifyOptions = M.map simplifyOption
 renderOption :: Option -> Text
 renderOption = renderExpression . withNixArgs . optionExpression
 
-renderOptions :: Map Text Option -> Text
-renderOptions = renderExpression . withNixArgs . optionsExpression
-
 renderOptionType :: OptionType -> Text
 renderOptionType = renderExpression . withNixArgs . optionTypeExpression
 
@@ -326,13 +317,6 @@ optionExpression Option {..} =
                 Just d -> [("default", toNixExpressionViaCodec d)]
             ]
     )
-
--- {-# DEPRECATED optionsExpr "Use optionsExpression instead" #-}
-optionsExpr :: Map Text Option -> Expression
-optionsExpr = optionsExpression
-
-optionsExpression :: Map Text Option -> Expression
-optionsExpression = ExprAttrSet . M.map optionExpression
 
 -- {-# DEPRECATED optionTypeExpr "Use optionTypeExpression instead" #-}
 optionTypeExpr :: OptionType -> Expression
@@ -393,20 +377,23 @@ definedOptionExpression os =
 --
 -- Of a @oneOf@, the first alternative that has the shape of the value is
 -- looked into, as that is the one the module system merged it with.
+-- That alternative is kept even when there is nothing to look into, so that a
+-- later alternative of the same shape does not look into the value instead.
 -- No alternative after one that takes any value is, because the module system
 -- never gets to it.
 definedValue :: String -> OptionType -> Maybe String
 definedValue value = \case
   OptionTypeSubmodule _ -> Just $ concat [value, ".__defined"]
   OptionTypeNullOr t -> (\d -> unwords ["if", value, "== null then null else", d]) <$> definedValue value t
-  OptionTypeListOf t -> (\d -> unwords ["map (v:", d ++ ")", value]) <$> definedValue "v" t
-  OptionTypeAttrsOf t -> (\d -> unwords ["lib.mapAttrs (_: v:", d ++ ")", value]) <$> definedValue "v" t
+  OptionTypeListOf t -> (\d -> unwords ["map", concat ["(v: ", d, ")"], value]) <$> definedValue "v" t
+  OptionTypeAttrsOf t -> (\d -> unwords ["lib.mapAttrs", concat ["(_: v: ", d, ")"], value]) <$> definedValue "v" t
   OptionTypeOneOf ts ->
-    let alternative :: OptionType -> Maybe (String, String)
-        alternative t = (,) <$> shapeCheck value t <*> definedValue value t
-     in case mapMaybe alternative $ takeWhile (not . takesAnyValue) $ concatMap oneOfAlternatives ts of
-          [] -> Nothing
-          as -> Just $ foldr (\(check, d) rest -> unwords ["if", check, "then", d, "else", rest]) value as
+    let alternative :: OptionType -> Maybe (String, Maybe String)
+        alternative t = (\check -> (check, definedValue value t)) <$> shapeCheck value t
+        alternatives = mapMaybe alternative $ takeWhile (not . takesAnyValue) $ concatMap oneOfAlternatives ts
+     in if all (isNothing . snd) alternatives
+          then Nothing
+          else Just $ foldr (\(check, d) rest -> unwords ["if", check, "then", fromMaybe value d, "else", rest]) value alternatives
   OptionTypeNull -> Nothing
   OptionTypeSimple _ -> Nothing
   OptionTypeEnum _ -> Nothing

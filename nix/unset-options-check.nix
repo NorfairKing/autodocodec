@@ -91,6 +91,33 @@ let
       definition = lib.mkMerge [ required { nested.one = "1"; } { nested.two = "2"; } ];
       expected = withDefaults // { nested = { one = "1"; two = "2"; }; };
     };
+    "leaves out a required option that was not defined" = {
+      definition = { };
+      expected = {
+        with-default = "default";
+        null-default = null;
+      };
+    };
+    "leaves out an option whose definition is disabled" = {
+      definition = required // { optional = lib.mkIf false "o"; };
+      expected = withDefaults;
+    };
+    "keeps a list of strings in a oneOf with a list of submodules" = {
+      definition = required // { strings-or-list = [ "a" ]; };
+      expected = withDefaults // { strings-or-list = [ "a" ]; };
+    };
+    "gives an option that only one alternative of an object has a default for no default" = {
+      definition = required // { either-object.b = "b"; };
+      expected = withDefaults // { either-object.b = "b"; };
+    };
+    "leaves out what was not defined in each element of a list of nullable submodules" = {
+      definition = required // { list-of-nullable = [ null { one = "1"; } ]; };
+      expected = withDefaults // { list-of-nullable = [ null { one = "1"; } ]; };
+    };
+    "leaves out what was not defined in each element of a list of lists" = {
+      definition = required // { list-of-lists = [ [{ one = "1"; } { }] ]; };
+      expected = withDefaults // { list-of-lists = [ [{ one = "1"; } { }] ]; };
+    };
   };
   failures = lib.filterAttrs (_: c: defined c.definition != c.expected) cases;
 in
