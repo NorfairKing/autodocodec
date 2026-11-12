@@ -136,6 +136,84 @@ spec = do
   openAPISchemaSpecAndViaDeclareSchemaRef @(Monoid.Last Text) "monoid-last"
   openAPISchemaSpecAndViaDeclareSchemaRef @(Const Text Void) "const"
   openAPISchemaSpec @Overlap "overlap"
+  -- Not covered because openapi3 has no 'OpenAPI.ToSchema' instance for them:
+  -- Ordering, JSON.Value, Monoid.First, Monoid.Last, Const, DiffTime
+  describe "ToSchema equivalence" $ do
+    -- Primitives and numerics
+    openAPIToSchemaEquivalenceSpec @Bool
+    xdescribe "doesn't hold: codec lacks minLength/maxLength 1 and example" $
+      openAPIToSchemaEquivalenceSpec @Char
+    openAPIToSchemaEquivalenceSpec @Text
+    openAPIToSchemaEquivalenceSpec @LT.Text
+    openAPIToSchemaEquivalenceSpec @String
+    openAPIToSchemaEquivalenceSpec @Scientific
+    xdescribe "doesn't hold: codec is unnamed, has additionalProperties and no description" $
+      openAPIToSchemaEquivalenceSpec @JSON.Object
+    openAPIToSchemaEquivalenceSpec @Int
+    openAPIToSchemaEquivalenceSpec @Int8
+    openAPIToSchemaEquivalenceSpec @Int16
+    xdescribe "doesn't hold: codec lacks format int32" $
+      openAPIToSchemaEquivalenceSpec @Int32
+    xdescribe "doesn't hold: codec lacks format int64" $
+      openAPIToSchemaEquivalenceSpec @Int64
+    openAPIToSchemaEquivalenceSpec @Integer
+    openAPIToSchemaEquivalenceSpec @Word
+    openAPIToSchemaEquivalenceSpec @Word8
+    openAPIToSchemaEquivalenceSpec @Word16
+    xdescribe "doesn't hold: codec lacks format int32" $
+      openAPIToSchemaEquivalenceSpec @Word32
+    xdescribe "doesn't hold: codec lacks format int64" $
+      openAPIToSchemaEquivalenceSpec @Word64
+    xdescribe "doesn't hold: codec lacks exclusiveMinimum False" $
+      openAPIToSchemaEquivalenceSpec @Natural
+    -- Containers and wrappers
+    xdescribe "doesn't hold: codec sets nullable True" $
+      openAPIToSchemaEquivalenceSpec @(Maybe Text)
+    xdescribe "doesn't hold: codec is unnamed and lacks Left/Right titles" $
+      openAPIToSchemaEquivalenceSpec @(Either Bool Text)
+    openAPIToSchemaEquivalenceSpec @[Text]
+    openAPIToSchemaEquivalenceSpec @(Vector Text)
+    xdescribe "doesn't hold: codec lacks minItems 1" $
+      openAPIToSchemaEquivalenceSpec @(NonEmpty Text)
+    xdescribe "doesn't hold: codec lacks uniqueItems True" $
+      openAPIToSchemaEquivalenceSpec @(Set Text)
+    openAPIToSchemaEquivalenceSpec @(Map Text Int)
+    openAPIToSchemaEquivalenceSpec @(Identity Text)
+    openAPIToSchemaEquivalenceSpec @(Dual Text)
+    openAPIToSchemaEquivalenceSpec @(Semigroup.First Text)
+    openAPIToSchemaEquivalenceSpec @(Semigroup.Last Text)
+    -- Time
+    -- The codec versions of these are unnamed, use the type name as a
+    -- description, and lack openapi3's format and example.
+    xdescribe "doesn't hold: codec is unnamed, lacks format date and example" $
+      openAPIToSchemaEquivalenceSpec @Day
+    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
+      openAPIToSchemaEquivalenceSpec @LocalTime
+    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
+      openAPIToSchemaEquivalenceSpec @UTCTime
+    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
+      openAPIToSchemaEquivalenceSpec @TimeOfDay
+    xdescribe "doesn't hold: codec is unnamed, lacks format date-time and example" $
+      openAPIToSchemaEquivalenceSpec @ZonedTime
+    xdescribe "doesn't hold: codec lacks multipleOf 1.0e-12" $
+      openAPIToSchemaEquivalenceSpec @NominalDiffTime
+
+-- | Check that the 'OpenAPI.ToSchema' instance that is defined for @a@ outside
+-- of autodocodec produces exactly the same output as the codec-based one.
+openAPIToSchemaEquivalenceSpec ::
+  forall a.
+  (Typeable a, HasCodec a, OpenAPI.ToSchema a) =>
+  Spec
+openAPIToSchemaEquivalenceSpec =
+  describe ("openAPIToSchemaEquivalenceSpec @" <> nameOf @a) $ do
+    it "has the same declareNamedSchema" $
+      let native = OpenAPI.runDeclare (OpenAPI.declareNamedSchema (Proxy :: Proxy a)) mempty
+          viaCodec = OpenAPI.runDeclare (declareNamedSchemaViaCodec (Proxy :: Proxy a)) mempty
+       in viaCodec `shouldBe` native
+    it "has the same declareSchemaRef" $
+      let native = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy a)) mempty
+          viaCodec = OpenAPI.runDeclare (OpenAPI.declareSchemaRef (Proxy :: Proxy (AutodocodecOpenApi a))) mempty
+       in viaCodec `shouldBe` native
 
 openAPISchemaSpec :: forall a. (Typeable a, HasCodec a) => FilePath -> Spec
 openAPISchemaSpec filePath =
