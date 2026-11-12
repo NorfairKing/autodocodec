@@ -118,6 +118,7 @@ spec = do
                 *> optionalField' @Text "two" .= const Nothing
                 $> ()
           -- Both alternatives have a mode, but only one has a default for it.
+          -- Only one alternative has only-a, with a default.
           -- Both alternatives require one key, and each requires one that the
           -- other does not have.
           eitherObject :: JSONCodec ()
@@ -126,6 +127,7 @@ spec = do
               dimapCodec (const ()) (const (Left ())) $
                 eitherCodec
                   ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
+                      *> optionalFieldWithDefault' @Text "only-a" "x" .= const "x"
                       *> requiredField' @Text "both" .= const ""
                       *> requiredField' @Text "a" .= const ""
                       $> ()
@@ -135,6 +137,22 @@ spec = do
                       *> requiredField' @Text "b" .= const ""
                       $> ()
                   )
+          -- Two objects, the keys of the second a subset of those of the
+          -- first, so a value of the second is an attribute set that the
+          -- first would also take.
+          eitherObjects :: JSONCodec ()
+          eitherObjects =
+            dimapCodec (const ()) (const (Left ())) $
+              eitherCodec
+                ( object "EitherObjectsA" $
+                    requiredField' @Text "a" .= const ""
+                      *> optionalField' @Text "b" .= const Nothing
+                      $> ()
+                )
+                ( object "EitherObjectsB" $
+                    requiredField' @Text "b" .= const ""
+                      $> ()
+                )
           unsettable :: JSONCodec ()
           unsettable =
             object "Unsettable" $
@@ -154,6 +172,8 @@ spec = do
                 *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
                 *> optionalFieldWith' "strings-or-list" (eitherCodec (listCodec (codec @Text)) (listCodec nested)) .= const Nothing
                 *> optionalFieldWith' "either-object" eitherObject .= const Nothing
+                *> optionalFieldWith' "either-objects" eitherObjects .= const Nothing
+                *> optionalField' @These "these" .= const Nothing
                 *> optionalFieldWith' "list-of-nullable" (listCodec (maybeCodec nested)) .= const Nothing
                 *> optionalFieldWith' "list-of-lists" (listCodec (listCodec nested)) .= const Nothing
                 *> optionalField' @Text "1st" .= const Nothing

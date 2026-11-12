@@ -7,6 +7,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-26.05";
     nixpkgs-25_11.url = "github:NixOS/nixpkgs?ref=nixos-25.11";
+    # Only for its lib, from before the module system had a v2 merge.
+    nixpkgs-24_05.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
+    nixpkgs-24_05.flake = false;
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     weeder-nix.url = "github:NorfairKing/weeder-nix";
     weeder-nix.flake = false;
@@ -27,6 +30,7 @@
     { self
     , nixpkgs
     , nixpkgs-25_11
+    , nixpkgs-24_05
     , pre-commit-hooks
     , weeder-nix
     , validity
@@ -80,6 +84,9 @@
         backwardCompatibilityChecks // {
           release = haskellPackages.autodocodecRelease;
           unset-options-check = pkgs.callPackage ./nix/unset-options-check.nix { };
+          unset-options-check-nixpkgs-24_05 = pkgs.callPackage ./nix/unset-options-check.nix {
+            lib = import "${nixpkgs-24_05}/lib";
+          };
           weeder-check = pkgs.weeder-nix.makeWeederCheck {
             weederToml = ./weeder.toml;
             inherit haskellPackages;

@@ -64,6 +64,23 @@
         "type": "github"
       }
     },
+    "nixpkgs-24_05": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-25_11": {
       "locked": {
         "lastModified": 1782847189,
@@ -206,6 +223,7 @@
       "inputs": {
         "fast-myers-diff": "fast-myers-diff",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-24_05": "nixpkgs-24_05",
         "nixpkgs-25_11": "nixpkgs-25_11",
         "opt-env-conf": "opt-env-conf",
         "pre-commit-hooks": "pre-commit-hooks",

@@ -111,6 +111,22 @@ let
       definition = required // { list-of-nullable = [ null { one = "1"; } ]; };
       expected = withDefaults // { list-of-nullable = [ null { one = "1"; } ]; };
     };
+    "keeps a value of the first of two submodules in a oneOf" = {
+      definition = required // { either-objects.a = "a"; };
+      expected = withDefaults // { either-objects.a = "a"; };
+    };
+    "keeps a value of the second of two submodules in a oneOf" = {
+      definition = required // { either-objects.b = "b"; };
+      expected = withDefaults // { either-objects.b = "b"; };
+    };
+    "keeps a value of a discriminated union" = {
+      definition = required // { these = { type = "this"; text = "t"; }; };
+      expected = withDefaults // { these = { type = "this"; text = "t"; }; };
+    };
+    "keeps definitions with a priority" = {
+      definition = required // { optional = lib.mkDefault "d"; with-default = lib.mkForce "f"; };
+      expected = withDefaults // { optional = "d"; with-default = "f"; };
+    };
     "leaves out what was not defined in each element of a list of lists" = {
       definition = required // { list-of-lists = [ [{ one = "1"; } { }] ]; };
       expected = withDefaults // { list-of-lists = [ [{ one = "1"; } { }] ]; };
@@ -123,16 +139,34 @@ let
     "fails when the definition of a required option is disabled" = required // { required = lib.mkIf false "r"; };
     "fails when a required option of a defined nested submodule is not defined" = required // { nested-required.two = "2"; };
     "fails when an option that every alternative requires is not defined" = required // { either-object.b = "b"; };
+    "fails when the discriminator of a discriminated union is not defined" = required // { these.text = "t"; };
   };
   evaluates = definition: (builtins.tryEval (builtins.deepSeq (defined definition) null)).success;
   failures = lib.filterAttrs (_: c: defined c.definition != c.expected) cases;
   unexpectedSuccesses = builtins.attrNames (lib.filterAttrs (_: evaluates) failingCases);
+  # The documentation would otherwise give the empty value of the type of an
+  # option without a default, like null for a nullOr, as its default.
+  documentedDefaults =
+    let
+      documented = lib.optionAttrSetToDocList (lib.evalModules {
+        modules = [{ options.value = lib.mkOption { inherit type; }; }];
+      }).options;
+      defaultOf = name: (lib.findFirst (o: o.name == name) { } documented).default or null;
+    in
+    lib.genAttrs [ "value.nullable" "value.optional-or-null" "value.list" "value.with-default" ] defaultOf;
+  expectedDocumentedDefaults = {
+    "value.nullable" = lib.literalMD "None, this option is required.";
+    "value.optional-or-null" = lib.literalMD "None, this option is left out when it is not set.";
+    "value.list" = lib.literalMD "None, this option is left out when it is not set.";
+    "value.with-default" = lib.literalExpression ''"default"'';
+  };
+  wrongDocumentedDefaults = lib.filterAttrs (name: d: d != expectedDocumentedDefaults.${name}) documentedDefaults;
 in
-if failures == { } && unexpectedSuccesses == [ ]
+if failures == { } && unexpectedSuccesses == [ ] && wrongDocumentedDefaults == { }
 then runCommand "unset-options-check" { } "touch $out"
 else
   throw (builtins.toJSON {
-    inherit unexpectedSuccesses;
+    inherit unexpectedSuccesses wrongDocumentedDefaults;
     failures = lib.mapAttrs
       (_: c: {
         actual = defined c.definition;

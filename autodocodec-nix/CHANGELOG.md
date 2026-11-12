@@ -10,13 +10,18 @@
   Its type no longer admits `null` unless its codec does.
   An option only has a default when the codec has one, so it is `null` only
   when the codec's default is.
-  A key in more than one alternative of an object only keeps its default when
-  every alternative has the same one.
+  A key of a choice between objects only keeps its default when every
+  alternative has the same one.
   The value of a generated submodule holds only the options that were defined,
   which is what to hand to the codec.
   Reading it throws when a key that the codec requires was not defined.
   A key is only required by a choice between objects when every alternative
   requires it.
+  An option without a default says in its documentation whether it is
+  required or left out, instead of showing the empty value of its type, like
+  `null`, as its default.
+* The submodules of a choice between objects are one submodule, because the
+  module system would merge a value for a later one with the first.
 * A submodule option no longer gets a default of `{ }`, because the codec has
   no such default.
 
@@ -26,6 +31,11 @@
   `optionsExpr`.
   Only a submodule type can leave out the options that were not defined.
   Use the submodule type from `renderNixOptionTypeVia` instead.
+
+### Fixed
+
+* The discriminator of a discriminated union is an enum of its values.
+  It used to be a `oneOf` of strings, which could not be evaluated.
 
 ### Added
 

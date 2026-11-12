@@ -33,7 +33,6 @@ where
 import Autodocodec
 import Autodocodec.Nix.Expression
 import Autodocodec.Nix.Render
-import Control.Applicative
 import Data.Aeson as JSON
 import Data.Containers.ListUtils
 import qualified Data.HashMap.Strict as HM
@@ -95,9 +94,6 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
 -- The value of a generated submodule is what was defined in it, and nothing
 -- that was not.
 -- Reading it throws when a required option was not defined.
---
--- A key is only required by a choice between objects when every alternative
--- requires it, because a value for any one alternative is a valid value.
 objectCodecNixOptions :: ObjectCodec input output -> Map Text Option
 objectCodecNixOptions = simplifyOptions . go
   where
@@ -107,7 +103,7 @@ objectCodecNixOptions = simplifyOptions . go
         M.insert
           k
           ( Option
-              { optionType = Just $ OptionTypeOneOf $ map (OptionTypeSimple . T.pack . show) $ HM.keys m,
+              { optionType = Just $ OptionTypeEnum $ map ExprLitString $ HM.keys m,
                 optionDescription = Nothing,
                 optionDefault = Nothing,
                 optionRequirement = OptionRequired
@@ -115,17 +111,7 @@ objectCodecNixOptions = simplifyOptions . go
           )
           $ case map (go . snd) $ HM.elems m of
             [] -> M.empty
-            alternative : alternatives ->
-              foldl'
-                ( mergeAlternatives $ \t1 t2 ->
-                    t1
-                      { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "lib.types.anything") . optionType) [t1, t2],
-                        optionDescription = optionDescription t1 <|> optionDescription t2, -- TODO
-                        optionDefault = Nothing
-                      }
-                )
-                alternative
-                alternatives
+            alternative : alternatives -> foldr mergeAlternatives alternative alternatives
       RequiredKeyCodec key o mDesc -> M.singleton key $ undefaultedOption OptionRequired o mDesc
       OptionalKeyCodec key o mDesc -> M.singleton key $ undefaultedOption OptionOptional o mDesc
       OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
@@ -157,7 +143,7 @@ objectCodecNixOptions = simplifyOptions . go
           (go c1)
           (go c2)
       BimapCodec _ _ c -> go c
-      EitherCodec _ c1 c2 -> mergeAlternatives mergeOption (go c1) (go c2)
+      EitherCodec _ c1 c2 -> mergeAlternatives (go c1) (go c2)
     undefaultedOption :: OptionRequirement -> ValueCodec input output -> Maybe Text -> Option
     undefaultedOption requirement c mDesc =
       Option
@@ -166,50 +152,63 @@ objectCodecNixOptions = simplifyOptions . go
           optionDefault = Nothing,
           optionRequirement = requirement
         }
-    mergeAlternatives :: (Option -> Option -> Option) -> Map Text Option -> Map Text Option -> Map Text Option
-    mergeAlternatives mergeBoth =
-      Merge.merge
-        (Merge.mapMissing (\_ o -> o {optionRequirement = OptionOptional}))
-        (Merge.mapMissing (\_ o -> o {optionRequirement = OptionOptional}))
+    requiredByEither :: OptionRequirement -> OptionRequirement -> OptionRequirement
+    requiredByEither r1 r2 = case r1 of
+      OptionRequired -> OptionRequired
+      OptionOptional -> r2
+
+-- | The options of a choice between objects.
+--
+-- A value for any one alternative is a valid value, so a key is only required
+-- when every alternative requires it, and only keeps a default when every
+-- alternative has the same one.
+mergeAlternatives :: Map Text Option -> Map Text Option -> Map Text Option
+mergeAlternatives =
+  let onlyInOne :: Option -> Option
+      onlyInOne o =
+        o
+          { optionRequirement = OptionOptional,
+            optionDefault = Nothing
+          }
+      requiredByBoth :: OptionRequirement -> OptionRequirement -> OptionRequirement
+      requiredByBoth r1 r2 = case r1 of
+        OptionRequired -> r2
+        OptionOptional -> OptionOptional
+   in Merge.merge
+        (Merge.mapMissing (const onlyInOne))
+        (Merge.mapMissing (const onlyInOne))
         ( Merge.zipWithMatched
             ( \_ o1 o2 ->
-                (mergeBoth o1 o2)
+                (mergeOption o1 o2)
                   { optionRequirement = requiredByBoth (optionRequirement o1) (optionRequirement o2)
                   }
             )
         )
-    requiredByEither :: OptionRequirement -> OptionRequirement -> OptionRequirement
-    requiredByEither r1 r2 = case (r1, r2) of
-      (OptionOptional, OptionOptional) -> OptionOptional
-      (OptionRequired, _) -> OptionRequired
-      (_, OptionRequired) -> OptionRequired
-    requiredByBoth :: OptionRequirement -> OptionRequirement -> OptionRequirement
-    requiredByBoth r1 r2 = case (r1, r2) of
-      (OptionRequired, OptionRequired) -> OptionRequired
-      (OptionOptional, _) -> OptionOptional
-      (_, OptionOptional) -> OptionOptional
-    -- Keeping only the first description is not ideal but better than
-    -- dropping both.
-    -- A default is only kept when both agree on it, because the value of the
-    -- option is written out whichever alternative the rest of the value is for.
-    mergeOption :: Option -> Option -> Option
-    mergeOption o1 o2 =
-      o1
-        { optionDefault =
-            if optionDefault o1 == optionDefault o2
-              then optionDefault o1
-              else Nothing,
-          optionType =
-            ( \ot1 ot2 ->
-                simplifyOptionType $
-                  OptionTypeOneOf
-                    [ ot1,
-                      ot2
-                    ]
-            )
-              <$> optionType o1
-              <*> optionType o2
-        }
+
+-- | Two options for the same key.
+--
+-- Keeping only the first description is not ideal but better than dropping
+-- both.
+-- A default is only kept when both agree on it, because the value of the
+-- option is written out whichever alternative the rest of the value is for.
+mergeOption :: Option -> Option -> Option
+mergeOption o1 o2 =
+  o1
+    { optionDefault =
+        if optionDefault o1 == optionDefault o2
+          then optionDefault o1
+          else Nothing,
+      optionType =
+        ( \ot1 ot2 ->
+            simplifyOptionType $
+              OptionTypeOneOf
+                [ ot1,
+                  ot2
+                ]
+        )
+          <$> optionType o1
+          <*> optionType o2
+    }
 
 -- | What an option says about itself: the field's own description, and then
 -- whatever comments the codec under it carries.
@@ -298,7 +297,7 @@ simplifyOptionType = go
         _ -> OptionTypeNullOr $ go t
       OptionTypeListOf o -> OptionTypeListOf $ go o
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
-      OptionTypeOneOf os -> case goEnums $ nubOrd $ concatMap goOr os of
+      OptionTypeOneOf os -> case goEnums $ mergeSubmodules $ nubOrd $ concatMap goOr os of
         [ot] -> ot
         os' ->
           if any canBeNull os'
@@ -332,6 +331,32 @@ simplifyOptionType = go
             OptionTypeEnum es' -> goEnum (es ++ es') rest
             _ -> t : goEnum es rest
 
+    -- The module system merges a value of a oneOf with the first alternative
+    -- whose check it passes, and that of a submodule only asks for an
+    -- attribute set, so a value for any later submodule would be merged with
+    -- the first one instead.
+    mergeSubmodules :: [OptionType] -> [OptionType]
+    mergeSubmodules ts = case mapMaybe submoduleOptions ts of
+      m : ms@(_ : _) ->
+        let (before, after) = break (isJust . submoduleOptions) ts
+         in concat
+              [ before,
+                [OptionTypeSubmodule $ M.map goOpt $ foldr mergeAlternatives m ms],
+                filter (isNothing . submoduleOptions) after
+              ]
+      _ -> ts
+
+    submoduleOptions :: OptionType -> Maybe (Map Text Option)
+    submoduleOptions = \case
+      OptionTypeSubmodule m -> Just m
+      OptionTypeNull -> Nothing
+      OptionTypeSimple _ -> Nothing
+      OptionTypeEnum _ -> Nothing
+      OptionTypeNullOr _ -> Nothing
+      OptionTypeListOf _ -> Nothing
+      OptionTypeAttrsOf _ -> Nothing
+      OptionTypeOneOf _ -> Nothing
+
     goOpt o = o {optionType = go <$> optionType o}
 
     goOr = \case
@@ -355,26 +380,41 @@ optionExpr :: Option -> Expression
 optionExpr = optionExpression
 
 optionExpression :: Option -> Expression
-optionExpression Option {..} =
-  ExprAp
-    (ExprVar "lib.mkOption")
-    ( ExprAttrSet $
-        M.fromList $
-          concat
-            [ [("type", optionTypeExpression typ) | typ <- maybeToList optionType],
-              [("description", ExprLitString d) | d <- maybeToList optionDescription],
-              case optionDefault of
-                Nothing -> []
-                Just d -> [("default", toNixExpressionViaCodec d)]
-            ]
-    )
+optionExpression o = bindDefinedSubmodule (maybeToList (optionType o)) $ unboundOptionExpression o
 
 -- {-# DEPRECATED optionTypeExpr "Use optionTypeExpression instead" #-}
 optionTypeExpr :: OptionType -> Expression
 optionTypeExpr = optionTypeExpression
 
 optionTypeExpression :: OptionType -> Expression
-optionTypeExpression = go
+optionTypeExpression t = bindDefinedSubmodule [t] $ unboundOptionTypeExpression t
+
+-- | An option that refers to 'definedSubmoduleName' without binding it.
+unboundOptionExpression :: Option -> Expression
+unboundOptionExpression Option {..} =
+  ExprAp
+    (ExprVar "lib.mkOption")
+    ( ExprAttrSet $
+        M.fromList $
+          concat
+            [ [("type", unboundOptionTypeExpression typ) | typ <- maybeToList optionType],
+              [("description", ExprLitString d) | d <- maybeToList optionDescription],
+              case optionDefault of
+                -- The documentation would otherwise give the empty value of
+                -- the type, like null for a nullOr, as the default.
+                Nothing -> [("defaultText", ExprAp (ExprVar "lib.literalMD") (ExprLitString (undefaultedText optionRequirement)))]
+                Just d -> [("default", toNixExpressionViaCodec d)]
+            ]
+    )
+  where
+    undefaultedText :: OptionRequirement -> Text
+    undefaultedText = \case
+      OptionRequired -> "None, this option is required."
+      OptionOptional -> "None, this option is left out when it is not set."
+
+-- | A type that refers to 'definedSubmoduleName' without binding it.
+unboundOptionTypeExpression :: OptionType -> Expression
+unboundOptionTypeExpression = go
   where
     go = \case
       OptionTypeNull -> ExprAp (ExprVar "lib.types.enum") (ExprLitList [ExprNull])
@@ -394,7 +434,7 @@ optionTypeExpression = go
           (ExprVar "lib.types.oneOf")
           (ExprLitList (map go os))
       OptionTypeSubmodule os ->
-        definedSubmodule $
+        ExprAp (ExprVar definedSubmoduleName) $
           ExprAp
             (ExprVar "lib.types.submodule")
             ( ExprFun ["config", "options", "..."] $
@@ -402,75 +442,104 @@ optionTypeExpression = go
                   M.singleton "options" $
                     ExprAttrSet $
                       M.insert "__defined" (definedOptionExpression os) $
-                        M.map optionExpression os
+                        M.map unboundOptionExpression os
             )
 
+-- | The option that holds what was defined in a submodule: the options that
+-- were defined, and the required ones whether they were or not.
 definedOptionExpression :: Map Text Option -> Expression
 definedOptionExpression os =
-  ExprAp (ExprVar "lib.mkOption") $
-    ExprAttrSet $
-      M.fromList
-        [ ("internal", ExprLitBool True),
-          ("readOnly", ExprLitBool True),
-          ("default", definedDefault)
-        ]
-  where
-    (requiredOptions, optionalOptions) = M.partition ((== OptionRequired) . optionRequirement) os
-    definedOptional :: Expression
-    definedOptional =
-      ExprAp
-        (ExprAp (ExprVar "lib.filterAttrs") (ExprVar "(name: _: options.${name}.isDefined)"))
-        (ExprAttrSet (M.mapWithKey definedField optionalOptions))
-    definedRequired :: Expression
-    definedRequired = ExprAttrSet (M.mapWithKey definedRequiredField requiredOptions)
-    definedDefault :: Expression
-    definedDefault
-      | M.null requiredOptions = definedOptional
-      | M.null optionalOptions = definedRequired
-      | otherwise = ExprAp (ExprAp (ExprVar "lib.mergeAttrs") definedRequired) definedOptional
-    -- Reading an option that was not defined does not throw when its type has
-    -- an empty value, like null for a nullOr or [ ] for a listOf, so a required
-    -- option throws itself.
-    definedRequiredField :: Text -> Option -> Expression
-    definedRequiredField key _ =
-      let option = concat ["options.", T.unpack (nixAttrKey key)]
-       in ExprVar $
-            T.pack $
-              unwords
-                [ "if",
-                  concat [option, ".isDefined"],
-                  "then",
-                  concat ["config.", T.unpack (nixAttrKey key)],
-                  "else throw",
-                  concat ["\"The option `${lib.showOption ", option, ".loc}' is required but was not defined.\""]
-                ]
-    definedField :: Text -> Option -> Expression
-    definedField key _ = ExprVar $ T.pack $ concat ["config.", T.unpack (nixAttrKey key)]
+  let (requiredKeys, optionalKeys) =
+        M.mapEither
+          ( \o -> case optionRequirement o of
+              OptionRequired -> Left ()
+              OptionOptional -> Right ()
+          )
+          os
+      configValue :: Text -> String
+      configValue key = concat ["config.", T.unpack (nixAttrKey key)]
+      definedOptional :: Expression
+      definedOptional =
+        ExprAp
+          (ExprAp (ExprVar "lib.filterAttrs") (ExprVar "(name: _: options.${name}.isDefined)"))
+          (ExprAttrSet (M.mapWithKey (\key () -> ExprVar (T.pack (configValue key))) optionalKeys))
+      -- Reading an option that was not defined does not throw when its type
+      -- has an empty value, like null for a nullOr or [ ] for a listOf, so a
+      -- required option throws itself.
+      requiredValue :: Text -> String
+      requiredValue key =
+        let option = concat ["options.", T.unpack (nixAttrKey key)]
+         in unwords
+              [ "if",
+                concat [option, ".isDefined"],
+                "then",
+                configValue key,
+                "else throw",
+                concat ["\"The option `${lib.showOption ", option, ".loc}' is required but was not defined.\""]
+              ]
+      definedRequired :: Expression
+      definedRequired = ExprAttrSet (M.mapWithKey (\key () -> ExprVar (T.pack (requiredValue key))) requiredKeys)
+      definedDefault :: Expression
+      definedDefault
+        | M.null requiredKeys = definedOptional
+        | M.null optionalKeys = definedRequired
+        | otherwise = ExprAp (ExprAp (ExprVar "lib.mergeAttrs") definedRequired) definedOptional
+   in ExprAp (ExprVar "lib.mkOption") $
+        ExprAttrSet $
+          M.fromList
+            [ ("internal", ExprLitBool True),
+              ("readOnly", ExprLitBool True),
+              ("default", definedDefault)
+            ]
 
--- | Make the value of a submodule only what was defined in it.
+-- | Bind 'definedSubmoduleName' around an expression that uses any of the
+-- given types, once per expression instead of once per submodule.
+bindDefinedSubmodule :: [OptionType] -> Expression -> Expression
+bindDefinedSubmodule ts e =
+  if any hasSubmodule ts
+    then
+      ExprAp
+        (ExprFun [definedSubmoduleName] e)
+        (ExprAttrSet (M.singleton definedSubmoduleName definedSubmoduleExpression))
+    else e
+
+hasSubmodule :: OptionType -> Bool
+hasSubmodule = \case
+  OptionTypeNull -> False
+  OptionTypeSimple _ -> False
+  OptionTypeEnum _ -> False
+  OptionTypeNullOr t -> hasSubmodule t
+  OptionTypeListOf t -> hasSubmodule t
+  OptionTypeAttrsOf t -> hasSubmodule t
+  OptionTypeOneOf ts -> any hasSubmodule ts
+  OptionTypeSubmodule _ -> True
+
+definedSubmoduleName :: Text
+definedSubmoduleName = "definedSubmodule"
+
+-- | A function that makes the value of a submodule type only what was defined
+-- in it, which is the value to hand to the codec.
 --
--- Its options are only there to be type-checked and merged, and an option
--- that was not defined throws when it is read.
--- Changing the merged value of the submodule type itself, rather than having
--- consumers read @__defined@, also covers a submodule nested in any other
--- type, because those merge their elements with the element type's merge.
+-- Its merge is changed, rather than anything reading the value, so that it
+-- also covers a submodule nested in any other type, because those merge their
+-- elements with the element type's merge.
 -- The module system rebuilds the type of an option from its submodules, so the
 -- type it ends up with is made the same way.
--- Older versions of nixpkgs have no v2 merge.
-definedSubmodule :: Expression -> Expression
-definedSubmodule =
-  ExprAp $
-    ExprVar $
-      T.pack $
-        unwords
-          [ "(let definedSubmodule = submodule: submodule // {",
-            "merge = if submodule.merge ? v2",
-            "then {",
-            "__functor = self: loc: defs: (self.v2 { inherit loc defs; }).value;",
-            "v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; };",
-            "}",
-            "else loc: defs: (submodule.merge loc defs).__defined;",
-            "emptyValue.value = submodule.emptyValue.value.__defined;",
-            "substSubModules = modules: definedSubmodule (submodule.substSubModules modules);",
-            "}; in definedSubmodule)"
-          ]
+-- Older versions of nixpkgs have no v2 merge, and no empty value for a
+-- submodule.
+definedSubmoduleExpression :: Expression
+definedSubmoduleExpression =
+  ExprVar $
+    T.pack $
+      unwords
+        [ "let definedSubmodule = submodule: submodule // {",
+          "merge = if submodule.merge ? v2",
+          "then {",
+          "__functor = self: loc: defs: (self.v2 { inherit loc defs; }).value;",
+          "v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; };",
+          "}",
+          "else loc: defs: (submodule.merge loc defs).__defined;",
+          "emptyValue = if submodule.emptyValue ? value then { value = submodule.emptyValue.value.__defined; } else submodule.emptyValue;",
+          "substSubModules = modules: definedSubmodule (submodule.substSubModules modules);",
+          "}; in definedSubmodule"
+        ]
