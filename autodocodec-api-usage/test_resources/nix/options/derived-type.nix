@@ -1,20 +1,21 @@
 { lib }:
-lib.types.submodule ({ config, options, ... }:
+(let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
-        bool = config.bool;
-        fruit = config.fruit;
-        maybe = config.maybe;
+      default = (lib.mergeAttrs {
+        bool = if options.bool.isDefined then config.bool else throw "The option `${lib.showOption options.bool.loc}' is required but was not defined.";
+        fruit = if options.fruit.isDefined then config.fruit else throw "The option `${lib.showOption options.fruit.loc}' is required but was not defined.";
+        maybe = if options.maybe.isDefined then config.maybe else throw "The option `${lib.showOption options.maybe.loc}' is required but was not defined.";
+        shape = if options.shape.isDefined then config.shape else throw "The option `${lib.showOption options.shape.loc}' is required but was not defined.";
+        text = if options.text.isDefined then config.text else throw "The option `${lib.showOption options.text.loc}' is required but was not defined.";
+      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
         optional = config.optional;
         optional-or-null = config.optional-or-null;
         optional-with-default = config.optional-with-default;
         optional-with-null-default = config.optional-with-null-default;
-        shape = config.shape;
         single-or-list = config.single-or-list;
-        text = config.text;
-      };
+      });
       internal = true;
       readOnly = true;
     };
@@ -74,4 +75,4 @@ lib.types.submodule ({ config, options, ... }:
       type = lib.types.str;
     };
   };
-})
+}))

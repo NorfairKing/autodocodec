@@ -1,14 +1,15 @@
 { lib }:
-lib.types.submodule ({ config, options, ... }:
+(let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      default = (lib.mergeAttrs {
+        required-non-empty = if options.required-non-empty.isDefined then config.required-non-empty else throw "The option `${lib.showOption options.required-non-empty.loc}' is required but was not defined.";
+      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
         optional-non-empty = config.optional-non-empty;
         possibly-empty-with-default = config.possibly-empty-with-default;
         possibly-empty-with-omitted-default = config.possibly-empty-with-omitted-default;
-        required-non-empty = config.required-non-empty;
-      };
+      });
       internal = true;
       readOnly = true;
     };
@@ -31,4 +32,4 @@ lib.types.submodule ({ config, options, ... }:
       type = lib.types.listOf lib.types.str;
     };
   };
-})
+}))

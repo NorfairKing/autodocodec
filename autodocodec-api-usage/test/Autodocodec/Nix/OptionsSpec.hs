@@ -111,17 +111,27 @@ spec = do
               optionalField' @Text "one" .= const Nothing
                 *> optionalField' @Text "two" .= const Nothing
                 $> ()
+          nestedRequired :: JSONCodec ()
+          nestedRequired =
+            object "NestedRequired" $
+              requiredField' @Text "one" .= const ""
+                *> optionalField' @Text "two" .= const Nothing
+                $> ()
           -- Both alternatives have a mode, but only one has a default for it.
+          -- Both alternatives require one key, and each requires one that the
+          -- other does not have.
           eitherObject :: JSONCodec ()
           eitherObject =
             object "EitherObject" $
               dimapCodec (const ()) (const (Left ())) $
                 eitherCodec
                   ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
+                      *> requiredField' @Text "both" .= const ""
                       *> requiredField' @Text "a" .= const ""
                       $> ()
                   )
                   ( optionalField' @Int "mode" .= const Nothing
+                      *> requiredField' @Text "both" .= const ""
                       *> requiredField' @Text "b" .= const ""
                       $> ()
                   )
@@ -136,6 +146,7 @@ spec = do
                 *> optionalFieldWithDefault' @(Maybe Text) "null-default" Nothing .= const Nothing
                 *> optionalFieldWith' "nested" nested .= const Nothing
                 *> optionalFieldOrNullWith' "nested-or-null" nested .= const Nothing
+                *> optionalFieldWith' "nested-required" nestedRequired .= const Nothing
                 *> optionalFieldWith' "list" (listCodec nested) .= const Nothing
                 *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
                 *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing

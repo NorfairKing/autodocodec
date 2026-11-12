@@ -9,7 +9,7 @@ let
         { options.value = lib.mkOption { inherit type; }; }
         { value = definition; }
       ];
-    }).config.value.__defined;
+    }).config.value;
   required = {
     required = "r";
     nullable = null;
@@ -91,13 +91,6 @@ let
       definition = lib.mkMerge [ required { nested.one = "1"; } { nested.two = "2"; } ];
       expected = withDefaults // { nested = { one = "1"; two = "2"; }; };
     };
-    "leaves out a required option that was not defined" = {
-      definition = { };
-      expected = {
-        with-default = "default";
-        null-default = null;
-      };
-    };
     "leaves out an option whose definition is disabled" = {
       definition = required // { optional = lib.mkIf false "o"; };
       expected = withDefaults;
@@ -107,8 +100,12 @@ let
       expected = withDefaults // { strings-or-list = [ "a" ]; };
     };
     "gives an option that only one alternative of an object has a default for no default" = {
-      definition = required // { either-object.b = "b"; };
-      expected = withDefaults // { either-object.b = "b"; };
+      definition = required // { either-object = { both = "x"; b = "b"; }; };
+      expected = withDefaults // { either-object = { both = "x"; b = "b"; }; };
+    };
+    "keeps a required option of a nested submodule" = {
+      definition = required // { nested-required.one = "1"; };
+      expected = withDefaults // { nested-required.one = "1"; };
     };
     "leaves out what was not defined in each element of a list of nullable submodules" = {
       definition = required // { list-of-nullable = [ null { one = "1"; } ]; };
@@ -119,14 +116,27 @@ let
       expected = withDefaults // { list-of-lists = [ [{ one = "1"; } { }] ]; };
     };
   };
+  # Definitions that leave out an option that has to be defined.
+  failingCases = {
+    "fails when a required option is not defined" = { nullable = null; };
+    "fails when a required nullable option is not defined" = { required = "r"; };
+    "fails when the definition of a required option is disabled" = required // { required = lib.mkIf false "r"; };
+    "fails when a required option of a defined nested submodule is not defined" = required // { nested-required.two = "2"; };
+    "fails when an option that every alternative requires is not defined" = required // { either-object.b = "b"; };
+  };
+  evaluates = definition: (builtins.tryEval (builtins.deepSeq (defined definition) null)).success;
   failures = lib.filterAttrs (_: c: defined c.definition != c.expected) cases;
+  unexpectedSuccesses = builtins.attrNames (lib.filterAttrs (_: evaluates) failingCases);
 in
-if failures == { }
+if failures == { } && unexpectedSuccesses == [ ]
 then runCommand "unset-options-check" { } "touch $out"
 else
-  throw (builtins.toJSON (lib.mapAttrs
-    (_: c: {
-      actual = defined c.definition;
-      inherit (c) expected;
-    })
-    failures))
+  throw (builtins.toJSON {
+    inherit unexpectedSuccesses;
+    failures = lib.mapAttrs
+      (_: c: {
+        actual = defined c.definition;
+        inherit (c) expected;
+      })
+      failures;
+  })

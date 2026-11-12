@@ -12,10 +12,11 @@
   when the codec's default is.
   A key in more than one alternative of an object only keeps its default when
   every alternative has the same one.
-  Reading an option that was not defined throws, so every generated submodule
-  has a read-only `__defined` option that holds only the options that were
-  defined, which is what to hand to the codec.
-  A generated submodule is therefore a function of `config` and `options`.
+  The value of a generated submodule holds only the options that were defined,
+  which is what to hand to the codec.
+  Reading it throws when a key that the codec requires was not defined.
+  A key is only required by a choice between objects when every alternative
+  requires it.
 * A submodule option no longer gets a default of `{ }`, because the codec has
   no such default.
 
@@ -23,13 +24,14 @@
 
 * `renderNixOptionsVia`, `renderNixOptionsViaCodec`, `optionsExpression` and
   `optionsExpr`.
-  A set of options has no `__defined` of its own, so it cannot be written out
-  whole any more.
+  Only a submodule type can leave out the options that were not defined.
   Use the submodule type from `renderNixOptionTypeVia` instead.
 
 ### Added
 
 * `nixAttrKey` in `Autodocodec.Nix.Expression`.
+* `optionRequirement` in `Option`, which says whether an option has to be
+  defined.
 
 ## [0.1.1.0] - 2026-10-06
 

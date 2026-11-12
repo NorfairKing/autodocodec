@@ -1,82 +1,42 @@
 { lib }:
-lib.types.submodule ({ config, options, ... }:
+(let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     "1st" = lib.mkOption {
       type = lib.types.str;
     };
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      default = (lib.mergeAttrs {
+        nullable = if options.nullable.isDefined then config.nullable else throw "The option `${lib.showOption options.nullable.loc}' is required but was not defined.";
+        required = if options.required.isDefined then config.required else throw "The option `${lib.showOption options.required.loc}' is required but was not defined.";
+      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
         "1st" = config."1st";
-        either = if config.either ? __defined then config.either.__defined else config.either;
-        either-list = if config.either-list ? __defined then config.either-list.__defined else if builtins.isList config.either-list then map (v: v.__defined) config.either-list else config.either-list;
-        either-object = config.either-object.__defined;
-        list = map (v: v.__defined) config.list;
-        list-of-lists = map (v: map (v: v.__defined) v) config.list-of-lists;
-        list-of-nullable = map (v: if v == null then null else v.__defined) config.list-of-nullable;
-        map = lib.mapAttrs (_: v: v.__defined) config.map;
-        mutually-recursive = config.mutually-recursive.__defined;
-        nested = config.nested.__defined;
-        nested-or-null = if config.nested-or-null == null then null else config.nested-or-null.__defined;
+        either = config.either;
+        either-list = config.either-list;
+        either-object = config.either-object;
+        list = config.list;
+        list-of-lists = config.list-of-lists;
+        list-of-nullable = config.list-of-nullable;
+        map = config.map;
+        mutually-recursive = config.mutually-recursive;
+        nested = config.nested;
+        nested-or-null = config.nested-or-null;
+        nested-required = config.nested-required;
         null-default = config.null-default;
-        nullable = config.nullable;
         optional = config.optional;
         optional-or-null = config.optional-or-null;
         recursive = config.recursive;
-        required = config.required;
-        strings-or-list = if builtins.isList config.strings-or-list then config.strings-or-list else if builtins.isList config.strings-or-list then map (v: v.__defined) config.strings-or-list else config.strings-or-list;
+        strings-or-list = config.strings-or-list;
         value-or-list = config.value-or-list;
         with-default = config.with-default;
-      };
+      });
       internal = true;
       readOnly = true;
     };
     either = lib.mkOption {
       type = lib.types.oneOf [
         lib.types.str
-        (lib.types.submodule ({ config, options, ... }:
-        {
-          options = {
-            __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
-                one = config.one;
-                two = config.two;
-              };
-              internal = true;
-              readOnly = true;
-            };
-            one = lib.mkOption {
-              type = lib.types.str;
-            };
-            two = lib.mkOption {
-              type = lib.types.str;
-            };
-          };
-        }))
-      ];
-    };
-    either-list = lib.mkOption {
-      type = lib.types.oneOf [
-        (lib.types.submodule ({ config, options, ... }:
-        {
-          options = {
-            __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
-                one = config.one;
-                two = config.two;
-              };
-              internal = true;
-              readOnly = true;
-            };
-            one = lib.mkOption {
-              type = lib.types.str;
-            };
-            two = lib.mkOption {
-              type = lib.types.str;
-            };
-          };
-        }))
-        (lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+        ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
@@ -97,16 +57,60 @@ lib.types.submodule ({ config, options, ... }:
         })))
       ];
     };
+    either-list = lib.mkOption {
+      type = lib.types.oneOf [
+        ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
+        {
+          options = {
+            __defined = lib.mkOption {
+              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+                one = config.one;
+                two = config.two;
+              };
+              internal = true;
+              readOnly = true;
+            };
+            one = lib.mkOption {
+              type = lib.types.str;
+            };
+            two = lib.mkOption {
+              type = lib.types.str;
+            };
+          };
+        })))
+        (lib.types.listOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
+        {
+          options = {
+            __defined = lib.mkOption {
+              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+                one = config.one;
+                two = config.two;
+              };
+              internal = true;
+              readOnly = true;
+            };
+            one = lib.mkOption {
+              type = lib.types.str;
+            };
+            two = lib.mkOption {
+              type = lib.types.str;
+            };
+          };
+        }))))
+      ];
+    };
     either-object = lib.mkOption {
-      type = lib.types.submodule ({ config, options, ... }:
+      type = (let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = (lib.mergeAttrs {
+              both = if options.both.isDefined then config.both else throw "The option `${lib.showOption options.both.loc}' is required but was not defined.";
+            }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
               a = config.a;
               b = config.b;
               mode = config.mode;
-            };
+            });
             internal = true;
             readOnly = true;
           };
@@ -116,6 +120,9 @@ lib.types.submodule ({ config, options, ... }:
           b = lib.mkOption {
             type = lib.types.str;
           };
+          both = lib.mkOption {
+            type = lib.types.str;
+          };
           mode = lib.mkOption {
             type = lib.types.oneOf [
               lib.types.str
@@ -123,10 +130,10 @@ lib.types.submodule ({ config, options, ... }:
             ];
           };
         };
-      });
+      }));
     };
     list = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+      type = lib.types.listOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -144,10 +151,10 @@ lib.types.submodule ({ config, options, ... }:
             type = lib.types.str;
           };
         };
-      }));
+      })));
     };
     list-of-lists = lib.mkOption {
-      type = lib.types.listOf (lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+      type = lib.types.listOf (lib.types.listOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -165,10 +172,31 @@ lib.types.submodule ({ config, options, ... }:
             type = lib.types.str;
           };
         };
-      })));
+      }))));
     };
     list-of-nullable = lib.mkOption {
-      type = lib.types.listOf (lib.types.nullOr (lib.types.submodule ({ config, options, ... }:
+      type = lib.types.listOf (lib.types.nullOr ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
+      {
+        options = {
+          __defined = lib.mkOption {
+            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              one = config.one;
+              two = config.two;
+            };
+            internal = true;
+            readOnly = true;
+          };
+          one = lib.mkOption {
+            type = lib.types.str;
+          };
+          two = lib.mkOption {
+            type = lib.types.str;
+          };
+        };
+      }))));
+    };
+    map = lib.mkOption {
+      type = lib.types.attrsOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -188,29 +216,8 @@ lib.types.submodule ({ config, options, ... }:
         };
       })));
     };
-    map = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule ({ config, options, ... }:
-      {
-        options = {
-          __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
-              one = config.one;
-              two = config.two;
-            };
-            internal = true;
-            readOnly = true;
-          };
-          one = lib.mkOption {
-            type = lib.types.str;
-          };
-          two = lib.mkOption {
-            type = lib.types.str;
-          };
-        };
-      }));
-    };
     mutually-recursive = lib.mkOption {
-      type = lib.types.submodule ({ config, options, ... }:
+      type = (let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -222,10 +229,10 @@ lib.types.submodule ({ config, options, ... }:
           };
           relationshipToA = lib.mkOption { };
         };
-      });
+      }));
     };
     nested = lib.mkOption {
-      type = lib.types.submodule ({ config, options, ... }:
+      type = (let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -243,10 +250,10 @@ lib.types.submodule ({ config, options, ... }:
             type = lib.types.str;
           };
         };
-      });
+      }));
     };
     nested-or-null = lib.mkOption {
-      type = lib.types.nullOr (lib.types.submodule ({ config, options, ... }:
+      type = lib.types.nullOr ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
@@ -254,6 +261,28 @@ lib.types.submodule ({ config, options, ... }:
               one = config.one;
               two = config.two;
             };
+            internal = true;
+            readOnly = true;
+          };
+          one = lib.mkOption {
+            type = lib.types.str;
+          };
+          two = lib.mkOption {
+            type = lib.types.str;
+          };
+        };
+      })));
+    };
+    nested-required = lib.mkOption {
+      type = (let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
+      {
+        options = {
+          __defined = lib.mkOption {
+            default = (lib.mergeAttrs {
+              one = if options.one.isDefined then config.one else throw "The option `${lib.showOption options.one.loc}' is required but was not defined.";
+            }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              two = config.two;
+            });
             internal = true;
             readOnly = true;
           };
@@ -286,7 +315,7 @@ lib.types.submodule ({ config, options, ... }:
     strings-or-list = lib.mkOption {
       type = lib.types.oneOf [
         (lib.types.listOf lib.types.str)
-        (lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+        (lib.types.listOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
@@ -304,13 +333,13 @@ lib.types.submodule ({ config, options, ... }:
               type = lib.types.str;
             };
           };
-        })))
+        }))))
       ];
     };
     value-or-list = lib.mkOption {
       type = lib.types.oneOf [
         lib.types.unspecified
-        (lib.types.listOf (lib.types.submodule ({ config, options, ... }:
+        (lib.types.listOf ((let definedSubmodule = submodule: submodule // { merge = if submodule.merge ? v2 then { __functor = self: loc: defs: (self.v2 { inherit loc defs; }).value; v2 = args: let merged = submodule.merge.v2 args; in merged // { value = merged.value.__defined; }; } else loc: defs: (submodule.merge loc defs).__defined; emptyValue.value = submodule.emptyValue.value.__defined; substSubModules = modules: definedSubmodule (submodule.substSubModules modules); }; in definedSubmodule) (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
@@ -328,7 +357,7 @@ lib.types.submodule ({ config, options, ... }:
               type = lib.types.str;
             };
           };
-        })))
+        }))))
       ];
     };
     with-default = lib.mkOption {
@@ -336,4 +365,4 @@ lib.types.submodule ({ config, options, ... }:
       type = lib.types.str;
     };
   };
-})
+}))

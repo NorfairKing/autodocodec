@@ -7,6 +7,7 @@ module Autodocodec.Nix
     valueCodecNixOptionType,
     objectCodecNixOptions,
     Option (..),
+    OptionRequirement (..),
     emptyOption,
     simplifyOption,
     OptionType (..),
