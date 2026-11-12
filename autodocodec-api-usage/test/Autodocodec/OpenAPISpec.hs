@@ -14,6 +14,7 @@ import qualified Data.Aeson as JSON
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
+import Data.Foldable (toList)
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity.Aeson ()
@@ -141,40 +142,40 @@ spec = do
   describe "ToSchema equivalence" $ do
     -- Primitives and numerics
     openAPIToSchemaEquivalenceSpec @Bool
-    xdescribe "doesn't hold: codec lacks minLength/maxLength 1 and example" $
-      openAPIToSchemaEquivalenceSpec @Char
+    openAPIToSchemaEquivalenceSpec @Char
     openAPIToSchemaEquivalenceSpec @Text
     openAPIToSchemaEquivalenceSpec @LT.Text
     openAPIToSchemaEquivalenceSpec @String
     openAPIToSchemaEquivalenceSpec @Scientific
+    -- Matching this needs changes to how 'HashMapCodec' is named and rendered.
     xdescribe "doesn't hold: codec is unnamed, has additionalProperties and no description" $
       openAPIToSchemaEquivalenceSpec @JSON.Object
     openAPIToSchemaEquivalenceSpec @Int
     openAPIToSchemaEquivalenceSpec @Int8
     openAPIToSchemaEquivalenceSpec @Int16
-    xdescribe "doesn't hold: codec lacks format int32" $
-      openAPIToSchemaEquivalenceSpec @Int32
-    xdescribe "doesn't hold: codec lacks format int64" $
-      openAPIToSchemaEquivalenceSpec @Int64
+    openAPIToSchemaEquivalenceSpec @Int32
+    openAPIToSchemaEquivalenceSpec @Int64
     openAPIToSchemaEquivalenceSpec @Integer
     openAPIToSchemaEquivalenceSpec @Word
     openAPIToSchemaEquivalenceSpec @Word8
     openAPIToSchemaEquivalenceSpec @Word16
-    xdescribe "doesn't hold: codec lacks format int32" $
-      openAPIToSchemaEquivalenceSpec @Word32
-    xdescribe "doesn't hold: codec lacks format int64" $
-      openAPIToSchemaEquivalenceSpec @Word64
+    openAPIToSchemaEquivalenceSpec @Word32
+    openAPIToSchemaEquivalenceSpec @Word64
+    -- The default, 'False', so both schemas mean the same thing.
     xdescribe "doesn't hold: codec lacks exclusiveMinimum False" $
       openAPIToSchemaEquivalenceSpec @Natural
     -- Containers and wrappers
+    -- The codec does accept null, so its schema is the accurate one.
     xdescribe "doesn't hold: codec sets nullable True" $
       openAPIToSchemaEquivalenceSpec @(Maybe Text)
-    xdescribe "doesn't hold: codec is unnamed and lacks Left/Right titles" $
+    -- Naming it like openapi3 does would need Typeable constraints on the instance.
+    xdescribe "doesn't hold: codec is unnamed" $
       openAPIToSchemaEquivalenceSpec @(Either Bool Text)
     openAPIToSchemaEquivalenceSpec @[Text]
     openAPIToSchemaEquivalenceSpec @(Vector Text)
-    xdescribe "doesn't hold: codec lacks minItems 1" $
-      openAPIToSchemaEquivalenceSpec @(NonEmpty Text)
+    openAPIToSchemaEquivalenceSpec @(NonEmpty Text)
+    -- The codec removes duplicates instead of rejecting them, so this would
+    -- document a check that decoding doesn't do.
     xdescribe "doesn't hold: codec lacks uniqueItems True" $
       openAPIToSchemaEquivalenceSpec @(Set Text)
     openAPIToSchemaEquivalenceSpec @(Map Text Int)
@@ -183,26 +184,102 @@ spec = do
     openAPIToSchemaEquivalenceSpec @(Semigroup.First Text)
     openAPIToSchemaEquivalenceSpec @(Semigroup.Last Text)
     -- Time
-    -- The codec versions of these are unnamed, use the type name as a
-    -- description, and lack openapi3's format and example.
-    xdescribe "doesn't hold: codec is unnamed, lacks format date and example" $
-      openAPIToSchemaEquivalenceSpec @Day
-    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
-      openAPIToSchemaEquivalenceSpec @LocalTime
-    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
-      openAPIToSchemaEquivalenceSpec @UTCTime
-    xdescribe "doesn't hold: codec is unnamed, lacks format and example" $
-      openAPIToSchemaEquivalenceSpec @TimeOfDay
-    xdescribe "doesn't hold: codec is unnamed, lacks format date-time and example" $
-      openAPIToSchemaEquivalenceSpec @ZonedTime
-    xdescribe "doesn't hold: codec lacks multipleOf 1.0e-12" $
-      openAPIToSchemaEquivalenceSpec @NominalDiffTime
+    openAPIToSchemaEquivalenceSpec @Day
+    openAPIToSchemaEquivalenceSpec @LocalTime
+    openAPIToSchemaEquivalenceSpec @UTCTime
+    openAPIToSchemaEquivalenceSpec @TimeOfDay
+    openAPIToSchemaEquivalenceSpec @ZonedTime
+    openAPIToSchemaEquivalenceSpec @NominalDiffTime
+    -- Records with openapi3's generic instances
+    openAPIToSchemaEquivalenceSpec @GenericRecord
+    openAPIToSchemaEquivalenceSpec @GenericOptionalRecord
+    -- The field does accept null, so its schema is the accurate one, as for 'Maybe'.
+    xdescribe "doesn't hold: codec sets nullable True on the or-null field" $
+      openAPIToSchemaEquivalenceSpec @GenericOptionalOrNullRecord
+  openAPIDocCompositionSpec
+
+-- | How documentation composes when codecs are wrapped in more than one doc.
+--
+-- "Inner" is the doc closest to the value codec, "outer" the one applied around it.
+openAPIDocCompositionSpec :: Spec
+openAPIDocCompositionSpec =
+  describe "doc composition" $ do
+    it "puts the outer description before the inner one" $
+      OpenAPI._schemaDescription (openAPISchemaOf ((textCodec <?> "inner") <?> "outer"))
+        `shouldBe` Just "outer\ninner"
+    it "uses the outer title" $
+      OpenAPI._schemaTitle (openAPISchemaOf (withTitle "outer" (withTitle "inner" textCodec)))
+        `shouldBe` Just "outer"
+    it "uses the outer format" $
+      OpenAPI._schemaFormat (openAPISchemaOf (withFormat "outer" (withFormat "inner" textCodec)))
+        `shouldBe` Just "outer"
+    it "uses the outer example" $
+      OpenAPI._schemaExample (openAPISchemaOf (withExample "outer" (withExample "inner" textCodec)))
+        `shouldBe` Just "outer"
+    it "uses the outer multipleOf" $
+      OpenAPI._schemaMultipleOf (openAPISchemaOf (withMultipleOf 2 (withMultipleOf 3 scientificCodec)))
+        `shouldBe` Just 2
+    it "uses a larger outer minItems" $
+      OpenAPI._schemaMinItems (openAPISchemaOf (withMinItems 3 (nonEmptyCodec textCodec)))
+        `shouldBe` Just 3
+    it "keeps a larger inner minItems" $
+      OpenAPI._schemaMinItems (openAPISchemaOf (withMinItems 0 (nonEmptyCodec textCodec)))
+        `shouldBe` Just 1
+    it "keeps docs of different kinds" $
+      let s = openAPISchemaOf (withFormat "f" (withTitle "t" textCodec <?> "d"))
+       in (OpenAPI._schemaFormat s, OpenAPI._schemaTitle s, OpenAPI._schemaDescription s)
+            `shouldBe` (Just "f", Just "t", Just "d")
+    it "puts a field's doc before the doc of its value" $
+      let c = object "Field" (requiredFieldWith "key" (textCodec <?> "value doc") "field doc")
+       in case toList (OpenAPI._schemaProperties (openAPISchemaOf c)) of
+            [OpenAPI.Inline p] -> OpenAPI._schemaDescription p `shouldBe` Just "field doc\nvalue doc"
+            ps -> expectationFailure $ "Expected one inline property, got: " <> show ps
+
+    describe "field docs on named types" $ do
+      -- A named type's property is a '$ref', and OpenAPI 3.0 ignores anything
+      -- next to a '$ref', so a field's own doc goes on an 'allOf' around it.
+      let dayRef = OpenAPI.Ref (OpenAPI.Reference "Day")
+      it "puts a field's doc on an allOf around the reference" $
+        openAPIPropertiesOf (object "Field" (requiredFieldWith "key" (codec @Day) "field doc"))
+          `shouldBe` [OpenAPI.Inline mempty {OpenAPI._schemaDescription = Just "field doc", OpenAPI._schemaAllOf = Just [dayRef]}]
+      it "leaves the named type's definition alone" $
+        let (defs, _) = openAPIDeclarationOf (object "Field" (requiredFieldWith "key" (codec @Day) "field doc"))
+         in map (\s -> (OpenAPI._schemaDescription s, OpenAPI._schemaFormat s)) (toList defs)
+              `shouldBe` [(Nothing, Just "date")]
+      it "keeps a field's doc for a time type" $
+        openAPIPropertiesOf (object "Field" (requiredFieldWith "key" (codec @UTCTime) "when"))
+          `shouldBe` [OpenAPI.Inline mempty {OpenAPI._schemaDescription = Just "when", OpenAPI._schemaAllOf = Just [OpenAPI.Ref (OpenAPI.Reference "UTCTime")]}]
+      it "puts a field's default on an allOf around the reference" $
+        openAPIPropertiesOf (object "Field" (optionalFieldWithDefaultWith' "key" (named "Name" textCodec) "dflt"))
+          `shouldBe` [OpenAPI.Inline mempty {OpenAPI._schemaDefault = Just "dflt", OpenAPI._schemaAllOf = Just [OpenAPI.Ref (OpenAPI.Reference "Name")]}]
+      it "leaves an undocumented field as a plain reference" $
+        openAPIPropertiesOf (object "Field" (requiredFieldWith' "key" (codec @Day)))
+          `shouldBe` [dayRef]
+      it "leaves a field with an empty doc as a plain reference" $
+        openAPIPropertiesOf (object "Field" (requiredFieldWith "key" (codec @Day) ""))
+          `shouldBe` [dayRef]
+
+-- | The properties of the object schema that a codec documents.
+openAPIPropertiesOf :: forall a. JSONCodec a -> [OpenAPI.Referenced OpenAPI.Schema]
+openAPIPropertiesOf = toList . OpenAPI._schemaProperties . openAPISchemaOf
+
+-- | The definitions and schema that a codec documents.
+openAPIDeclarationOf :: forall a. JSONCodec a -> (OpenAPI.Definitions OpenAPI.Schema, OpenAPI.Schema)
+openAPIDeclarationOf c =
+  OpenAPI._namedSchemaSchema
+    <$> OpenAPI.runDeclare (declareNamedSchemaVia c (Proxy :: Proxy a)) mempty
+
+-- | The schema that a codec documents, without its name or definitions.
+openAPISchemaOf :: forall a. JSONCodec a -> OpenAPI.Schema
+openAPISchemaOf c =
+  OpenAPI._namedSchemaSchema . snd $
+    OpenAPI.runDeclare (declareNamedSchemaVia c (Proxy :: Proxy a)) mempty
 
 -- | Check that the 'OpenAPI.ToSchema' instance that is defined for @a@ outside
 -- of autodocodec produces exactly the same output as the codec-based one.
 openAPIToSchemaEquivalenceSpec ::
   forall a.
-  (Typeable a, HasCodec a, OpenAPI.ToSchema a) =>
+  (HasCodec a, OpenAPI.ToSchema a) =>
   Spec
 openAPIToSchemaEquivalenceSpec =
   describe ("openAPIToSchemaEquivalenceSpec @" <> nameOf @a) $ do

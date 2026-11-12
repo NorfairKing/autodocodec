@@ -1,11 +1,13 @@
-BimapCodec
-  _
-  _
-  (ArrayOfCodec
-     Nothing
-     (StringCodec
+ExtraDocsCodec
+  (ExtraMinItems 1)
+  (BimapCodec
+     _
+     _
+     (ArrayOfCodec
         Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+        (StringCodec
+           Nothing
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

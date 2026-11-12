@@ -4,7 +4,12 @@
             "Recurse": {
                 "properties": {
                     "recurse": {
-                        "$ref": "#/components/schemas/recursive"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/recursive"
+                            }
+                        ],
+                        "description": "recursive case"
                     }
                 },
                 "required": [

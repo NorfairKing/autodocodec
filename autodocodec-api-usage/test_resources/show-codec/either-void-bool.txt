@@ -1,7 +1,11 @@
 EitherCodec
   DisjointUnion
-  (ObjectOfCodec
-     Nothing
-     (RequiredKeyCodec "Left" Nothing (BimapCodec _ _ ValueCodec)))
-  (ObjectOfCodec
-     Nothing (RequiredKeyCodec "Right" Nothing (BoolCodec Nothing)))
+  (ExtraDocsCodec
+     (ExtraTitle "Left")
+     (ObjectOfCodec
+        Nothing
+        (RequiredKeyCodec "Left" Nothing (BimapCodec _ _ ValueCodec))))
+  (ExtraDocsCodec
+     (ExtraTitle "Right")
+     (ObjectOfCodec
+        Nothing (RequiredKeyCodec "Right" Nothing (BoolCodec Nothing))))

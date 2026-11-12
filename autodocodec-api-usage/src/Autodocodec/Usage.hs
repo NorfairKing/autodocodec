@@ -33,6 +33,7 @@ import Data.GenValidity.Aeson ()
 import Data.GenValidity.Scientific ()
 import Data.GenValidity.Text ()
 import qualified Data.HashMap.Strict as HashMap
+import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe
 import qualified Data.Monoid as Monoid
@@ -1091,3 +1092,64 @@ instance HasObjectCodec Overlap where
 typeField :: Text -> a -> ObjectCodec b a
 typeField typeName a =
   a <$ requiredFieldWith' "type" (literalTextCodec typeName) .= const typeName
+
+-- | A plain record whose 'OpenAPI.ToSchema' instance is openapi3's generic one.
+--
+-- The tests check that the codec documents it the same way openapi3 does.
+data GenericRecord = GenericRecord
+  { genericRecordInt1 :: !Int64,
+    genericRecordInt2 :: !Int32,
+    genericRecordName :: !Text
+  }
+  deriving (Show, Eq, Generic)
+
+-- | openapi3's generic instance, deliberately not the one via the codec.
+instance OpenAPI.ToSchema GenericRecord
+
+instance HasCodec GenericRecord where
+  codec =
+    object "GenericRecord" $
+      GenericRecord
+        <$> requiredField' "genericRecordInt1" .= genericRecordInt1
+        <*> requiredField' "genericRecordInt2" .= genericRecordInt2
+        <*> requiredField' "genericRecordName" .= genericRecordName
+
+-- | A record with optional fields whose 'OpenAPI.ToSchema' instance is openapi3's generic one.
+--
+-- openapi3 documents a 'Maybe' field as an optional key with the schema of the
+-- type inside the 'Maybe'.
+data GenericOptionalRecord = GenericOptionalRecord
+  { genericOptionalRecordRequired :: !Text,
+    genericOptionalRecordOptional :: !(Maybe Text)
+  }
+  deriving (Show, Eq, Generic)
+
+-- | openapi3's generic instance, deliberately not the one via the codec.
+instance OpenAPI.ToSchema GenericOptionalRecord
+
+instance HasCodec GenericOptionalRecord where
+  codec =
+    object "GenericOptionalRecord" $
+      GenericOptionalRecord
+        <$> requiredField' "genericOptionalRecordRequired" .= genericOptionalRecordRequired
+        <*> optionalField' "genericOptionalRecordOptional" .= genericOptionalRecordOptional
+
+-- | Like 'GenericOptionalRecord', but the codec also accepts @null@ for the optional field.
+--
+-- This is kept separate so that a difference in how @null@ is documented
+-- doesn't hide whether the plain optional field matches.
+data GenericOptionalOrNullRecord = GenericOptionalOrNullRecord
+  { genericOptionalOrNullRecordRequired :: !Text,
+    genericOptionalOrNullRecordOptionalOrNull :: !(Maybe Text)
+  }
+  deriving (Show, Eq, Generic)
+
+-- | openapi3's generic instance, deliberately not the one via the codec.
+instance OpenAPI.ToSchema GenericOptionalOrNullRecord
+
+instance HasCodec GenericOptionalOrNullRecord where
+  codec =
+    object "GenericOptionalOrNullRecord" $
+      GenericOptionalOrNullRecord
+        <$> requiredField' "genericOptionalOrNullRecordRequired" .= genericOptionalOrNullRecordRequired
+        <*> optionalFieldOrNull' "genericOptionalOrNullRecordOptionalOrNull" .= genericOptionalOrNullRecordOptionalOrNull

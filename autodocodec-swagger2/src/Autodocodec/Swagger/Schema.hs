@@ -19,6 +19,7 @@ import Data.Scientific
 import Data.Swagger as Swagger
 import Data.Swagger.Declare as Swagger
 import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -132,9 +133,9 @@ declareNamedSchemaVia c' Proxy = go c'
         ns2 <- go c2
         let s2 = _namedSchemaSchema ns2
         pure $ NamedSchema Nothing $ combineSchemaOr u s1 s2
-      CommentCodec t c -> do
+      ExtraDocsCodec docs c -> do
         NamedSchema mName s <- go c
-        pure $ NamedSchema mName $ addDoc t s
+        pure $ NamedSchema mName $ applyExtraDocs docs s
       ReferenceCodec n c -> do
         d <- look
         case InsOrdHashMap.lookup n d of
@@ -154,7 +155,7 @@ declareNamedSchemaVia c' Proxy = go c'
         pure
           [ mempty
               { _schemaRequired = [key],
-                _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
+                _schemaProperties = [(key, fieldProperty mDoc ref)],
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
@@ -163,7 +164,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, fieldProperty mDoc ref)],
                 _schemaParamSchema = mempty {_paramSchemaType = Just SwaggerObject}
               }
           ]
@@ -172,7 +173,7 @@ declareNamedSchemaVia c' Proxy = go c'
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, fieldProperty mDoc ref)],
                 _schemaParamSchema =
                   mempty
                     { _paramSchemaDefault = Just $ toJSONVia vs defaultValue,
@@ -199,15 +200,55 @@ declareNamedSchemaVia c' Proxy = go c'
         ss2 <- goObject oc2
         pure $ ss1 ++ ss2
       BimapCodec _ _ oc -> goObject oc
+    -- A field's documentation is a description on top of its value's schema.
     addMDoc :: Maybe Text -> Schema -> Schema
-    addMDoc = maybe id addDoc
-    addDoc :: Text -> Schema -> Schema
-    addDoc doc s =
-      s
-        { _schemaDescription = case _schemaDescription s of
-            Nothing -> Just doc
-            Just doc' -> Just $ doc <> "\n" <> doc'
-        }
+    addMDoc = maybe id (applyExtraDocs . ExtraDescription)
+    -- The property schema for an object field: its value's schema, plus the
+    -- field's own doc.
+    --
+    -- When the value's type has no name, its schema is inline, and the field's
+    -- doc goes straight onto it.
+    --
+    -- When the value's type is named, its schema is a '$ref' to a definition
+    -- that every use of the type shares.  The field's doc is about this one
+    -- field, so it can't go in that definition, or every other use of the type
+    -- would show it too.  It has to go at the '$ref' instead, but Swagger 2
+    -- ignores anything next to a '$ref'.  So we wrap the '$ref' in a
+    -- one-element 'allOf', which is a Schema Object and can carry it:
+    --
+    -- > "field": { "allOf": [{ "$ref": "#/definitions/T" }], "description": "..." }
+    --
+    -- swagger2's 'Referenced' type has nowhere to put anything next to a 'Ref'
+    -- anyway.  Unlike OpenAPI, where 3.1 lets keywords sit next to a '$ref'
+    -- (see 'Autodocodec.OpenAPI.Schema'), there is no later Swagger 2 spec that
+    -- relaxes this, so the wrapper stays for as long as this interpreter exists.
+    --
+    -- An empty doc counts as no doc here, because a wrapper with an empty
+    -- description says nothing.
+    fieldProperty :: Maybe Text -> Referenced NamedSchema -> Referenced Schema
+    fieldProperty mDoc ref = case _namedSchemaSchema <$> ref of
+      Inline s -> Inline $ addMDoc mDoc s
+      r@(Ref _) -> case mfilter (not . T.null) mDoc of
+        Nothing -> r
+        mDoc' -> Inline $ addMDoc mDoc' mempty {_schemaAllOf = Just [r]}
+    -- Apply a doc that wraps the codec that this schema came from.
+    -- See 'ExtraDocs' for how it combines with what the schema already has.
+    applyExtraDocs :: ExtraDocs -> Schema -> Schema
+    applyExtraDocs docs s =
+      let ps = _schemaParamSchema s
+       in case docs of
+            ExtraDescription doc ->
+              s
+                { _schemaDescription = case _schemaDescription s of
+                    Nothing -> Just doc
+                    Just doc' -> Just $ doc <> "\n" <> doc'
+                }
+            ExtraTitle t -> s {_schemaTitle = Just t}
+            ExtraExample e -> s {_schemaExample = Just e}
+            ExtraFormat f -> s {_schemaParamSchema = ps {_paramSchemaFormat = Just f}}
+            ExtraMultipleOf m -> s {_schemaParamSchema = ps {_paramSchemaMultipleOf = Just m}}
+            -- Both constraints apply to the same array, so the stricter one holds.
+            ExtraMinItems n -> s {_schemaParamSchema = ps {_paramSchemaMinItems = Just $ maybe (fromIntegral n) (max (fromIntegral n)) (_paramSchemaMinItems ps)}}
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat
     combineSchemaOr :: Union -> Schema -> Schema -> Schema

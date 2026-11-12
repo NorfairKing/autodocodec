@@ -25,6 +25,7 @@ import Data.OpenApi.Declare as OpenAPI
 import Data.Proxy
 import Data.Scientific
 import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Use a type's 'codec' to implement 'declareNamedSchema'.
 declareNamedSchemaViaCodec :: (HasCodec value) => Proxy value -> Declare (Definitions Schema) NamedSchema
@@ -131,9 +132,9 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
                 ns1 <- go c1
                 ns2 <- go c2
                 combineSchemasOr u ns1 ns2
-      CommentCodec t c -> do
+      ExtraDocsCodec docs c -> do
         NamedSchema mName s <- go c
-        pure $ NamedSchema mName $ addDoc t s
+        pure $ NamedSchema mName $ applyExtraDocs docs s
       ReferenceCodec n c -> do
         seenSchemas <- State.get
         case HashMap.lookup n seenSchemas of
@@ -164,7 +165,7 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         pure
           [ mempty
               { _schemaRequired = [key],
-                _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
+                _schemaProperties = [(key, fieldProperty mDoc Nothing ref)],
                 _schemaType = Just OpenApiObject
               }
           ]
@@ -173,17 +174,16 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         ref <- declareSpecificNamedSchemaRef ns
         pure
           [ mempty
-              { _schemaProperties = [(key, addMDoc mDoc . _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, fieldProperty mDoc Nothing ref)],
                 _schemaType = Just OpenApiObject
               }
           ]
       OptionalKeyWithDefaultCodec key vs defaultValue mDoc -> do
         ns <- go vs
         ref <- declareSpecificNamedSchemaRef ns
-        let addDefaultToSchema propertySchema = propertySchema {_schemaDefault = Just $ toJSONVia vs defaultValue}
         pure
           [ mempty
-              { _schemaProperties = [(key, addDefaultToSchema . addMDoc mDoc . _namedSchemaSchema <$> ref)],
+              { _schemaProperties = [(key, fieldProperty mDoc (Just $ toJSONVia vs defaultValue) ref)],
                 _schemaType = Just OpenApiObject
               }
           ]
@@ -219,16 +219,64 @@ declareNamedSchemaVia c' Proxy = evalStateT (go c') mempty
         pure $ ss1 ++ ss2
       BimapCodec _ _ oc -> goObject oc
 
+    -- A field's documentation is a description on top of its value's schema.
     addMDoc :: Maybe Text -> Schema -> Schema
-    addMDoc = maybe id addDoc
+    addMDoc = maybe id (applyExtraDocs . ExtraDescription)
 
-    addDoc :: Text -> Schema -> Schema
-    addDoc doc s =
-      s
-        { _schemaDescription = case _schemaDescription s of
-            Nothing -> Just doc
-            Just doc' -> Just $ doc <> "\n" <> doc'
-        }
+    -- The property schema for an object field: its value's schema, plus the
+    -- field's own doc and default.
+    --
+    -- When the value's type has no name, its schema is inline, and the field's
+    -- doc and default go straight onto it.
+    --
+    -- When the value's type is named, its schema is a '$ref' to a definition
+    -- that every use of the type shares.  The field's doc and default are about
+    -- this one field, so they can't go in that definition, or every other use of
+    -- the type would show them too.  They have to go at the '$ref' instead, but
+    -- OpenAPI 3.0 says a Reference Object can't be extended and that anything
+    -- next to a '$ref' "SHALL be ignored".  So we use the usual 3.0 workaround
+    -- and wrap the '$ref' in a one-element 'allOf', which is a Schema Object and
+    -- can carry them:
+    --
+    -- > "field": { "allOf": [{ "$ref": "#/components/schemas/T" }], "description": "..." }
+    --
+    -- The simpler @{ "$ref": ..., "description": ... }@ isn't an option here
+    -- either way: openapi3's 'Referenced' type has nowhere to put anything next
+    -- to a 'Ref'.
+    --
+    -- This workaround is only needed for OpenAPI 3.0.  In OpenAPI 3.1, Schema
+    -- Objects follow JSON Schema 2020-12, where keywords next to a '$ref' apply
+    -- (they add to the referenced schema rather than replace it).  If this
+    -- interpreter ever targets 3.1, the 'allOf' can be dropped and the doc and
+    -- default put directly next to the '$ref'.
+    --
+    -- An empty doc counts as no doc here, because a wrapper with an empty
+    -- description says nothing.
+    fieldProperty :: Maybe Text -> Maybe Aeson.Value -> Referenced NamedSchema -> Referenced Schema
+    fieldProperty mDoc mDefault ref =
+      let addDefault s = maybe s (\d -> s {_schemaDefault = Just d}) mDefault
+       in case _namedSchemaSchema <$> ref of
+            Inline s -> Inline $ addDefault $ addMDoc mDoc s
+            r@(Ref _) -> case (mfilter (not . T.null) mDoc, mDefault) of
+              (Nothing, Nothing) -> r
+              (mDoc', _) -> Inline $ addDefault $ addMDoc mDoc' mempty {_schemaAllOf = Just [r]}
+
+    -- Apply a doc that wraps the codec that this schema came from.
+    -- See 'ExtraDocs' for how it combines with what the schema already has.
+    applyExtraDocs :: ExtraDocs -> Schema -> Schema
+    applyExtraDocs docs s = case docs of
+      ExtraDescription doc ->
+        s
+          { _schemaDescription = case _schemaDescription s of
+              Nothing -> Just doc
+              Just doc' -> Just $ doc <> "\n" <> doc'
+          }
+      ExtraTitle t -> s {_schemaTitle = Just t}
+      ExtraFormat f -> s {_schemaFormat = Just f}
+      ExtraExample e -> s {_schemaExample = Just e}
+      ExtraMultipleOf m -> s {_schemaMultipleOf = Just m}
+      -- Both constraints apply to the same array, so the stricter one holds.
+      ExtraMinItems n -> s {_schemaMinItems = Just $ maybe (fromIntegral n) (max (fromIntegral n)) (_schemaMinItems s)}
 
     combineObjectSchemas :: [Schema] -> Schema
     combineObjectSchemas = mconcat

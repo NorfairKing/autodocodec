@@ -77,7 +77,9 @@ instance HasCodec Char where
           [] -> Left "Expected exactly 1 character, but got none."
           [c] -> Right c
           s -> Left $ "Expected exactly 1 character, but got more:" <> s
-     in bimapCodec parseChar (: []) stringCodec
+        exactlyOne = StringBounds {stringBoundsMinLength = Just 1, stringBoundsMaxLength = Just 1}
+     in withExample (JSON.String "?") $
+          bimapCodec parseChar (: []) (stringWithBoundsCodec exactlyOne)
   listCodecForStringCompatibility = stringCodec
 
 instance HasCodec Text where
@@ -99,10 +101,10 @@ instance HasCodec Int16 where
   codec = boundedIntegralCodec
 
 instance HasCodec Int32 where
-  codec = boundedIntegralCodec
+  codec = withFormat "int32" boundedIntegralCodec
 
 instance HasCodec Int64 where
-  codec = boundedIntegralCodec
+  codec = withFormat "int64" boundedIntegralCodec
 
 -- | This instance uses the "safe" 'integerCodec'.
 instance HasCodec Integer where
@@ -117,11 +119,13 @@ instance HasCodec Word8 where
 instance HasCodec Word16 where
   codec = boundedIntegralCodec
 
+-- The signed formats match what the openapi3 library uses for 'Word32' and
+-- 'Word64'. The OpenAPI format registry also has @uint32@ and @uint64@.
 instance HasCodec Word32 where
-  codec = boundedIntegralCodec
+  codec = withFormat "int32" boundedIntegralCodec
 
 instance HasCodec Word64 where
-  codec = boundedIntegralCodec
+  codec = withFormat "int64" boundedIntegralCodec
 
 -- | This instance uses the "safe" 'naturalCodec'.
 instance HasCodec Natural where
@@ -150,8 +154,8 @@ instance (HasCodec a) => HasCodec (Maybe a) where
 instance (HasCodec l, HasCodec r) => HasCodec (Either l r) where
   codec =
     disjointEitherCodec
-      (ObjectOfCodec Nothing (requiredField' "Left"))
-      (ObjectOfCodec Nothing (requiredField' "Right"))
+      (withTitle "Left" (ObjectOfCodec Nothing (requiredField' "Left")))
+      (withTitle "Right" (ObjectOfCodec Nothing (requiredField' "Right")))
 
 instance (HasCodec a) => HasCodec (Vector a) where
   codec = vectorCodec codec
@@ -182,23 +186,35 @@ instance HasCodec v => HasCodec (KeyMap v) where
   codec = keyMapCodec codec
 #endif
 
+-- The formats and examples of the time instances match the openapi3 library.
 instance HasCodec Day where
-  codec = unsafeCodecViaAesonString "Day"
+  codec =
+    withFormat "date" . withExample (JSON.String "2016-07-22") $
+      unsafeNamedCodecViaAesonString "Day"
 
 instance HasCodec LocalTime where
-  codec = unsafeCodecViaAesonString "LocalTime"
+  codec =
+    withFormat "yyyy-mm-ddThh:MM:ss" . withExample (JSON.String "2016-07-22T07:40:00") $
+      unsafeNamedCodecViaAesonString "LocalTime"
 
 instance HasCodec UTCTime where
-  codec = unsafeCodecViaAesonString "UTCTime"
+  codec =
+    withFormat "yyyy-mm-ddThh:MM:ssZ" . withExample (JSON.String "2016-07-22T00:00:00Z") $
+      unsafeNamedCodecViaAesonString "UTCTime"
 
 instance HasCodec TimeOfDay where
-  codec = unsafeCodecViaAesonString "TimeOfDay"
+  codec =
+    withFormat "hh:MM:ss" . withExample (JSON.String "12:33:15") $
+      unsafeNamedCodecViaAesonString "TimeOfDay"
 
 instance HasCodec ZonedTime where
-  codec = unsafeCodecViaAesonString "ZonedTime"
+  codec =
+    withFormat "date-time" . withExample (JSON.String "2016-07-22T07:40:00+03:00") $
+      unsafeNamedCodecViaAesonString "ZonedTime"
 
+-- | 'NominalDiffTime' has a resolution of one picosecond.
 instance HasCodec NominalDiffTime where
-  codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
+  codec = withMultipleOf 1e-12 $ dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)
 
 instance HasCodec DiffTime where
   codec = dimapCodec realToFrac realToFrac (codec :: JSONCodec Scientific)

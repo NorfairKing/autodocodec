@@ -1,30 +1,38 @@
 EitherCodec
   DisjointUnion
-  (ObjectOfCodec
-     Nothing
-     (RequiredKeyCodec
-        "Left"
+  (ExtraDocsCodec
+     (ExtraTitle "Left")
+     (ObjectOfCodec
         Nothing
-        (EitherCodec
-           DisjointUnion
-           (ObjectOfCodec
-              Nothing (RequiredKeyCodec "Left" Nothing (BoolCodec Nothing)))
-           (ObjectOfCodec
-              Nothing
-              (RequiredKeyCodec
-                 "Right"
-                 Nothing
-                 (NumberCodec
-                    Nothing
-                    Bounds { boundsLower = Nothing , boundsUpper = Nothing }))))))
-  (ObjectOfCodec
-     Nothing
-     (RequiredKeyCodec
-        "Right"
-        Nothing
-        (StringCodec
+        (RequiredKeyCodec
+           "Left"
            Nothing
-           StringBounds
-             { stringBoundsMinLength = Nothing
-             , stringBoundsMaxLength = Nothing
-             })))
+           (EitherCodec
+              DisjointUnion
+              (ExtraDocsCodec
+                 (ExtraTitle "Left")
+                 (ObjectOfCodec
+                    Nothing (RequiredKeyCodec "Left" Nothing (BoolCodec Nothing))))
+              (ExtraDocsCodec
+                 (ExtraTitle "Right")
+                 (ObjectOfCodec
+                    Nothing
+                    (RequiredKeyCodec
+                       "Right"
+                       Nothing
+                       (NumberCodec
+                          Nothing
+                          Bounds { boundsLower = Nothing , boundsUpper = Nothing }))))))))
+  (ExtraDocsCodec
+     (ExtraTitle "Right")
+     (ObjectOfCodec
+        Nothing
+        (RequiredKeyCodec
+           "Right"
+           Nothing
+           (StringCodec
+              Nothing
+              StringBounds
+                { stringBoundsMinLength = Nothing
+                , stringBoundsMaxLength = Nothing
+                }))))

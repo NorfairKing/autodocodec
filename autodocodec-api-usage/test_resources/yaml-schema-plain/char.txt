@@ -1,1 +1,1 @@
-<string>
+<string> # between 1 and 1 characters

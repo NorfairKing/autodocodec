@@ -12,6 +12,7 @@
                         "required": [
                             "Left"
                         ],
+                        "title": "Left",
                         "type": "object"
                     },
                     {
@@ -23,6 +24,7 @@
                         "required": [
                             "Right"
                         ],
+                        "title": "Right",
                         "type": "object"
                     }
                 ]

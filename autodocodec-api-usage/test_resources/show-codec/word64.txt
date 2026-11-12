@@ -1,7 +1,11 @@
-BimapCodec
-  _
-  _
-  (IntegerCodec
-     Nothing
-     Bounds
-       { boundsLower = Just 0 , boundsUpper = Just 18446744073709551615 })
+ExtraDocsCodec
+  (ExtraFormat "int64")
+  (BimapCodec
+     _
+     _
+     (IntegerCodec
+        Nothing
+        Bounds
+          { boundsLower = Just 0
+          , boundsUpper = Just 18446744073709551615
+          }))

@@ -151,6 +151,16 @@ spec = do
             "or-null-with-default-undocumented" JSON..= JSON.Null
           ]
 
+  describe "unsafeCodecViaAesonString" $ do
+    -- No 'HasCodec' instance uses it any more, but it's still part of the API.
+    let c = unsafeCodecViaAesonString "Day" :: JSONCodec Day
+    it "encodes a value the way aeson does" $
+      forAllValid $ \(d :: Day) ->
+        toJSONVia c d `shouldBe` JSON.toJSON d
+    it "decodes a value the way aeson does" $
+      forAllValid $ \(d :: Day) ->
+        JSON.parseEither (parseJSONVia c) (JSON.toJSON d) `shouldBe` Right d
+
   describe "the object-level helpers" $ do
     it "roundtrips an object through toJSONObjectViaCodec and parseJSONObjectViaCodec" $
       forAllValid $ \(a :: Example) ->
