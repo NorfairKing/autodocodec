@@ -116,17 +116,10 @@ renderExpression = T.unlines . go 0
                 ]
       ExprIf c t e ->
         parensWhen (d > 0) $
-          let cs = go 1 c
-              ts = go 1 t
-              es = go 0 e
-           in case (cs, ts, es) of
-                ([c'], [t'], [e']) -> [T.unwords ["if", c', "then", t', "else", e']]
-                _ ->
-                  concat
-                    [ prependWith " " "if" cs,
-                      prependWith " " "then" ts,
-                      prependWith " " "else" es
-                    ]
+          joinWith
+            " else "
+            (joinWith " then " (prependWith " " "if" (go 1 c)) (go 1 t))
+            (go 0 e)
       ExprUpdate e1 e2 ->
         parensWhen (d > 5) $
           joinWith " // " (go 6 e1) (go 5 e2)

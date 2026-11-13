@@ -26,11 +26,9 @@
   (if true then 1 else 2)
   (if false then 1 else if true then 2 else 3)
   ((if true then (x: x) else x: 2) 1)
-  (if builtins.isInt 1
-  then {
+  (if builtins.isInt 1 then {
     a = 1;
-  }
-  else { })
+  } else { })
   (({
     a = 1;
   } // {
