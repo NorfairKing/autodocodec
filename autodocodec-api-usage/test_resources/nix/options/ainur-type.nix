@@ -4,9 +4,9 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.mergeAttrs {
+      default = lib.mergeAttrs {
         name = if options.name.isDefined then config.name else throw "The option `${lib.showOption options.name.loc}' is required but was not defined.";
-      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      } (lib.filterAttrs (name: _: options.${name}.isDefined) {
         domain = config.domain;
       });
       internal = true;

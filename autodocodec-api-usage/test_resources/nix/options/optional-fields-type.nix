@@ -4,7 +4,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      default = lib.filterAttrs (name: _: options.${name}.isDefined) {
         optional = config.optional;
         optional-or-null = config.optional-or-null;
         optional-or-null-with = config.optional-or-null-with;

@@ -83,6 +83,7 @@
         in
         backwardCompatibilityChecks // {
           release = haskellPackages.autodocodecRelease;
+          expression-check = pkgs.callPackage ./nix/expression-check.nix { };
           unset-options-check = pkgs.callPackage ./nix/unset-options-check.nix { };
           unset-options-check-nixpkgs-24_05 = pkgs.callPackage ./nix/unset-options-check.nix {
             lib = import "${nixpkgs-24_05}/lib";

@@ -34,7 +34,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       type = lib.types.str;
     };
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      default = lib.filterAttrs (name: _: options.${name}.isDefined) {
         "1" = config."1";
         "1old" = config."1old";
         "2" = config."2";

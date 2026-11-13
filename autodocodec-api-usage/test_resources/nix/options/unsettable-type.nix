@@ -8,10 +8,10 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       type = lib.types.str;
     };
     __defined = lib.mkOption {
-      default = (lib.mergeAttrs {
+      default = lib.mergeAttrs {
         nullable = if options.nullable.isDefined then config.nullable else throw "The option `${lib.showOption options.nullable.loc}' is required but was not defined.";
         required = if options.required.isDefined then config.required else throw "The option `${lib.showOption options.required.loc}' is required but was not defined.";
-      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      } (lib.filterAttrs (name: _: options.${name}.isDefined) {
         "1st" = config."1st";
         either = config.either;
         either-list = config.either-list;
@@ -45,7 +45,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              default = lib.filterAttrs (name: _: options.${name}.isDefined) {
                 one = config.one;
                 two = config.two;
               };
@@ -71,7 +71,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              default = lib.filterAttrs (name: _: options.${name}.isDefined) {
                 one = config.one;
                 two = config.two;
               };
@@ -92,7 +92,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              default = lib.filterAttrs (name: _: options.${name}.isDefined) {
                 one = config.one;
                 two = config.two;
               };
@@ -117,9 +117,9 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.mergeAttrs {
+            default = lib.mergeAttrs {
               both = if options.both.isDefined then config.both else throw "The option `${lib.showOption options.both.loc}' is required but was not defined.";
-            }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            } (lib.filterAttrs (name: _: options.${name}.isDefined) {
               a = config.a;
               b = config.b;
               mode = config.mode;
@@ -160,7 +160,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               a = config.a;
               b = config.b;
             };
@@ -184,7 +184,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -208,7 +208,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -232,7 +232,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -256,7 +256,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -280,7 +280,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               relationshipToA = config.relationshipToA;
             };
             internal = true;
@@ -298,7 +298,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -322,7 +322,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            default = lib.filterAttrs (name: _: options.${name}.isDefined) {
               one = config.one;
               two = config.two;
             };
@@ -346,9 +346,9 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.mergeAttrs {
+            default = lib.mergeAttrs {
               one = if options.one.isDefined then config.one else throw "The option `${lib.showOption options.one.loc}' is required but was not defined.";
-            }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            } (lib.filterAttrs (name: _: options.${name}.isDefined) {
               two = config.two;
             });
             internal = true;
@@ -396,7 +396,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              default = lib.filterAttrs (name: _: options.${name}.isDefined) {
                 one = config.one;
                 two = config.two;
               };
@@ -421,9 +421,9 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
       {
         options = {
           __defined = lib.mkOption {
-            default = (lib.mergeAttrs {
+            default = lib.mergeAttrs {
               type = if options.type.isDefined then config.type else throw "The option `${lib.showOption options.type.loc}' is required but was not defined.";
-            }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+            } (lib.filterAttrs (name: _: options.${name}.isDefined) {
               int = config.int;
               text = config.text;
             });
@@ -457,7 +457,7 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
         {
           options = {
             __defined = lib.mkOption {
-              default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+              default = lib.filterAttrs (name: _: options.${name}.isDefined) {
                 one = config.one;
                 two = config.two;
               };

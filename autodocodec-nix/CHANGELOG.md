@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0.0] - 2026-11-11
+## [0.2.0.0] - 2026-11-14
 
 ### Changed
 
@@ -24,6 +24,9 @@
   module system would merge a value for a later one with the first.
 * A submodule option no longer gets a default of `{ }`, because the codec has
   no such default.
+* A function, `with`, `let` or `if` is put in parentheses wherever it is not
+  the last part of an expression, and an application of an application is no
+  longer put in parentheses.
 
 ### Removed
 
@@ -36,12 +39,30 @@
 
 * The discriminator of a discriminated union is an enum of its values.
   It used to be a `oneOf` of strings, which could not be evaluated.
+* A function that takes up more than one line is separated from the argument
+  it is applied to by a space.
 
 ### Added
 
+* `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect` constructors
+  of `Expression`, for a function with a single argument, `let`, `if`, `//`
+  and selecting an attribute.
 * `nixAttrKey` in `Autodocodec.Nix.Expression`.
 * `optionRequirement` in `Option`, which says whether an option has to be
   defined.
+
+## [0.1.1.1] - 2026-11-14
+
+### Fixed
+
+* Strings and quoted attribute keys are rendered as Nix string literals.
+  They used to be rendered as Haskell string literals, so Nix read a
+  non-ASCII character like `é` as its code point, `233`, and interpolated a
+  `${`.
+* A negative number in a list or as an argument is put in parentheses.
+  Nix read `[ -1 ]` as a subtraction, which it could not parse.
+* The element of a list of one element is put in parentheses when it needs
+  them, so an application in it is no longer read as two elements.
 
 ## [0.1.1.0] - 2026-10-06
 

@@ -4,9 +4,9 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.mergeAttrs {
+      default = lib.mergeAttrs {
         required-non-empty = if options.required-non-empty.isDefined then config.required-non-empty else throw "The option `${lib.showOption options.required-non-empty.loc}' is required but was not defined.";
-      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      } (lib.filterAttrs (name: _: options.${name}.isDefined) {
         optional-non-empty = config.optional-non-empty;
         possibly-empty-with-default = config.possibly-empty-with-default;
         possibly-empty-with-omitted-default = config.possibly-empty-with-omitted-default;

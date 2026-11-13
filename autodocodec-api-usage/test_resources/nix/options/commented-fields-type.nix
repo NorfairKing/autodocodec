@@ -4,10 +4,10 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.mergeAttrs {
+      default = lib.mergeAttrs {
         required = if options.required.isDefined then config.required else throw "The option `${lib.showOption options.required.loc}' is required but was not defined.";
         undescribed = if options.undescribed.isDefined then config.undescribed else throw "The option `${lib.showOption options.undescribed.loc}' is required but was not defined.";
-      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      } (lib.filterAttrs (name: _: options.${name}.isDefined) {
         defaulted = config.defaulted;
         optional = config.optional;
         or-null = config.or-null;

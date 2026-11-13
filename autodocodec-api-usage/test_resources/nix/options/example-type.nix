@@ -4,13 +4,13 @@ definedSubmodule (lib.types.submodule ({ config, options, ... }:
 {
   options = {
     __defined = lib.mkOption {
-      default = (lib.mergeAttrs {
+      default = lib.mergeAttrs {
         bool = if options.bool.isDefined then config.bool else throw "The option `${lib.showOption options.bool.loc}' is required but was not defined.";
         fruit = if options.fruit.isDefined then config.fruit else throw "The option `${lib.showOption options.fruit.loc}' is required but was not defined.";
         maybe = if options.maybe.isDefined then config.maybe else throw "The option `${lib.showOption options.maybe.loc}' is required but was not defined.";
         shape = if options.shape.isDefined then config.shape else throw "The option `${lib.showOption options.shape.loc}' is required but was not defined.";
         text = if options.text.isDefined then config.text else throw "The option `${lib.showOption options.text.loc}' is required but was not defined.";
-      }) ((lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      } (lib.filterAttrs (name: _: options.${name}.isDefined) {
         optional = config.optional;
         optional-or-null = config.optional-or-null;
         optional-with-default = config.optional-with-default;

@@ -12,7 +12,7 @@ lib.types.nullOr (definedSubmodule (lib.types.submodule ({ config, options, ... 
       type = lib.types.str;
     };
     __defined = lib.mkOption {
-      default = (lib.filterAttrs (name: _: options.${name}.isDefined)) {
+      default = lib.filterAttrs (name: _: options.${name}.isDefined) {
         Left = config.Left;
         Right = config.Right;
       };
