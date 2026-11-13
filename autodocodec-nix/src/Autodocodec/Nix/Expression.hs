@@ -39,8 +39,17 @@ data Expression
   | ExprVar !Text
   | ExprAttrSet !(Map Text Expression)
   | ExprAp !Expression !Expression
-  | ExprFun ![Text] !Expression
+  | -- | A function with a set pattern: @{ a, b }: e@
+    ExprFun ![Text] !Expression
   | ExprWith !Text !Expression
+  | -- | A function with a single argument: @a: e@
+    ExprLam !Text !Expression
+  | ExprLet !(Map Text Expression) !Expression
+  | ExprIf !Expression !Expression !Expression
+  | -- | @e1 // e2@
+    ExprUpdate !Expression !Expression
+  | -- | @e.key@
+    ExprSelect !Expression !Text
   deriving (Show, Eq, Ord)
 
 -- {-# DEPRECATED renderExpr "Use renderExpression instead" #-}
@@ -51,6 +60,12 @@ renderExpression :: Expr -> Text
 renderExpression = T.unlines . go 0
   where
     parensWhen b ts = if b then parens ts else ts
+    -- The precedence of the context, from low to high: anything (0), an
+    -- operand of '//' (5 and 6), a function that is applied (10), an
+    -- argument or list element (11), and something an attribute is selected
+    -- from (12).
+    -- A function, let, if, or with extends as far to the right as it can, so
+    -- it needs parentheses anywhere but where an expression ends.
     go :: Int -> Expr -> [Text]
     go d = \case
       ExprNull -> ["null"]
@@ -77,14 +92,45 @@ renderExpression = T.unlines . go 0
         "{" : indent (concatMap (uncurry goBind) (M.toList m)) ++ ["}"]
       ExprAp e1 e2 ->
         parensWhen (d > 10) $
-          go 11 e1 `apply` go 11 e2
+          go 10 e1 `apply` go 11 e2
       ExprFun args e ->
-        parensWhen (d > 10) $
+        parensWhen (d > 0) $
           surroundWith " " "{" "}:" [T.intercalate ", " args]
             ++ go 0 e
       ExprWith t e ->
-        parensWhen (d > 10) $
+        parensWhen (d > 0) $
           ("with " <> t <> ";") : go 0 e
+      ExprLam arg e ->
+        parensWhen (d > 0) $
+          prependWith " " (arg <> ":") (go 0 e)
+      ExprLet binds e
+        | null binds -> go d e
+        | otherwise ->
+            parensWhen (d > 0) $
+              concat
+                [ ["let"],
+                  indent (concatMap (uncurry goBind) (M.toList binds)),
+                  ["in"],
+                  go 0 e
+                ]
+      ExprIf c t e ->
+        parensWhen (d > 0) $
+          let cs = go 1 c
+              ts = go 1 t
+              es = go 0 e
+           in case (cs, ts, es) of
+                ([c'], [t'], [e']) -> [T.unwords ["if", c', "then", t', "else", e']]
+                _ ->
+                  concat
+                    [ prependWith " " "if" cs,
+                      prependWith " " "then" ts,
+                      prependWith " " "else" es
+                    ]
+      ExprUpdate e1 e2 ->
+        parensWhen (d > 5) $
+          joinWith " // " (go 6 e1) (go 5 e2)
+      ExprSelect e key ->
+        go 12 e `append` T.cons '.' (nixAttrKey key)
     goBind key e =
       prependWith " " (nixAttrKey key <> " =") $
         (`append` ";") $
@@ -140,11 +186,17 @@ appendWith spacer ts u = go ts
       [t] -> [t <> spacer <> u]
       (t : ts') -> t : go ts'
 
+-- | Join the last line of the first with the first line of the second.
+joinWith :: Text -> [Text] -> [Text] -> [Text]
+joinWith spacer ts1 = \case
+  [] -> ts1
+  (t2 : ts2) -> appendWith spacer ts1 t2 ++ ts2
+
 apply :: [Text] -> [Text] -> [Text]
 apply ts1 ts2 = case (ts1, ts2) of
   ([t1], [t2]) -> [t1 <> " " <> t2]
   ([t1], _) -> prependWith " " t1 ts2
-  (_, [t2]) -> ts1 `append` t2
+  (_, [t2]) -> appendWith " " ts1 t2
   _ -> go ts1
     where
       go = \case

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0.0] - 2026-11-14
+
+### Added
+
+* `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect` constructors
+  of `Expression`, for a function with a single argument, `let`, `if`, `//`
+  and selecting an attribute.
+
+### Changed
+
+* A function, `with`, `let` or `if` is put in parentheses wherever it is not
+  the last part of an expression, and an application of an application is no
+  longer put in parentheses.
+
+### Fixed
+
+* A function that takes up more than one line is separated from the argument
+  it is applied to by a space.
+
 ## [0.1.1.1] - 2026-11-14
 
 ### Fixed
