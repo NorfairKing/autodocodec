@@ -1,11 +1,13 @@
-CommentCodec
-  "UTCTime"
-  (BimapCodec
-     _
-     _
-     (StringCodec
-        Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+ExtraDocsCodec
+  (ExtraFormat "yyyy-mm-ddThh:MM:ssZ")
+  (ExtraDocsCodec
+     (ExtraExample (String "2016-07-22T00:00:00Z"))
+     (BimapCodec
+        _
+        _
+        (StringCodec
+           (Just "UTCTime")
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

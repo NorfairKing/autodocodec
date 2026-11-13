@@ -1,11 +1,13 @@
-CommentCodec
-  "LocalTime"
-  (BimapCodec
-     _
-     _
-     (StringCodec
-        Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+ExtraDocsCodec
+  (ExtraFormat "yyyy-mm-ddThh:MM:ss")
+  (ExtraDocsCodec
+     (ExtraExample (String "2016-07-22T07:40:00"))
+     (BimapCodec
+        _
+        _
+        (StringCodec
+           (Just "LocalTime")
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

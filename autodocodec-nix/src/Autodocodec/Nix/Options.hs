@@ -97,7 +97,7 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       EqCodec v c -> Just $ OptionTypeEnum [toNixExpressionVia c v]
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
-      CommentCodec _ c -> go c
+      ExtraDocsCodec _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
 -- [tag:NixOptionNullable]
@@ -221,7 +221,9 @@ optionDescriptionFor mDesc c =
 -- option.
 valueCodecComments :: ValueCodec input output -> [Text]
 valueCodecComments = \case
-  CommentCodec comment c -> comment : valueCodecComments c
+  ExtraDocsCodec (ExtraDescription comment) c -> comment : valueCodecComments c
+  -- Nix options have no place for the other kinds of docs.
+  ExtraDocsCodec _ c -> valueCodecComments c
   BimapCodec _ _ c -> valueCodecComments c
   EitherCodec _ NullCodec c -> valueCodecComments c
   EitherCodec _ c NullCodec -> valueCodecComments c

@@ -47,7 +47,7 @@ toYamlVia = flip go
       EitherCodec _ c1 c2 -> case (coerce a :: Either _ _) of
         Left a1 -> go a1 c1
         Right a2 -> go a2 c2
-      CommentCodec _ c -> go a c
+      ExtraDocsCodec _ c -> go a c
       ReferenceCodec _ c -> go a c
 
     goObject :: a -> ObjectCodec a void -> [(Text, YamlBuilder)]

@@ -1,4 +1,9 @@
+-- Needed to bundle the 'CommentCodec' pattern synonym with 'Codec' in the
+-- export list, which hlint doesn't see.
+{-# LANGUAGE PatternSynonyms #-}
 {-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
+
+{- HLINT ignore "Unused LANGUAGE pragma" -}
 
 module Autodocodec
   ( -- * Encoding and decoding JSON
@@ -145,9 +150,15 @@ module Autodocodec
     -- *** Adding documentation to a codec
     (<?>),
     (<??>),
+    withTitle,
+    withFormat,
+    withExample,
+    withMultipleOf,
+    withMinItems,
+    ExtraDocs (..),
 
     -- * Bare codec
-    Codec (..),
+    Codec (.., CommentCodec),
     ValueCodec,
     ObjectCodec,
     pureCodec,

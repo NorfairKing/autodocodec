@@ -1,7 +1,8 @@
 {
     "definitions": {
         "TimeOfDay": {
-            "description": "TimeOfDay",
+            "example": "12:33:15",
+            "format": "hh:MM:ss",
             "type": "string"
         }
     },

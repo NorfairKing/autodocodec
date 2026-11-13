@@ -8,6 +8,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RoleAnnotations #-}
@@ -220,12 +221,19 @@ data Codec context input output where
     -- The 'Text' field is the name to use for the object schema.
     HashMap Discriminator (Text, ObjectCodec Void output) ->
     ObjectCodec input output
-  -- | A comment codec
+  -- | A documentation codec
   --
-  -- This is used to add implementation-irrelevant but human-relevant information.
-  CommentCodec ::
-    -- | Comment
-    Text ->
+  -- This is used to add implementation-irrelevant but human-relevant
+  -- information, like a description or a @format@, to a codec.
+  -- It only affects documentation: nothing in it is checked during decoding.
+  --
+  -- Each one holds a single 'ExtraDocs'.
+  -- To add more than one, nest them.
+  -- See 'ExtraDocs' for how nested docs combine.
+  --
+  -- The 'CommentCodec' pattern synonym covers the common case of a description.
+  ExtraDocsCodec ::
+    ExtraDocs ->
     ValueCodec input output ->
     ValueCodec input output
   -- | A reference codec
@@ -322,6 +330,41 @@ checkStringBounds StringBounds {..} s =
     _ -> case stringBoundsMaxLength of
       Just hi | T.length s > fromIntegral hi -> Left $ unwords ["String", show s, "is longer than the upper bound", show hi]
       _ -> Right s
+
+-- | One piece of documentation for a codec, held by an 'ExtraDocsCodec'.
+--
+-- These are documentation only: they are not checked during decoding.
+-- Interpreters that have no place for a kind of doc ignore it.
+--
+-- When docs are nested, "inner" is the one closest to the value codec and
+-- "outer" is one applied around it, for example at a use site.
+-- Nested docs of the same kind combine like this:
+--
+-- * 'ExtraDescription': both are kept, the outer one first, separated by a newline.
+-- * 'ExtraTitle', 'ExtraFormat', 'ExtraExample' and 'ExtraMultipleOf': the outer one wins,
+--   because it describes the more specific use.
+-- * 'ExtraMinItems': the larger one wins, because both constraints apply to the same array.
+data ExtraDocs
+  = -- | A human-readable description
+    ExtraDescription !Text
+  | -- | A short title for the schema
+    ExtraTitle !Text
+  | -- | A format for the value, like @date@ or @int32@
+    ExtraFormat !Text
+  | -- | An example value
+    ExtraExample !JSON.Value
+  | -- | Numbers must be a multiple of this value
+    ExtraMultipleOf !Scientific
+  | -- | Arrays must have at least this many items
+    ExtraMinItems !Natural
+  deriving (Show)
+
+-- | A codec with a description.
+--
+-- This is the 'ExtraDocsCodec' for an 'ExtraDescription'.
+-- Matching on it only matches descriptions, not any other 'ExtraDocs'.
+pattern CommentCodec :: Text -> ValueCodec input output -> ValueCodec input output
+pattern CommentCodec comment c = ExtraDocsCodec (ExtraDescription comment) c
 
 data Bounds a = Bounds
   { -- | Lower bound, inclusive
@@ -452,7 +495,12 @@ showCodecABit = ($ "") . (`evalState` S.empty) . go 0
         cs <- traverse (\(n, (_, c)) -> (\s -> showParen True $ shows n . showString ", " . s) <$> go 11 c) $ HashMap.toList mapping
         let csList = showString "[" . foldr (.) id (intersperse (showString ", ") cs) . showString "]"
         pure $ showParen (d > 10) $ showString "DiscriminatedUnionCodec " . showsPrec 11 propertyName . showString " _ " . csList
-      CommentCodec comment c -> (\s -> showParen (d > 10) $ showString "CommentCodec " . showsPrec 11 comment . showString " " . s) <$> go 11 c
+      ExtraDocsCodec docs c ->
+        let shownDocs = case docs of
+              -- Shown as the pattern synonym that most codecs are written with.
+              ExtraDescription comment -> showString "CommentCodec " . showsPrec 11 comment
+              _ -> showString "ExtraDocsCodec " . showsPrec 11 docs
+         in (\s -> showParen (d > 10) $ shownDocs . showString " " . s) <$> go 11 c
       ReferenceCodec name c -> do
         alreadySeen <- gets (S.member name)
         if alreadySeen
@@ -930,7 +978,7 @@ optionalKeyWithDefaultCodec = OptionalKeyWithDefaultCodec
 --
 -- This is the non-empty list version of 'vectorCodec'.
 nonEmptyCodec :: ValueCodec input output -> ValueCodec (NonEmpty input) (NonEmpty output)
-nonEmptyCodec = bimapCodec parseNonEmptyList NE.toList . listCodec
+nonEmptyCodec = withMinItems 1 . bimapCodec parseNonEmptyList NE.toList . listCodec
   where
     parseNonEmptyList l = case NE.nonEmpty l of
       Nothing -> Left "Expected a nonempty list, but got an empty list."
@@ -1247,6 +1295,52 @@ optionalFieldOrNullWith' key c = orNullHelper $ OptionalKeyCodec key (maybeCodec
   [Text] ->
   ValueCodec input output
 (<??>) c ls = CommentCodec (T.unlines ls) c
+
+-- | Add a title to the schema of a codec
+--
+-- This is documentation only.
+-- An outer title replaces an inner one.
+--
+-- > withTitle t = ExtraDocsCodec (ExtraTitle t)
+withTitle :: Text -> ValueCodec input output -> ValueCodec input output
+withTitle t = ExtraDocsCodec (ExtraTitle t)
+
+-- | Add a format, like @date@ or @int32@, to the schema of a codec
+--
+-- This is documentation only: the format is not checked during decoding.
+-- An outer format replaces an inner one.
+--
+-- > withFormat f = ExtraDocsCodec (ExtraFormat f)
+withFormat :: Text -> ValueCodec input output -> ValueCodec input output
+withFormat f = ExtraDocsCodec (ExtraFormat f)
+
+-- | Add an example value to the schema of a codec
+--
+-- This is documentation only.
+-- An outer example replaces an inner one.
+--
+-- > withExample e = ExtraDocsCodec (ExtraExample e)
+withExample :: JSON.Value -> ValueCodec input output -> ValueCodec input output
+withExample e = ExtraDocsCodec (ExtraExample e)
+
+-- | Document that numbers must be a multiple of the given value
+--
+-- This is documentation only: it is not checked during decoding.
+-- An outer value replaces an inner one.
+--
+-- > withMultipleOf m = ExtraDocsCodec (ExtraMultipleOf m)
+withMultipleOf :: Scientific -> ValueCodec input output -> ValueCodec input output
+withMultipleOf m = ExtraDocsCodec (ExtraMultipleOf m)
+
+-- | Document that arrays must have at least the given number of items
+--
+-- This is documentation only: it is not checked during decoding.
+-- Nested minimums combine to the larger one, so the documentation never claims
+-- less than an inner codec, like 'nonEmptyCodec', enforces.
+--
+-- > withMinItems n = ExtraDocsCodec (ExtraMinItems n)
+withMinItems :: Natural -> ValueCodec input output -> ValueCodec input output
+withMinItems n = ExtraDocsCodec (ExtraMinItems n)
 
 -- | Encode a 'HashMap', and decode any 'HashMap'.
 --
@@ -2105,7 +2199,21 @@ unsafeCodecViaAesonString ::
   -- | Name
   Text ->
   JSONCodec a
-unsafeCodecViaAesonString doc = bimapCodec (JSON.parseEither JSON.parseJSON . JSON.String) (unsafeAesonValueToString . JSON.toJSON) textCodec <?> doc
+unsafeCodecViaAesonString doc = unsafeCodecViaAesonStringWith textCodec <?> doc
+
+-- | Like 'unsafeCodecViaAesonString', but gives the string codec a name instead of a comment.
+--
+-- Schema generators use the name to name the schema, for example to make an OpenAPI @$ref@.
+-- This is just as unsafe as 'unsafeCodecViaAesonString'.
+unsafeNamedCodecViaAesonString ::
+  (FromJSON a, ToJSON a) =>
+  -- | Name
+  Text ->
+  JSONCodec a
+unsafeNamedCodecViaAesonString name = unsafeCodecViaAesonStringWith (StringCodec (Just name) emptyStringBounds)
+
+unsafeCodecViaAesonStringWith :: (FromJSON a, ToJSON a) => JSONCodec Text -> JSONCodec a
+unsafeCodecViaAesonStringWith = bimapCodec (JSON.parseEither JSON.parseJSON . JSON.String) (unsafeAesonValueToString . JSON.toJSON)
   where
     unsafeAesonValueToString v = case v of
       JSON.String s -> s

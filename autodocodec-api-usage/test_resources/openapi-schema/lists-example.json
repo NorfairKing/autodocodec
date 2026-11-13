@@ -8,6 +8,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "minItems": 1,
                         "type": "array"
                     },
                     "possibly-empty-with-default": {
@@ -35,6 +36,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "minItems": 1,
                         "type": "array"
                     }
                 },

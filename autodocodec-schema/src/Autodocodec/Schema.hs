@@ -323,7 +323,9 @@ goValue = \case
       DisjointUnion -> OneOfSchema (goOneOf (s1 :| [s2]))
       PossiblyJointUnion -> AnyOfSchema (goAnyOf (s1 :| [s2]))
   BimapCodec _ _ c -> goValue c
-  CommentCodec t c -> CommentSchema t <$> goValue c
+  ExtraDocsCodec (ExtraDescription t) c -> CommentSchema t <$> goValue c
+  -- The JSON schema doesn't document the other kinds of docs.
+  ExtraDocsCodec _ c -> goValue c
   ReferenceCodec name c -> do
     alreadySeen <- gets (S.member name)
     if alreadySeen

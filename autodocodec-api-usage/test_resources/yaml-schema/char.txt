@@ -1,1 +1,1 @@
-[33m<string>[m
+[33m<string>[m # [32mbetween 1 and 1 characters[m

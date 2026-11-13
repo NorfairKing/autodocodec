@@ -2,6 +2,7 @@
     "components": {
         "schemas": {
             "Word32": {
+                "format": "int32",
                 "maximum": 4294967295,
                 "minimum": 0,
                 "type": "integer"
