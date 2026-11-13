@@ -142,6 +142,8 @@ extra-source-files:
     test_resources/nix/expression/char-value.nix
     test_resources/nix/expression/either-bool-text-value.nix
     test_resources/nix/expression/either-either-bool-scientific-text-value.nix
+    test_resources/nix/expression/expressions.json
+    test_resources/nix/expression/expressions.nix
     test_resources/nix/expression/int-value.nix
     test_resources/nix/expression/int16-value.nix
     test_resources/nix/expression/int32-value.nix

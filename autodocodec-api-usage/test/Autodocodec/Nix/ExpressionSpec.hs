@@ -35,8 +35,16 @@ spec = do
       renderExpression (ExprAttrSet (M.singleton "${foo}" ExprNull))
         `shouldBe` "{\n  \"\\${foo}\" = null;\n}\n"
 
-    -- The flake's string-escaping-check asserts that Nix reads this file as
-    -- the strings in the JSON file next to it.
+    it "puts a negative number in a list in parentheses" $
+      renderExpression (ExprLitList [ExprLitNumber (-1)])
+        `shouldBe` "[(-1)]\n"
+
+    it "puts an application in a list of one element in parentheses" $
+      renderExpression (ExprLitList [ExprAp (ExprVar "f") (ExprVar "x")])
+        `shouldBe` "[(f x)]\n"
+
+    -- The flake's expression-check asserts that Nix reads each of these files
+    -- as the value in the JSON file next to it.
     it "renders strings as before" $
       pureGoldenTextFile
         "test_resources/nix/expression/strings.nix"
@@ -47,6 +55,16 @@ spec = do
         "test_resources/nix/expression/strings.json"
         (JSON.toJSON strings)
 
+    it "renders expressions as before" $
+      pureGoldenTextFile
+        "test_resources/nix/expression/expressions.nix"
+        (renderExpression (ExprLitList (map fst expressions)))
+
+    it "renders the values of the expressions as JSON as before" $
+      pureGoldenJSONValueFile
+        "test_resources/nix/expression/expressions.json"
+        (JSON.toJSON (map snd expressions))
+
   describe "renderExpr" $
     it "renders what renderExpression renders" $
       let expression =
@@ -54,6 +72,19 @@ spec = do
               ["lib"]
               (ExprAp (ExprVar "lib.types.listOf") (ExprLitList [ExprLitNumber 1, ExprLitBool True]))
        in renderExpr expression `shouldBe` renderExpression expression
+
+-- | Expressions that need parentheses where they are, and the value that Nix
+-- should read each of them as.
+expressions :: [(Expression, JSON.Value)]
+expressions =
+  [ (ExprLitNumber (-1), JSON.toJSON (-1 :: Int)),
+    (ExprLitList [ExprLitNumber (-1)], JSON.toJSON [-1 :: Int]),
+    (ExprLitList [ExprLitNumber (-1), ExprLitNumber 2], JSON.toJSON [-1, 2 :: Int]),
+    (ExprAp (ExprVar "builtins.toString") (ExprLitNumber (-1)), JSON.toJSON ("-1" :: Text)),
+    (ExprLitList [ExprAp (ExprVar "builtins.toString") (ExprLitNumber 1)], JSON.toJSON ["1" :: Text]),
+    (ExprWith "builtins" (ExprAp (ExprVar "toString") (ExprLitNumber 1)), JSON.toJSON ("1" :: Text)),
+    (ExprAp (ExprFun ["a"] (ExprVar "a")) (ExprAttrSet (M.singleton "a" (ExprLitNumber 1))), JSON.toJSON (1 :: Int))
+  ]
 
 strings :: [Text]
 strings =

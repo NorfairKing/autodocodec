@@ -79,7 +79,7 @@
         in
         backwardCompatibilityChecks // {
           release = haskellPackages.autodocodecRelease;
-          string-escaping-check = pkgs.callPackage ./nix/string-escaping-check.nix { };
+          expression-check = pkgs.callPackage ./nix/expression-check.nix { };
           weeder-check = pkgs.weeder-nix.makeWeederCheck {
             weederToml = ./weeder.toml;
             inherit haskellPackages;
