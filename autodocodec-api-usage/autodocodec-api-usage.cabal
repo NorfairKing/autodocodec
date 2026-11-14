@@ -219,6 +219,7 @@ extra-source-files:
     test_resources/nix/options/ordering-type.nix
     test_resources/nix/options/overlap-type.nix
     test_resources/nix/options/recursive-type.nix
+    test_resources/nix/options/reserved-key-type.nix
     test_resources/nix/options/scientific-type.nix
     test_resources/nix/options/semigroup-first-type.nix
     test_resources/nix/options/semigroup-last-type.nix

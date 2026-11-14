@@ -24,6 +24,15 @@
   module system would merge a value for a later one with the first.
 * A submodule option no longer gets a default of `{ }`, because the codec has
   no such default.
+* A generated submodule is built by a `definedSubmodule` function that the
+  generated expression binds once, from its required keys and its option
+  declarations, instead of repeating that Nix for every submodule.
+* A generated submodule uses an internal option named `__defined`, so a codec
+  with a key of that name cannot be rendered: evaluating its type throws.
+* The option that a generated submodule is the type of cannot be declared
+  again, with any type: evaluation fails with "already declared".
+  The module system would otherwise merge the declarations into a plain
+  submodule, whose value is not what was defined.
 * A function, `with`, `let` or `if` is put in parentheses wherever it is not
   the last part of an expression, and an application of an application is no
   longer put in parentheses.
@@ -47,7 +56,6 @@
 * `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect` constructors
   of `Expression`, for a function with a single argument, `let`, `if`, `//`
   and selecting an attribute.
-* `nixAttrKey` in `Autodocodec.Nix.Expression`.
 * `optionRequirement` in `Option`, which says whether an option has to be
   defined.
 

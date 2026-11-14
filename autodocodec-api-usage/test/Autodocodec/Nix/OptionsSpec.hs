@@ -184,6 +184,16 @@ spec = do
             "test_resources/nix/options/unsettable-type.nix"
             (renderNixOptionTypeVia unsettable)
 
+  describe "renderNixOptionTypeVia" $
+    -- The flake's unset-options-check asserts that this type fails to
+    -- evaluate.
+    it "outputs the same nix type as before for a key that the generated submodule uses itself" $
+      let reserved :: JSONCodec Text
+          reserved = object "Reserved" $ requiredField' "__defined" .= id
+       in pureGoldenTextFile
+            "test_resources/nix/options/reserved-key-type.nix"
+            (renderNixOptionTypeVia reserved)
+
   describe "simplifyOptionType" $ do
     it "collapses a nullOr of a nullOr" $
       simplifyOptionType (OptionTypeNullOr (OptionTypeNullOr (OptionTypeSimple "lib.types.str")))

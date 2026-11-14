@@ -10,7 +10,6 @@ module Autodocodec.Nix.Expression
     Expr,
     renderExpression,
     renderExpr,
-    nixAttrKey,
     jsonValueExpression,
     jsonObjectExpression,
   )

@@ -141,9 +141,35 @@ let
     "fails when an option that every alternative requires is not defined" = required // { either-object.b = "b"; };
     "fails when the discriminator of a discriminated union is not defined" = required // { these.text = "t"; };
   };
-  evaluates = definition: (builtins.tryEval (builtins.deepSeq (defined definition) null)).success;
+  evaluates = value: (builtins.tryEval (builtins.deepSeq value null)).success;
   failures = lib.filterAttrs (_: c: defined c.definition != c.expected) cases;
-  unexpectedSuccesses = builtins.attrNames (lib.filterAttrs (_: evaluates) failingCases);
+  # Another declaration of the option would make it a plain submodule, whose
+  # value is not what was defined, so the module system has to refuse to merge
+  # the declarations.
+  declaredAgain = modules:
+    (lib.evalModules {
+      modules = modules ++ [{ value = required; }];
+    }).options.value.type.name;
+  generatedDeclaration = { options.value = lib.mkOption { inherit type; }; };
+  plainDeclaration = {
+    options.value = lib.mkOption {
+      type = lib.types.submodule { options.extra = lib.mkOption { type = lib.types.str; default = "e"; }; };
+    };
+  };
+  unexpectedSuccesses = builtins.attrNames (lib.filterAttrs (_: evaluates) (
+    lib.mapAttrs (_: defined) failingCases // {
+      "fails when the option is declared again with a submodule after it" = declaredAgain [ generatedDeclaration plainDeclaration ];
+      "fails when the option is declared again with a submodule before it" = declaredAgain [ plainDeclaration generatedDeclaration ];
+      "fails when the option is declared again with the same type" = declaredAgain [ generatedDeclaration generatedDeclaration ];
+      "fails when a codec has a key that the generated submodule uses itself" =
+        (lib.evalModules {
+          modules = [
+            { options.value = lib.mkOption { type = import ../autodocodec-api-usage/test_resources/nix/options/reserved-key-type.nix { inherit lib; }; }; }
+            { value.__defined = "d"; }
+          ];
+        }).config.value;
+    }
+  ));
   # The documentation would otherwise give the empty value of the type of an
   # option without a default, like null for a nullOr, as its default.
   documentedDefaults =
