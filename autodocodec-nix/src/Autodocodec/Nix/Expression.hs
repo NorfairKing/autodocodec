@@ -55,15 +55,18 @@ renderExpression = T.unlines . go 0
     go d = \case
       ExprNull -> ["null"]
       ExprLitBool b -> [if b then "true" else "false"]
-      ExprLitString s -> [T.pack $ show $ T.unpack s]
+      ExprLitString s -> [nixString s]
       ExprLitNumber s ->
-        [ case floatingOrInteger s of
-            Left f -> T.pack $ show (f :: Double)
-            Right i -> T.pack $ show (i :: Integer)
-        ]
+        -- Nix reads a minus in a list or an argument as subtraction.
+        parensWhen
+          (d > 10 && s < 0)
+          [ case floatingOrInteger s of
+              Left f -> T.pack $ show (f :: Double)
+              Right i -> T.pack $ show (i :: Integer)
+          ]
       ExprLitList es -> case es of
         [] -> ["[]"]
-        [e] -> surround "[" "]" $ go 0 e
+        [e] -> surround "[" "]" $ go 11 e
         _ ->
           -- If there is more than one list element, put them on separate lines.
           "[" : indent (concatMap (go 11) es) ++ ["]"]
@@ -92,7 +95,23 @@ renderExpression = T.unlines . go 0
 nixAttrKey :: Text -> Text
 nixAttrKey key
   | isNixIdentifier key = key
-  | otherwise = T.pack $ show $ T.unpack key
+  | otherwise = nixString key
+
+-- | A Nix string literal that Nix reads as the given text.
+--
+-- Not Haskell's 'show', because Nix has no numeric escapes, so it reads
+-- @\"\\233\"@ as @\"233\"@, and because Nix interpolates @${@.
+nixString :: Text -> Text
+nixString s =
+  let escape :: Char -> Text
+      escape = \case
+        '"' -> "\\\""
+        '\\' -> "\\\\"
+        '\n' -> "\\n"
+        '\r' -> "\\r"
+        '\t' -> "\\t"
+        c -> T.singleton c
+   in T.concat ["\"", T.replace "${" "\\${" (T.concatMap escape s), "\""]
 
 isNixIdentifier :: Text -> Bool
 isNixIdentifier t = case T.uncons t of

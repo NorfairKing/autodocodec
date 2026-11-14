@@ -1,0 +1,16 @@
+[
+    "",
+    "plain",
+    "\"quoted\"",
+    "back\\slash",
+    "${interpolation}",
+    "\\${escaped interpolation}",
+    "$${double dollar}",
+    "dollar at the end $",
+    "dollar $ and brace {",
+    "new\nline",
+    "carriage\rreturn",
+    "tab\tulator",
+    "non-ASCII: é ü 漢字 🎉",
+    "control \u0001 character"
+]
