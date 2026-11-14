@@ -7,7 +7,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-26.05";
     nixpkgs-25_11.url = "github:NixOS/nixpkgs?ref=nixos-25.11";
-    horizon-advance.url = "git+https://gitlab.horizon-haskell.net/package-sets/horizon-advance";
+    # Only for its lib, from before the module system had a v2 merge.
+    nixpkgs-24_05.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
+    nixpkgs-24_05.flake = false;
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     weeder-nix.url = "github:NorfairKing/weeder-nix";
     weeder-nix.flake = false;
@@ -19,7 +21,7 @@
     fast-myers-diff.flake = false;
     sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
-    opt-env-conf.url = "github:NorfairKing/opt-env-conf";
+    opt-env-conf.url = "github:NorfairKing/opt-env-conf?ref=nix-unset-options";
     opt-env-conf.flake = false;
     release-to-hackage.url = "github:NorfairKing/release-to-hackage";
   };
@@ -28,7 +30,7 @@
     { self
     , nixpkgs
     , nixpkgs-25_11
-    , horizon-advance
+    , nixpkgs-24_05
     , pre-commit-hooks
     , weeder-nix
     , validity
@@ -48,16 +50,16 @@
         ];
       };
       pkgs = nixpkgsFor nixpkgs;
-      allOverrides = pkgs.lib.composeManyExtensions [
-        (pkgs.callPackage (fast-myers-diff + "/nix/overrides.nix") { })
-        (pkgs.callPackage (safe-coloured-text + "/nix/overrides.nix") { })
-        (pkgs.callPackage (sydtest + "/nix/overrides.nix") { })
-        (pkgs.callPackage (validity + "/nix/overrides.nix") { })
-        (pkgs.callPackage (opt-env-conf + "/nix/overrides.nix") { })
-        self.overrides.${system}
-      ];
-      horizonPkgs = horizon-advance.legacyPackages.${system}.extend allOverrides;
-      haskellPackagesFor = nixpkgs: (nixpkgsFor nixpkgs).haskellPackages.extend allOverrides;
+      haskellPackagesFor = nixpkgs: (nixpkgsFor nixpkgs).haskellPackages.extend (
+        pkgs.lib.composeManyExtensions [
+          (pkgs.callPackage (fast-myers-diff + "/nix/overrides.nix") { })
+          (pkgs.callPackage (safe-coloured-text + "/nix/overrides.nix") { })
+          (pkgs.callPackage (sydtest + "/nix/overrides.nix") { })
+          (pkgs.callPackage (validity + "/nix/overrides.nix") { })
+          (pkgs.callPackage (opt-env-conf + "/nix/overrides.nix") { })
+          self.overrides.${system}
+        ]
+      );
       haskellPackages = haskellPackagesFor nixpkgs;
     in
     {
@@ -80,8 +82,12 @@
           backwardCompatibilityChecks = pkgs.lib.mapAttrs (_: nixpkgs: backwardCompatibilityCheckFor nixpkgs) allNixpkgs;
         in
         backwardCompatibilityChecks // {
-          forwardCompatibility = horizonPkgs.autodocodecRelease;
           release = haskellPackages.autodocodecRelease;
+          expression-check = pkgs.callPackage ./nix/expression-check.nix { };
+          unset-options-check = pkgs.callPackage ./nix/unset-options-check.nix { };
+          unset-options-check-nixpkgs-24_05 = pkgs.callPackage ./nix/unset-options-check.nix {
+            lib = import "${nixpkgs-24_05}/lib";
+          };
           weeder-check = pkgs.weeder-nix.makeWeederCheck {
             weederToml = ./weeder.toml;
             inherit haskellPackages;

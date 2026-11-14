@@ -11,6 +11,7 @@ import Autodocodec.Usage as Usage
 import qualified Data.Aeson as JSON
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
+import Data.Functor (($>))
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity.DList ()
@@ -18,7 +19,6 @@ import Data.GenValidity.DNonEmpty ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
-import qualified Data.Map.Strict as M
 import qualified Data.Monoid as Monoid
 import Data.Scientific
 import Data.Semigroup (Dual)
@@ -79,26 +79,18 @@ spec = do
   nixOptionTypeSpec @Shape "shape"
   nixOptionTypeSpec @Example "example"
   nixOptionTypeSpec @Derived "derived"
-  nixOptionsSpec @Example "example"
   nixOptionTypeSpec @Recursive "recursive"
   nixOptionTypeSpec @ListsExample "lists-example"
-  nixOptionsSpec @ListsExample "lists-example"
   nixOptionTypeSpec @MutuallyRecursiveA "mutually-recursive"
   nixOptionTypeSpec @Via "via"
-  nixOptionsSpec @Via "via"
   nixOptionTypeSpec @VeryComment "very-comment"
   nixOptionTypeSpec @CommentedFields "commented-fields"
-  nixOptionsSpec @CommentedFields "commented-fields"
   nixOptionTypeSpec @LegacyValue "legacy-value"
-  nixOptionsSpec @LegacyValue "legacy-value"
   nixOptionTypeSpec @LegacyObject "legacy-object"
-  nixOptionsSpec @LegacyObject "legacy-object"
   nixOptionTypeSpec @Ainur "ainur"
   nixOptionTypeSpec @War "war"
   nixOptionTypeSpec @These "these"
-  nixOptionsSpec @These "these"
   nixOptionTypeSpec @Usage.Expression "expression"
-  nixOptionsSpec @Usage.Expression "expression"
   nixOptionTypeSpec @(Identity Text) "identity"
   nixOptionTypeSpec @(Dual Text) "dual"
   nixOptionTypeSpec @(Semigroup.First Text) "semigroup-first"
@@ -107,9 +99,100 @@ spec = do
   nixOptionTypeSpec @(Monoid.Last Text) "monoid-last"
   nixOptionTypeSpec @(Const Text Void) "const"
   nixOptionTypeSpec @Overlap "overlap"
-  nixOptionsSpec @Overlap "overlap"
   nixOptionTypeSpec @OptionalFields "optional-fields"
-  nixOptionsSpec @OptionalFields "optional-fields"
+
+  describe "renderNixOptionTypeVia" $
+    -- The flake's unset-options-check evaluates this file, so it holds every
+    -- kind of field whose being left out matters.
+    it "outputs the same nix type as before for every kind of field" $
+      let nested :: JSONCodec ()
+          nested =
+            object "Nested" $
+              optionalField' @Text "one" .= const Nothing
+                *> optionalField' @Text "two" .= const Nothing
+                $> ()
+          nestedRequired :: JSONCodec ()
+          nestedRequired =
+            object "NestedRequired" $
+              requiredField' @Text "one" .= const ""
+                *> optionalField' @Text "two" .= const Nothing
+                $> ()
+          -- Both alternatives have a mode, but only one has a default for it.
+          -- Only one alternative has only-a, with a default.
+          -- Both alternatives require one key, and each requires one that the
+          -- other does not have.
+          eitherObject :: JSONCodec ()
+          eitherObject =
+            object "EitherObject" $
+              dimapCodec (const ()) (const (Left ())) $
+                eitherCodec
+                  ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
+                      *> optionalFieldWithDefault' @Text "only-a" "x" .= const "x"
+                      *> requiredField' @Text "both" .= const ""
+                      *> requiredField' @Text "a" .= const ""
+                      $> ()
+                  )
+                  ( optionalField' @Int "mode" .= const Nothing
+                      *> requiredField' @Text "both" .= const ""
+                      *> requiredField' @Text "b" .= const ""
+                      $> ()
+                  )
+          -- Two objects, the keys of the second a subset of those of the
+          -- first, so a value of the second is an attribute set that the
+          -- first would also take.
+          eitherObjects :: JSONCodec ()
+          eitherObjects =
+            dimapCodec (const ()) (const (Left ())) $
+              eitherCodec
+                ( object "EitherObjectsA" $
+                    requiredField' @Text "a" .= const ""
+                      *> optionalField' @Text "b" .= const Nothing
+                      $> ()
+                )
+                ( object "EitherObjectsB" $
+                    requiredField' @Text "b" .= const ""
+                      $> ()
+                )
+          unsettable :: JSONCodec ()
+          unsettable =
+            object "Unsettable" $
+              requiredField' @Text "required" .= const ""
+                *> requiredField' @(Maybe Text) "nullable" .= const Nothing
+                *> optionalField' @Text "optional" .= const Nothing
+                *> optionalFieldOrNull' @Text "optional-or-null" .= const Nothing
+                *> optionalFieldWithDefault' @Text "with-default" "default" .= const "default"
+                *> optionalFieldWithDefault' @(Maybe Text) "null-default" Nothing .= const Nothing
+                *> optionalFieldWith' "nested" nested .= const Nothing
+                *> optionalFieldOrNullWith' "nested-or-null" nested .= const Nothing
+                *> optionalFieldWith' "nested-required" nestedRequired .= const Nothing
+                *> optionalFieldWith' "list" (listCodec nested) .= const Nothing
+                *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
+                *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
+                *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "strings-or-list" (eitherCodec (listCodec (codec @Text)) (listCodec nested)) .= const Nothing
+                *> optionalFieldWith' "either-object" eitherObject .= const Nothing
+                *> optionalFieldWith' "either-objects" eitherObjects .= const Nothing
+                *> optionalField' @These "these" .= const Nothing
+                *> optionalFieldWith' "list-of-nullable" (listCodec (maybeCodec nested)) .= const Nothing
+                *> optionalFieldWith' "list-of-lists" (listCodec (listCodec nested)) .= const Nothing
+                *> optionalField' @Text "1st" .= const Nothing
+                *> optionalField' @Recursive "recursive" .= const Nothing
+                *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing
+                $> ()
+       in pureGoldenTextFile
+            "test_resources/nix/options/unsettable-type.nix"
+            (renderNixOptionTypeVia unsettable)
+
+  describe "renderNixOptionTypeVia" $
+    -- The flake's unset-options-check asserts that this type fails to
+    -- evaluate.
+    it "outputs the same nix type as before for a key that the generated submodule uses itself" $
+      let reserved :: JSONCodec Text
+          reserved = object "Reserved" $ requiredField' "__defined" .= id
+       in pureGoldenTextFile
+            "test_resources/nix/options/reserved-key-type.nix"
+            (renderNixOptionTypeVia reserved)
 
   describe "simplifyOptionType" $ do
     it "collapses a nullOr of a nullOr" $
@@ -138,25 +221,9 @@ spec = do
     it "builds what optionExpression builds" $
       optionExpr emptyOption `shouldBe` optionExpression emptyOption
 
-  describe "optionsExpr" $
-    it "builds what optionsExpression builds" $
-      let options = M.singleton "foo" emptyOption
-       in optionsExpr options `shouldBe` optionsExpression options
-
   describe "optionTypeExpr" $
     it "builds what optionTypeExpression builds" $
       optionTypeExpr OptionTypeNull `shouldBe` optionTypeExpression OptionTypeNull
-
-nixOptionsSpec ::
-  forall a.
-  (HasObjectCodec a) =>
-  FilePath ->
-  Spec
-nixOptionsSpec filePath =
-  it "outputs the same nix type as before" $
-    pureGoldenTextFile
-      ("test_resources/nix/options/" <> filePath <> "-options.nix")
-      (renderNixOptionsViaCodec @a)
 
 nixOptionTypeSpec ::
   forall a.

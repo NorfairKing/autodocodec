@@ -10,12 +10,11 @@
 module Autodocodec.Nix.Options
   ( -- * Producing a Nixos module type
     renderNixOptionTypeViaCodec,
-    renderNixOptionsViaCodec,
     renderNixOptionTypeVia,
-    renderNixOptionsVia,
     valueCodecNixOptionType,
     objectCodecNixOptions,
     Option (..),
+    OptionRequirement (..),
     emptyOption,
     simplifyOption,
     OptionType (..),
@@ -25,8 +24,6 @@ module Autodocodec.Nix.Options
     withNixArgs,
     optionExpression,
     optionExpr,
-    optionsExpression,
-    optionsExpr,
     optionTypeExpression,
     optionTypeExpr,
     renderExpression,
@@ -36,10 +33,10 @@ where
 import Autodocodec
 import Autodocodec.Nix.Expression
 import Autodocodec.Nix.Render
-import Control.Applicative
 import Data.Aeson as JSON
 import Data.Containers.ListUtils
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Merge.Strict as Merge
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Maybe
@@ -49,19 +46,11 @@ import qualified Data.Text as T
 renderNixOptionTypeViaCodec :: forall a. (HasCodec a) => Text
 renderNixOptionTypeViaCodec = renderNixOptionTypeVia (codec @a)
 
-renderNixOptionsViaCodec :: forall a. (HasObjectCodec a) => Text
-renderNixOptionsViaCodec = renderNixOptionsVia (objectCodec @a)
-
 renderNixOptionTypeVia :: ValueCodec input output -> Text
 renderNixOptionTypeVia =
   renderOptionType
     . fromMaybe (OptionTypeSimple "lib.types.anything")
     . valueCodecNixOptionType
-
-renderNixOptionsVia :: ObjectCodec input output -> Text
-renderNixOptionsVia =
-  renderOptions
-    . objectCodecNixOptions
 
 valueCodecNixOptionType :: ValueCodec input output -> Maybe OptionType
 valueCodecNixOptionType = fmap simplifyOptionType . go
@@ -93,103 +82,139 @@ valueCodecNixOptionType = fmap simplifyOptionType . go
       MapCodec c -> Just $ OptionTypeAttrsOf $ mTyp $ go c
       ValueCodec -> Just (OptionTypeSimple "lib.types.unspecified")
       ArrayOfCodec _ c -> Just $ OptionTypeListOf $ mTyp $ go c
-      ObjectOfCodec _ oc -> Just (OptionTypeSubmodule (objectCodecNixOptions oc))
+      ObjectOfCodec _ oc -> Just $ OptionTypeSubmodule $ objectCodecNixOptions oc
       EqCodec v c -> Just $ OptionTypeEnum [toNixExpressionVia c v]
       BimapCodec _ _ c -> go c
       EitherCodec _ c1 c2 -> Just $ OptionTypeOneOf (map mTyp [go c1, go c2])
       CommentCodec _ c -> go c
       ReferenceCodec {} -> Nothing -- TODO: let-binding?
 
--- [tag:NixOptionNullable]
--- Note about nullable options:
--- It's not technically accurate to represent optional fields as the 'null' value in Nix,
--- but Nix isn't very good at optional values at all, so we use 'null' for both
--- optional fields and nullable fields.
--- If Nix options ever figure out how to do optional fields, we'll use that
--- instead.
+-- | A key that may be left out gets an option without a default, so that
+-- leaving it out and setting it to 'null' can be told apart.
+-- The value of a generated submodule is what was defined in it, and nothing
+-- that was not.
+-- Reading it throws when a required option was not defined.
+--
+-- A generated submodule uses an internal option named @__defined@, so a codec
+-- with a key of that name cannot be rendered: evaluating its type throws.
+-- The option that a generated submodule is the type of cannot be declared
+-- again, because the module system would merge the declarations into a plain
+-- submodule, whose value is not what was defined.
 objectCodecNixOptions :: ObjectCodec input output -> Map Text Option
-objectCodecNixOptions = simplifyOptions . go False
-  where
-    -- The bool means 'force optional'
-    go :: Bool -> ObjectCodec input output -> Map Text Option
-    go b = \case
-      DiscriminatedUnionCodec k _ m ->
-        M.insert
-          k
-          ( Option
-              { optionType = Just $ OptionTypeOneOf $ map (OptionTypeSimple . T.pack . show) $ HM.keys m,
-                optionDescription = Nothing,
-                optionDefault = Nothing
+objectCodecNixOptions =
+  let undefaultedOption :: OptionRequirement -> ValueCodec input output -> Maybe Text -> Option
+      undefaultedOption requirement c mDesc =
+        Option
+          { optionType = valueCodecNixOptionType c,
+            optionDescription = optionDescriptionFor mDesc c,
+            optionDefault = Nothing,
+            optionRequirement = requirement
+          }
+      requiredByEither :: OptionRequirement -> OptionRequirement -> OptionRequirement
+      requiredByEither r1 r2 = case r1 of
+        OptionRequired -> OptionRequired
+        OptionOptional -> r2
+      go :: ObjectCodec input output -> Map Text Option
+      go = \case
+        DiscriminatedUnionCodec k _ m ->
+          M.insert
+            k
+            ( Option
+                { optionType = Just $ OptionTypeEnum $ map ExprLitString $ HM.keys m,
+                  optionDescription = Nothing,
+                  optionDefault = Nothing,
+                  optionRequirement = OptionRequired
+                }
+            )
+            $ case map (go . snd) $ HM.elems m of
+              [] -> M.empty
+              alternative : alternatives -> foldr mergeAlternatives alternative alternatives
+        RequiredKeyCodec key o mDesc -> M.singleton key $ undefaultedOption OptionRequired o mDesc
+        OptionalKeyCodec key o mDesc -> M.singleton key $ undefaultedOption OptionOptional o mDesc
+        OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
+          M.singleton
+            key
+            Option
+              { optionType = valueCodecNixOptionType c,
+                optionDescription = optionDescriptionFor mDesc c,
+                optionDefault = Just $ toJSONVia c defaultValue,
+                optionRequirement = OptionOptional
               }
-          )
-          $ M.unionsWith
-            ( \t1 t2 ->
-                Option
-                  { optionType = Just $ OptionTypeOneOf $ map (fromMaybe (OptionTypeSimple "lib.types.anything") . optionType) [t1, t2],
-                    optionDescription = optionDescription t1 <|> optionDescription t2, -- TODO
-                    optionDefault = Nothing
+        OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
+          M.singleton
+            key
+            Option
+              { optionType = valueCodecNixOptionType c,
+                optionDescription = optionDescriptionFor mDesc c,
+                optionDefault = Just $ toJSONVia c defaultValue,
+                optionRequirement = OptionOptional
+              }
+        PureCodec _ -> M.empty
+        ApCodec c1 c2 ->
+          M.unionWith
+            ( \o1 o2 ->
+                (mergeOption o1 o2)
+                  { optionRequirement = requiredByEither (optionRequirement o1) (optionRequirement o2)
                   }
             )
-          $ map (go b . snd)
-          $ HM.elems m
-      RequiredKeyCodec key o mDesc ->
-        M.singleton key $
-          Option
-            { optionType =
-                ( if b
-                    then fmap OptionTypeNullOr
-                    else id
-                )
-                  $ valueCodecNixOptionType o,
-              optionDescription = optionDescriptionFor mDesc o,
-              optionDefault =
-                if b
-                  then Just JSON.Null
-                  else Nothing -- [ref:NixOptionNullable]
-            }
-      OptionalKeyCodec key o mDesc ->
-        M.singleton key $
-          Option
-            { optionType = OptionTypeNullOr <$> valueCodecNixOptionType o,
-              optionDescription = optionDescriptionFor mDesc o,
-              optionDefault = Just JSON.Null -- [ref:NixOptionNullable]
-            }
-      OptionalKeyWithDefaultCodec key c defaultValue mDesc ->
-        M.singleton
-          key
-          Option
-            { optionType = valueCodecNixOptionType c,
-              optionDescription = optionDescriptionFor mDesc c,
-              optionDefault = Just $ toJSONVia c defaultValue
-            }
-      OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
-        M.singleton
-          key
-          Option
-            { optionType = valueCodecNixOptionType c,
-              optionDescription = optionDescriptionFor mDesc c,
-              optionDefault = Just $ toJSONVia c defaultValue
-            }
-      PureCodec _ -> M.empty
-      ApCodec c1 c2 -> M.unionWith mergeOption (go b c1) (go b c2)
-      BimapCodec _ _ c -> go b c
-      EitherCodec _ c1 c2 -> M.unionWith mergeOption (go True c1) (go True c2)
-    -- This throwing away of the description and the default is not ideal but
-    -- better than just taking the first option.
-    mergeOption :: Option -> Option -> Option
-    mergeOption o1 o2 =
-      o1
-        { optionType =
-            ( \ot1 ot2 ->
-                simplifyOptionType $
-                  OptionTypeOneOf
-                    [ ot1,
-                      ot2
-                    ]
+            (go c1)
+            (go c2)
+        BimapCodec _ _ c -> go c
+        EitherCodec _ c1 c2 -> mergeAlternatives (go c1) (go c2)
+   in simplifyOptions . go
+
+-- | The options of a choice between objects.
+--
+-- A value for any one alternative is a valid value, so a key is only required
+-- when every alternative requires it, and only keeps a default when every
+-- alternative has the same one.
+mergeAlternatives :: Map Text Option -> Map Text Option -> Map Text Option
+mergeAlternatives =
+  let onlyInOne :: Option -> Option
+      onlyInOne o =
+        o
+          { optionRequirement = OptionOptional,
+            optionDefault = Nothing
+          }
+      requiredByBoth :: OptionRequirement -> OptionRequirement -> OptionRequirement
+      requiredByBoth r1 r2 = case r1 of
+        OptionRequired -> r2
+        OptionOptional -> OptionOptional
+   in Merge.merge
+        (Merge.mapMissing (const onlyInOne))
+        (Merge.mapMissing (const onlyInOne))
+        ( Merge.zipWithMatched
+            ( \_ o1 o2 ->
+                (mergeOption o1 o2)
+                  { optionRequirement = requiredByBoth (optionRequirement o1) (optionRequirement o2)
+                  }
             )
-              <$> optionType o1
-              <*> optionType o2
-        }
+        )
+
+-- | Two options for the same key.
+--
+-- Keeping only the first description is not ideal but better than dropping
+-- both.
+-- A default is only kept when both agree on it, because the value of the
+-- option is written out whichever alternative the rest of the value is for.
+mergeOption :: Option -> Option -> Option
+mergeOption o1 o2 =
+  o1
+    { optionDefault =
+        if optionDefault o1 == optionDefault o2
+          then optionDefault o1
+          else Nothing,
+      optionType =
+        ( \ot1 ot2 ->
+            simplifyOptionType $
+              OptionTypeOneOf
+                [ ot1,
+                  ot2
+                ]
+        )
+          <$> optionType o1
+          <*> optionType o2
+    }
 
 -- | What an option says about itself: the field's own description, and then
 -- whatever comments the codec under it carries.
@@ -230,8 +255,15 @@ valueCodecComments = \case
 data Option = Option
   { optionType :: !(Maybe OptionType),
     optionDescription :: !(Maybe Text),
-    optionDefault :: !(Maybe JSON.Value)
+    optionDefault :: !(Maybe JSON.Value),
+    optionRequirement :: !OptionRequirement
   }
+  deriving (Show, Eq, Ord)
+
+-- | Whether an option has to be defined.
+data OptionRequirement
+  = OptionRequired
+  | OptionOptional
   deriving (Show, Eq, Ord)
 
 emptyOption :: Option
@@ -239,7 +271,8 @@ emptyOption =
   Option
     { optionType = Nothing,
       optionDescription = Nothing,
-      optionDefault = Nothing
+      optionDefault = Nothing,
+      optionRequirement = OptionOptional
     }
 
 simplifyOption :: Option -> Option
@@ -270,7 +303,7 @@ simplifyOptionType = go
         _ -> OptionTypeNullOr $ go t
       OptionTypeListOf o -> OptionTypeListOf $ go o
       OptionTypeAttrsOf o -> OptionTypeAttrsOf $ go o
-      OptionTypeOneOf os -> case goEnums $ nubOrd $ concatMap goOr os of
+      OptionTypeOneOf os -> case goEnums $ mergeSubmodules $ nubOrd $ concatMap goOr os of
         [ot] -> ot
         os' ->
           if any canBeNull os'
@@ -304,6 +337,32 @@ simplifyOptionType = go
             OptionTypeEnum es' -> goEnum (es ++ es') rest
             _ -> t : goEnum es rest
 
+    -- The module system merges a value of a oneOf with the first alternative
+    -- whose check it passes, and that of a submodule only asks for an
+    -- attribute set, so a value for any later submodule would be merged with
+    -- the first one instead.
+    mergeSubmodules :: [OptionType] -> [OptionType]
+    mergeSubmodules ts = case mapMaybe submoduleOptions ts of
+      m : ms@(_ : _) ->
+        let (before, after) = break (isJust . submoduleOptions) ts
+         in concat
+              [ before,
+                [OptionTypeSubmodule $ M.map goOpt $ foldr mergeAlternatives m ms],
+                filter (isNothing . submoduleOptions) after
+              ]
+      _ -> ts
+
+    submoduleOptions :: OptionType -> Maybe (Map Text Option)
+    submoduleOptions = \case
+      OptionTypeSubmodule m -> Just m
+      OptionTypeNull -> Nothing
+      OptionTypeSimple _ -> Nothing
+      OptionTypeEnum _ -> Nothing
+      OptionTypeNullOr _ -> Nothing
+      OptionTypeListOf _ -> Nothing
+      OptionTypeAttrsOf _ -> Nothing
+      OptionTypeOneOf _ -> Nothing
+
     goOpt o = o {optionType = go <$> optionType o}
 
     goOr = \case
@@ -316,9 +375,6 @@ simplifyOptions = M.map simplifyOption
 renderOption :: Option -> Text
 renderOption = renderExpression . withNixArgs . optionExpression
 
-renderOptions :: Map Text Option -> Text
-renderOptions = renderExpression . withNixArgs . optionsExpression
-
 renderOptionType :: OptionType -> Text
 renderOptionType = renderExpression . withNixArgs . optionTypeExpression
 
@@ -330,36 +386,40 @@ optionExpr :: Option -> Expression
 optionExpr = optionExpression
 
 optionExpression :: Option -> Expression
-optionExpression Option {..} =
-  ExprAp
-    (ExprVar "lib.mkOption")
-    ( ExprAttrSet $
-        M.fromList $
-          concat
-            [ [("type", optionTypeExpression typ) | typ <- maybeToList optionType],
-              [("description", ExprLitString d) | d <- maybeToList optionDescription],
-              case optionDefault of
-                Nothing -> case optionType of
-                  -- Automatically give submodule options a default of the empty set.
-                  Just (OptionTypeSubmodule _) -> [("default", ExprAttrSet M.empty)]
-                  _ -> []
-                Just d -> [("default", toNixExpressionViaCodec d)]
-            ]
-    )
-
--- {-# DEPRECATED optionsExpr "Use optionsExpression instead" #-}
-optionsExpr :: Map Text Option -> Expression
-optionsExpr = optionsExpression
-
-optionsExpression :: Map Text Option -> Expression
-optionsExpression = ExprAttrSet . M.map optionExpression
+optionExpression o = bindDefinedSubmodule (maybeToList (optionType o)) $ unboundOptionExpression o
 
 -- {-# DEPRECATED optionTypeExpr "Use optionTypeExpression instead" #-}
 optionTypeExpr :: OptionType -> Expression
 optionTypeExpr = optionTypeExpression
 
 optionTypeExpression :: OptionType -> Expression
-optionTypeExpression = go
+optionTypeExpression t = bindDefinedSubmodule [t] $ unboundOptionTypeExpression t
+
+-- | An option that refers to 'definedSubmoduleName' without binding it.
+unboundOptionExpression :: Option -> Expression
+unboundOptionExpression Option {..} =
+  let undefaultedText :: Text
+      undefaultedText = case optionRequirement of
+        OptionRequired -> "None, this option is required."
+        OptionOptional -> "None, this option is left out when it is not set."
+   in ExprAp
+        (ExprVar "lib.mkOption")
+        ( ExprAttrSet $
+            M.fromList $
+              concat
+                [ [("type", unboundOptionTypeExpression typ) | typ <- maybeToList optionType],
+                  [("description", ExprLitString d) | d <- maybeToList optionDescription],
+                  case optionDefault of
+                    -- The documentation would otherwise give the empty value
+                    -- of the type, like null for a nullOr, as the default.
+                    Nothing -> [("defaultText", ExprAp (ExprVar "lib.literalMD") (ExprLitString undefaultedText))]
+                    Just d -> [("default", toNixExpressionViaCodec d)]
+                ]
+        )
+
+-- | A type that refers to 'definedSubmoduleName' without binding it.
+unboundOptionTypeExpression :: OptionType -> Expression
+unboundOptionTypeExpression = go
   where
     go = \case
       OptionTypeNull -> ExprAp (ExprVar "lib.types.enum") (ExprLitList [ExprNull])
@@ -379,6 +439,198 @@ optionTypeExpression = go
           (ExprVar "lib.types.oneOf")
           (ExprLitList (map go os))
       OptionTypeSubmodule os ->
-        ExprAp
-          (ExprVar "lib.types.submodule")
-          (ExprAttrSet (M.singleton "options" (optionsExpression os)))
+        let requiredKey :: Text -> Option -> Maybe Expression
+            requiredKey key o = case optionRequirement o of
+              OptionRequired -> Just (ExprLitString key)
+              OptionOptional -> Nothing
+         in ExprAp
+              (ExprAp (ExprVar definedSubmoduleName) (ExprLitList (M.elems (M.mapMaybeWithKey requiredKey os))))
+              (ExprAttrSet (M.map unboundOptionExpression os))
+
+-- | Bind 'definedSubmoduleName' around an expression that uses any of the
+-- given types, once per expression instead of once per submodule.
+bindDefinedSubmodule :: [OptionType] -> Expression -> Expression
+bindDefinedSubmodule ts e =
+  if any hasSubmodule ts
+    then
+      ExprLet
+        ( M.fromList
+            [ (definedSubmoduleName, definedSubmoduleExpression),
+              (definedTypeName, definedTypeExpression)
+            ]
+        )
+        e
+    else e
+
+hasSubmodule :: OptionType -> Bool
+hasSubmodule = \case
+  OptionTypeNull -> False
+  OptionTypeSimple _ -> False
+  OptionTypeEnum _ -> False
+  OptionTypeNullOr t -> hasSubmodule t
+  OptionTypeListOf t -> hasSubmodule t
+  OptionTypeAttrsOf t -> hasSubmodule t
+  OptionTypeOneOf ts -> any hasSubmodule ts
+  OptionTypeSubmodule _ -> True
+
+definedSubmoduleName :: Text
+definedSubmoduleName = "definedSubmodule"
+
+definedTypeName :: Text
+definedTypeName = "definedType"
+
+-- | The name of the internal option that holds what was defined in a
+-- generated submodule.
+-- A codec with a key of this name cannot be rendered as a submodule, so the
+-- generated type throws when it is evaluated.
+definedOptionName :: Text
+definedOptionName = "__defined"
+
+-- | A function from the required keys and the option declarations of a
+-- submodule to a submodule type whose value is what was defined in it: the
+-- options that were defined, and the required ones whether they were or not.
+--
+-- Reading an option that was not defined does not throw when its type has an
+-- empty value, like null for a nullOr or [ ] for a listOf, so a required
+-- option throws itself.
+definedSubmoduleExpression :: Expression
+definedSubmoduleExpression =
+  let apply :: Text -> [Expression] -> Expression
+      apply f = foldl ExprAp (ExprVar f)
+      optionOf :: Expression
+      optionOf = apply "lib.getAttr" [ExprVar "name", ExprVar "options"]
+      requiredValue :: Expression
+      requiredValue =
+        ExprLam "name" $
+          ExprIf
+            (ExprAp (ExprVar "isDefined") (ExprVar "name"))
+            (ExprAp (ExprVar "configValue") (ExprVar "name"))
+            ( apply
+                "throw"
+                [ apply
+                    "lib.concatStrings"
+                    [ ExprLitList
+                        [ ExprLitString "The option `",
+                          ExprAp (ExprVar "lib.showOption") (ExprSelect optionOf "loc"),
+                          ExprLitString "' is required but was not defined."
+                        ]
+                    ]
+                ]
+            )
+      defined :: Expression
+      defined =
+        ExprUpdate
+          (apply "lib.genAttrs" [ExprVar "required", ExprVar "requiredValue"])
+          ( apply
+              "lib.genAttrs"
+              [ apply "lib.filter" [ExprVar "isDefined", apply "lib.attrNames" [ExprVar "declarations"]],
+                ExprVar "configValue"
+              ]
+          )
+      checkedDeclarations :: Expression
+      checkedDeclarations =
+        apply
+          "lib.throwIf"
+          [ apply "lib.hasAttr" [ExprLitString definedOptionName, ExprVar "declarations"],
+            ExprLitString (T.unwords ["autodocodec-nix uses the option name", definedOptionName, "itself."]),
+            ExprVar "declarations"
+          ]
+      submoduleModule :: Expression
+      submoduleModule =
+        ExprFun ["config", "options", "..."] $
+          ExprLet
+            ( M.fromList
+                [ ("isDefined", ExprLam "name" (ExprSelect optionOf "isDefined")),
+                  ("configValue", ExprLam "name" (apply "lib.getAttr" [ExprVar "name", ExprVar "config"])),
+                  ("requiredValue", requiredValue)
+                ]
+            )
+            ( ExprAttrSet $
+                M.singleton "options" $
+                  ExprUpdate
+                    checkedDeclarations
+                    ( ExprAttrSet $
+                        M.singleton definedOptionName $
+                          apply
+                            "lib.mkOption"
+                            [ ExprAttrSet $
+                                M.fromList
+                                  [ ("internal", ExprLitBool True),
+                                    ("readOnly", ExprLitBool True),
+                                    ("default", defined)
+                                  ]
+                            ]
+                    )
+            )
+   in ExprLam "required" $
+        ExprLam "declarations" $
+          ExprAp (ExprVar definedTypeName) (ExprAp (ExprVar "lib.types.submodule") submoduleModule)
+
+-- | A function that makes the value of a submodule type the value of its
+-- 'definedOptionName' option.
+--
+-- Its merge is changed, rather than anything reading the value, so that it
+-- also covers a submodule nested in any other type, because those merge their
+-- elements with the element type's merge.
+-- The module system rebuilds the type of an option from its submodules, so the
+-- type it ends up with is made the same way.
+-- It cannot be merged with another declaration of the same option, because
+-- the result would be a plain submodule, whose value is not what was defined.
+-- Its functor has a name of its own so that a plain submodule cannot be merged
+-- with it either.
+-- Older versions of nixpkgs have no v2 merge, and no empty value for a
+-- submodule.
+definedTypeExpression :: Expression
+definedTypeExpression =
+  let submodule :: Text -> Expression
+      submodule = ExprSelect (ExprVar "submodule")
+      definedOf :: Expression -> Expression
+      definedOf e = ExprSelect e definedOptionName
+      v2Merge :: Expression
+      v2Merge =
+        ExprAttrSet $
+          M.fromList
+            [ ( "__functor",
+                ExprLam "self" $
+                  ExprLam "loc" $
+                    ExprLam "defs" $
+                      ExprSelect
+                        ( ExprAp
+                            (ExprSelect (ExprVar "self") "v2")
+                            (ExprAttrSet (M.fromList [("loc", ExprVar "loc"), ("defs", ExprVar "defs")]))
+                        )
+                        "value"
+              ),
+              ( "v2",
+                ExprLam "args" $
+                  ExprLet
+                    (M.singleton "merged" (ExprAp (ExprSelect (submodule "merge") "v2") (ExprVar "args")))
+                    ( ExprUpdate
+                        (ExprVar "merged")
+                        (ExprAttrSet (M.singleton "value" (definedOf (ExprSelect (ExprVar "merged") "value"))))
+                    )
+              )
+            ]
+      v1Merge :: Expression
+      v1Merge =
+        ExprLam "loc" $
+          ExprLam "defs" $
+            definedOf (ExprAp (ExprAp (submodule "merge") (ExprVar "loc")) (ExprVar "defs"))
+   in ExprLam "submodule" $
+        ExprUpdate (ExprVar "submodule") $
+          ExprAttrSet $
+            M.fromList
+              [ ("merge", ExprIf (ExprAp (ExprVar "lib.isAttrs") (submodule "merge")) v2Merge v1Merge),
+                ( "emptyValue",
+                  ExprIf
+                    (ExprAp (ExprAp (ExprVar "lib.hasAttr") (ExprLitString "value")) (submodule "emptyValue"))
+                    (ExprAttrSet (M.singleton "value" (definedOf (ExprSelect (submodule "emptyValue") "value"))))
+                    (submodule "emptyValue")
+                ),
+                ( "substSubModules",
+                  ExprLam "modules" $
+                    ExprAp (ExprVar definedTypeName) (ExprAp (submodule "substSubModules") (ExprVar "modules"))
+                ),
+                ("typeMerge", ExprLam "_" ExprNull),
+                ("functor", ExprUpdate (submodule "functor") (ExprAttrSet (M.singleton "name" (ExprLitString definedSubmoduleName))))
+              ]

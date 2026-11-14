@@ -3,12 +3,11 @@
 module Autodocodec.Nix
   ( -- * Producing a Nixos module type
     renderNixOptionTypeViaCodec,
-    renderNixOptionsViaCodec,
     renderNixOptionTypeVia,
-    renderNixOptionsVia,
     valueCodecNixOptionType,
     objectCodecNixOptions,
     Option (..),
+    OptionRequirement (..),
     emptyOption,
     simplifyOption,
     OptionType (..),
@@ -18,8 +17,6 @@ module Autodocodec.Nix
     withNixArgs,
     optionExpression,
     optionExpr,
-    optionsExpression,
-    optionsExpr,
     optionTypeExpression,
     optionTypeExpr,
 

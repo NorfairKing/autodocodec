@@ -142,6 +142,8 @@ extra-source-files:
     test_resources/nix/expression/char-value.nix
     test_resources/nix/expression/either-bool-text-value.nix
     test_resources/nix/expression/either-either-bool-scientific-text-value.nix
+    test_resources/nix/expression/expressions.json
+    test_resources/nix/expression/expressions.nix
     test_resources/nix/expression/int-value.nix
     test_resources/nix/expression/int16-value.nix
     test_resources/nix/expression/int32-value.nix
@@ -160,6 +162,8 @@ extra-source-files:
     test_resources/nix/expression/ordering-value.nix
     test_resources/nix/expression/scientific-value.nix
     test_resources/nix/expression/string-value.nix
+    test_resources/nix/expression/strings.json
+    test_resources/nix/expression/strings.nix
     test_resources/nix/expression/text-value.nix
     test_resources/nix/expression/these-object.nix
     test_resources/nix/expression/via-object.nix
@@ -171,7 +175,6 @@ extra-source-files:
     test_resources/nix/options/ainur-type.nix
     test_resources/nix/options/bool-type.nix
     test_resources/nix/options/char-type.nix
-    test_resources/nix/options/commented-fields-options.nix
     test_resources/nix/options/commented-fields-type.nix
     test_resources/nix/options/const-type.nix
     test_resources/nix/options/day-type.nix
@@ -183,9 +186,7 @@ extra-source-files:
     test_resources/nix/options/either-bool-text-type.nix
     test_resources/nix/options/either-either-bool-scientific-text-type.nix
     test_resources/nix/options/empty-option.nix
-    test_resources/nix/options/example-options.nix
     test_resources/nix/options/example-type.nix
-    test_resources/nix/options/expression-options.nix
     test_resources/nix/options/expression-type.nix
     test_resources/nix/options/fruit-type.nix
     test_resources/nix/options/identity-type.nix
@@ -196,12 +197,9 @@ extra-source-files:
     test_resources/nix/options/int8-type.nix
     test_resources/nix/options/integer-type.nix
     test_resources/nix/options/lazy-text-type.nix
-    test_resources/nix/options/legacy-object-options.nix
     test_resources/nix/options/legacy-object-type.nix
-    test_resources/nix/options/legacy-value-options.nix
     test_resources/nix/options/legacy-value-type.nix
     test_resources/nix/options/list-text-type.nix
-    test_resources/nix/options/lists-example-options.nix
     test_resources/nix/options/lists-example-type.nix
     test_resources/nix/options/local-time-type.nix
     test_resources/nix/options/map-text-ind-type.nix
@@ -217,12 +215,11 @@ extra-source-files:
     test_resources/nix/options/nonempty-text-type.nix
     test_resources/nix/options/null-type.nix
     test_resources/nix/options/object-type.nix
-    test_resources/nix/options/optional-fields-options.nix
     test_resources/nix/options/optional-fields-type.nix
     test_resources/nix/options/ordering-type.nix
-    test_resources/nix/options/overlap-options.nix
     test_resources/nix/options/overlap-type.nix
     test_resources/nix/options/recursive-type.nix
+    test_resources/nix/options/reserved-key-type.nix
     test_resources/nix/options/scientific-type.nix
     test_resources/nix/options/semigroup-first-type.nix
     test_resources/nix/options/semigroup-last-type.nix
@@ -230,13 +227,12 @@ extra-source-files:
     test_resources/nix/options/shape-type.nix
     test_resources/nix/options/string-type.nix
     test_resources/nix/options/text-type.nix
-    test_resources/nix/options/these-options.nix
     test_resources/nix/options/these-type.nix
     test_resources/nix/options/time-of-day-type.nix
+    test_resources/nix/options/unsettable-type.nix
     test_resources/nix/options/utc-time-type.nix
     test_resources/nix/options/value-type.nix
     test_resources/nix/options/very-comment-type.nix
-    test_resources/nix/options/via-options.nix
     test_resources/nix/options/via-type.nix
     test_resources/nix/options/void-type.nix
     test_resources/nix/options/war-type.nix

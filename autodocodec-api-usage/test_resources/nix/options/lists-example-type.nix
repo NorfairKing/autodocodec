@@ -1,24 +1,66 @@
 { lib }:
-lib.types.submodule {
-  options = {
-    optional-non-empty = lib.mkOption {
-      default = null;
-      description = "optional non-empty list";
-      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+let
+  definedSubmodule = required: declarations: definedType (lib.types.submodule ({ config, options, ... }:
+  let
+    configValue = name: lib.getAttr name config;
+    isDefined = name: (lib.getAttr name options).isDefined;
+    requiredValue = name: if isDefined name then configValue name else throw (lib.concatStrings [
+      "The option `"
+      (lib.showOption (lib.getAttr name options).loc)
+      "' is required but was not defined."
+    ]);
+  in
+  {
+    options = lib.throwIf (lib.hasAttr "__defined" declarations) "autodocodec-nix uses the option name __defined itself." declarations // {
+      __defined = lib.mkOption {
+        default = lib.genAttrs required requiredValue // lib.genAttrs (lib.filter isDefined (lib.attrNames declarations)) configValue;
+        internal = true;
+        readOnly = true;
+      };
     };
-    possibly-empty-with-default = lib.mkOption {
-      default = [];
-      description = "possibly empty list with default empty list";
-      type = lib.types.listOf lib.types.int;
+  }));
+  definedType = submodule: submodule // {
+    emptyValue = if lib.hasAttr "value" submodule.emptyValue then {
+      value = submodule.emptyValue.value.__defined;
+    } else submodule.emptyValue;
+    functor = submodule.functor // {
+      name = "definedSubmodule";
     };
-    possibly-empty-with-omitted-default = lib.mkOption {
-      default = [];
-      description = "possibly empty list with omitted default empty list";
-      type = lib.types.listOf lib.types.int;
-    };
-    required-non-empty = lib.mkOption {
-      description = "required non-empty list";
-      type = lib.types.listOf lib.types.str;
-    };
+    merge = if lib.isAttrs submodule.merge then {
+      __functor = self: loc: defs: (self.v2 {
+        defs = defs;
+        loc = loc;
+      }).value;
+      v2 = args: let
+        merged = submodule.merge.v2 args;
+      in
+      merged // {
+        value = merged.value.__defined;
+      };
+    } else loc: defs: (submodule.merge loc defs).__defined;
+    substSubModules = modules: definedType (submodule.substSubModules modules);
+    typeMerge = _: null;
+  };
+in
+definedSubmodule ["required-non-empty"] {
+  optional-non-empty = lib.mkOption {
+    defaultText = lib.literalMD "None, this option is left out when it is not set.";
+    description = "optional non-empty list";
+    type = lib.types.listOf lib.types.str;
+  };
+  possibly-empty-with-default = lib.mkOption {
+    default = [];
+    description = "possibly empty list with default empty list";
+    type = lib.types.listOf lib.types.int;
+  };
+  possibly-empty-with-omitted-default = lib.mkOption {
+    default = [];
+    description = "possibly empty list with omitted default empty list";
+    type = lib.types.listOf lib.types.int;
+  };
+  required-non-empty = lib.mkOption {
+    defaultText = lib.literalMD "None, this option is required.";
+    description = "required non-empty list";
+    type = lib.types.listOf lib.types.str;
   };
 }
