@@ -495,61 +495,76 @@ definedOptionName = "__defined"
 -- option throws itself.
 definedSubmoduleExpression :: Expression
 definedSubmoduleExpression =
-  let getAttr :: Text -> Expression
-      getAttr set = ExprAp (ExprAp (ExprVar "lib.getAttr") (ExprVar "name")) (ExprVar set)
-      isDefined :: Expression
-      isDefined = ExprSelect (getAttr "options") "isDefined"
+  let apply :: Text -> [Expression] -> Expression
+      apply f = foldl ExprAp (ExprVar f)
+      optionOf :: Expression
+      optionOf = apply "lib.getAttr" [ExprVar "name", ExprVar "options"]
       requiredValue :: Expression
       requiredValue =
-        ExprIf
-          isDefined
-          (getAttr "config")
-          ( ExprAp
-              (ExprVar "throw")
-              ( ExprAp
-                  (ExprVar "lib.concatStrings")
-                  ( ExprLitList
-                      [ ExprLitString "The option `",
-                        ExprAp (ExprVar "lib.showOption") (ExprSelect (getAttr "options") "loc"),
-                        ExprLitString "' is required but was not defined."
-                      ]
-                  )
-              )
-          )
+        ExprLam "name" $
+          ExprIf
+            (ExprAp (ExprVar "isDefined") (ExprVar "name"))
+            (ExprAp (ExprVar "configValue") (ExprVar "name"))
+            ( apply
+                "throw"
+                [ apply
+                    "lib.concatStrings"
+                    [ ExprLitList
+                        [ ExprLitString "The option `",
+                          ExprAp (ExprVar "lib.showOption") (ExprSelect optionOf "loc"),
+                          ExprLitString "' is required but was not defined."
+                        ]
+                    ]
+                ]
+            )
       defined :: Expression
       defined =
         ExprUpdate
-          (ExprAp (ExprAp (ExprVar "lib.genAttrs") (ExprVar "required")) (ExprLam "name" requiredValue))
-          ( ExprAp
-              (ExprAp (ExprVar "lib.mapAttrs") (ExprLam "name" (ExprLam "_" (getAttr "config"))))
-              (ExprAp (ExprAp (ExprVar "lib.filterAttrs") (ExprLam "name" (ExprLam "_" isDefined))) (ExprVar "declarations"))
-          )
-      definedOption :: Expression
-      definedOption =
-        ExprAp (ExprVar "lib.mkOption") $
-          ExprAttrSet $
-            M.fromList
-              [ ("internal", ExprLitBool True),
-                ("readOnly", ExprLitBool True),
-                ("default", defined)
+          (apply "lib.genAttrs" [ExprVar "required", ExprVar "requiredValue"])
+          ( apply
+              "lib.genAttrs"
+              [ apply "lib.filter" [ExprVar "isDefined", apply "lib.attrNames" [ExprVar "declarations"]],
+                ExprVar "configValue"
               ]
+          )
+      checkedDeclarations :: Expression
+      checkedDeclarations =
+        apply
+          "lib.throwIf"
+          [ apply "lib.hasAttr" [ExprLitString definedOptionName, ExprVar "declarations"],
+            ExprLitString (T.unwords ["autodocodec-nix uses the option name", definedOptionName, "itself."]),
+            ExprVar "declarations"
+          ]
       submoduleModule :: Expression
       submoduleModule =
         ExprFun ["config", "options", "..."] $
-          ExprAttrSet $
-            M.singleton "options" $
-              ExprUpdate (ExprVar "declarations") (ExprAttrSet (M.singleton definedOptionName definedOption))
+          ExprLet
+            ( M.fromList
+                [ ("isDefined", ExprLam "name" (ExprSelect optionOf "isDefined")),
+                  ("configValue", ExprLam "name" (apply "lib.getAttr" [ExprVar "name", ExprVar "config"])),
+                  ("requiredValue", requiredValue)
+                ]
+            )
+            ( ExprAttrSet $
+                M.singleton "options" $
+                  ExprUpdate
+                    checkedDeclarations
+                    ( ExprAttrSet $
+                        M.singleton definedOptionName $
+                          apply
+                            "lib.mkOption"
+                            [ ExprAttrSet $
+                                M.fromList
+                                  [ ("internal", ExprLitBool True),
+                                    ("readOnly", ExprLitBool True),
+                                    ("default", defined)
+                                  ]
+                            ]
+                    )
+            )
    in ExprLam "required" $
         ExprLam "declarations" $
-          ExprAp
-            ( ExprAp
-                ( ExprAp
-                    (ExprVar "lib.throwIf")
-                    (ExprAp (ExprAp (ExprVar "lib.hasAttr") (ExprLitString definedOptionName)) (ExprVar "declarations"))
-                )
-                (ExprLitString (T.unwords ["autodocodec-nix uses the option name", definedOptionName, "itself."]))
-            )
-            (ExprAp (ExprVar definedTypeName) (ExprAp (ExprVar "lib.types.submodule") submoduleModule))
+          ExprAp (ExprVar definedTypeName) (ExprAp (ExprVar "lib.types.submodule") submoduleModule)
 
 -- | A function that makes the value of a submodule type the value of its
 -- 'definedOptionName' option.

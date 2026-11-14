@@ -1,19 +1,24 @@
 { lib }:
 let
-  definedSubmodule = required: declarations: lib.throwIf (lib.hasAttr "__defined" declarations) "autodocodec-nix uses the option name __defined itself." (definedType (lib.types.submodule ({ config, options, ... }:
+  definedSubmodule = required: declarations: definedType (lib.types.submodule ({ config, options, ... }:
+  let
+    configValue = name: lib.getAttr name config;
+    isDefined = name: (lib.getAttr name options).isDefined;
+    requiredValue = name: if isDefined name then configValue name else throw (lib.concatStrings [
+      "The option `"
+      (lib.showOption (lib.getAttr name options).loc)
+      "' is required but was not defined."
+    ]);
+  in
   {
-    options = declarations // {
+    options = lib.throwIf (lib.hasAttr "__defined" declarations) "autodocodec-nix uses the option name __defined itself." declarations // {
       __defined = lib.mkOption {
-        default = lib.genAttrs required (name: if (lib.getAttr name options).isDefined then lib.getAttr name config else throw (lib.concatStrings [
-          "The option `"
-          (lib.showOption (lib.getAttr name options).loc)
-          "' is required but was not defined."
-        ])) // lib.mapAttrs (name: _: lib.getAttr name config) (lib.filterAttrs (name: _: (lib.getAttr name options).isDefined) declarations);
+        default = lib.genAttrs required requiredValue // lib.genAttrs (lib.filter isDefined (lib.attrNames declarations)) configValue;
         internal = true;
         readOnly = true;
       };
     };
-  })));
+  }));
   definedType = submodule: submodule // {
     emptyValue = if lib.hasAttr "value" submodule.emptyValue then {
       value = submodule.emptyValue.value.__defined;
