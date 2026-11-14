@@ -230,6 +230,7 @@ extra-source-files:
     test_resources/nix/options/these-type.nix
     test_resources/nix/options/time-of-day-type.nix
     test_resources/nix/options/unsettable-type.nix
+    test_resources/nix/options/unsettable-values.json
     test_resources/nix/options/utc-time-type.nix
     test_resources/nix/options/value-type.nix
     test_resources/nix/options/very-comment-type.nix

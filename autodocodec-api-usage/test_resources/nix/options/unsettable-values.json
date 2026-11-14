@@ -1,0 +1,258 @@
+{
+  "gives an option that only one alternative of an object has a default for no default": {
+    "either-object": {
+      "b": "b",
+      "both": "x"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a defined option": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "other"
+  },
+  "keeps a defined option whose name needs quoting": {
+    "1st": "1",
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a list in a oneOf as it was written when an earlier alternative takes anything": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "value-or-list": [
+      {
+        "one": "1"
+      }
+    ],
+    "with-default": "default"
+  },
+  "keeps a list of strings in a oneOf with a list of submodules": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "strings-or-list": [
+      "a"
+    ],
+    "with-default": "default"
+  },
+  "keeps a null for a nested submodule": {
+    "nested-or-null": null,
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a null that was written": {
+    "null-default": null,
+    "nullable": null,
+    "optional-or-null": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a recursive value as it was written": {
+    "null-default": null,
+    "nullable": null,
+    "recursive": {
+      "recurse": {
+        "recurse": 1
+      }
+    },
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a recursive value in a submodule as it was written": {
+    "mutually-recursive": {
+      "relationshipToA": {
+        "relationshipToB": {}
+      }
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a required option of a nested submodule": {
+    "nested-required": {
+      "one": "1"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a value of a discriminated union": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "these": {
+      "text": "t",
+      "type": "this"
+    },
+    "with-default": "default"
+  },
+  "keeps a value of the first of two submodules in a oneOf": {
+    "either-objects": {
+      "a": "a"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a value of the second of two submodules in a oneOf": {
+    "either-objects": {
+      "b": "b"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps a value that is not a submodule in a oneOf": {
+    "either": "e",
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "keeps definitions with a priority": {
+    "null-default": null,
+    "nullable": null,
+    "optional": "d",
+    "required": "r",
+    "with-default": "f"
+  },
+  "leaves out an option whose definition is disabled": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out the options that were not defined": {
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in a nested submodule": {
+    "nested": {
+      "one": "1"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in a nullable nested submodule": {
+    "nested-or-null": {
+      "one": "1"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in a submodule in a oneOf": {
+    "either": {
+      "one": "1"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in a submodule in a oneOf with a list": {
+    "either-list": {
+      "one": "1"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in a submodule with a recursive option": {
+    "mutually-recursive": {},
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in each element of a list": {
+    "list": [
+      {
+        "one": "1"
+      },
+      {}
+    ],
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in each element of a list in a oneOf": {
+    "either-list": [
+      {
+        "one": "1"
+      },
+      {}
+    ],
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in each element of a list of lists": {
+    "list-of-lists": [
+      [
+        {
+          "one": "1"
+        },
+        {}
+      ]
+    ],
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in each element of a list of nullable submodules": {
+    "list-of-nullable": [
+      null,
+      {
+        "one": "1"
+      }
+    ],
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "leaves out what was not defined in each value of an attribute set": {
+    "map": {
+      "a": {
+        "one": "1"
+      }
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  },
+  "merges separate definitions": {
+    "nested": {
+      "one": "1",
+      "two": "2"
+    },
+    "null-default": null,
+    "nullable": null,
+    "required": "r",
+    "with-default": "default"
+  }
+}

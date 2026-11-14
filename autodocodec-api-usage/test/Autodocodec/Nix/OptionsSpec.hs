@@ -9,6 +9,7 @@ import Autodocodec
 import Autodocodec.Nix
 import Autodocodec.Usage as Usage
 import qualified Data.Aeson as JSON
+import qualified Data.Aeson.Types as JSONTypes
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Functor (($>))
@@ -19,6 +20,7 @@ import Data.GenValidity.DNonEmpty ()
 import Data.Int
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
+import qualified Data.Map as M
 import qualified Data.Monoid as Monoid
 import Data.Scientific
 import Data.Semigroup (Dual)
@@ -102,90 +104,101 @@ spec = do
   nixOptionTypeSpec @OptionalFields "optional-fields"
 
   describe "renderNixOptionTypeVia" $
-    -- The flake's unset-options-check evaluates this file, so it holds every
-    -- kind of field whose being left out matters.
-    it "outputs the same nix type as before for every kind of field" $
-      let nested :: JSONCodec ()
-          nested =
-            object "Nested" $
-              optionalField' @Text "one" .= const Nothing
-                *> optionalField' @Text "two" .= const Nothing
-                $> ()
-          nestedRequired :: JSONCodec ()
-          nestedRequired =
-            object "NestedRequired" $
-              requiredField' @Text "one" .= const ""
-                *> optionalField' @Text "two" .= const Nothing
-                $> ()
-          -- Both alternatives have a mode, but only one has a default for it.
-          -- Both alternatives have a level, with a different default.
-          -- Only one alternative has only-a, with a default.
-          -- Both alternatives require one key, and each requires one that the
-          -- other does not have.
-          eitherObject :: JSONCodec ()
-          eitherObject =
-            object "EitherObject" $
-              dimapCodec (const ()) (const (Left ())) $
-                eitherCodec
-                  ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
-                      *> optionalFieldWithDefault' @Int "level" 1 .= const 1
-                      *> optionalFieldWithDefault' @Text "only-a" "x" .= const "x"
-                      *> requiredField' @Text "both" .= const ""
-                      *> requiredField' @Text "a" .= const ""
-                      $> ()
-                  )
-                  ( optionalField' @Int "mode" .= const Nothing
-                      *> optionalFieldWithDefault' @Int "level" 2 .= const 2
-                      *> requiredField' @Text "both" .= const ""
-                      *> requiredField' @Text "b" .= const ""
-                      $> ()
-                  )
-          -- Two objects, the keys of the second a subset of those of the
-          -- first, so a value of the second is an attribute set that the
-          -- first would also take.
-          eitherObjects :: JSONCodec ()
-          eitherObjects =
+    let nested :: JSONCodec ()
+        nested =
+          object "Nested" $
+            optionalField' @Text "one" .= const Nothing
+              *> optionalField' @Text "two" .= const Nothing
+              $> ()
+        nestedRequired :: JSONCodec ()
+        nestedRequired =
+          object "NestedRequired" $
+            requiredField' @Text "one" .= const ""
+              *> optionalField' @Text "two" .= const Nothing
+              $> ()
+        -- Both alternatives have a mode, but only one has a default for it.
+        -- Both alternatives have a level, with a different default.
+        -- Only one alternative has only-a, with a default.
+        -- Both alternatives require one key, and each requires one that the
+        -- other does not have.
+        eitherObject :: JSONCodec ()
+        eitherObject =
+          object "EitherObject" $
             dimapCodec (const ()) (const (Left ())) $
               eitherCodec
-                ( object "EitherObjectsA" $
-                    requiredField' @Text "a" .= const ""
-                      *> optionalField' @Text "b" .= const Nothing
-                      $> ()
+                ( optionalFieldWithDefault' @Text "mode" "a" .= const "a"
+                    *> optionalFieldWithDefault' @Int "level" 1 .= const 1
+                    *> optionalFieldWithDefault' @Text "only-a" "x" .= const "x"
+                    *> requiredField' @Text "both" .= const ""
+                    *> requiredField' @Text "a" .= const ""
+                    $> ()
                 )
-                ( object "EitherObjectsB" $
-                    requiredField' @Text "b" .= const ""
-                      $> ()
+                ( optionalField' @Int "mode" .= const Nothing
+                    *> optionalFieldWithDefault' @Int "level" 2 .= const 2
+                    *> requiredField' @Text "both" .= const ""
+                    *> requiredField' @Text "b" .= const ""
+                    $> ()
                 )
-          unsettable :: JSONCodec ()
-          unsettable =
-            object "Unsettable" $
-              requiredField' @Text "required" .= const ""
-                *> requiredField' @(Maybe Text) "nullable" .= const Nothing
-                *> optionalField' @Text "optional" .= const Nothing
-                *> optionalFieldOrNull' @Text "optional-or-null" .= const Nothing
-                *> optionalFieldWithDefault' @Text "with-default" "default" .= const "default"
-                *> optionalFieldWithDefault' @(Maybe Text) "null-default" Nothing .= const Nothing
-                *> optionalFieldWith' "nested" nested .= const Nothing
-                *> optionalFieldOrNullWith' "nested-or-null" nested .= const Nothing
-                *> optionalFieldWith' "nested-required" nestedRequired .= const Nothing
-                *> optionalFieldWith' "list" (listCodec nested) .= const Nothing
-                *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
-                *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
-                *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
-                *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
-                *> optionalFieldWith' "strings-or-list" (eitherCodec (listCodec (codec @Text)) (listCodec nested)) .= const Nothing
-                *> optionalFieldWith' "either-object" eitherObject .= const Nothing
-                *> optionalFieldWith' "either-objects" eitherObjects .= const Nothing
-                *> optionalField' @These "these" .= const Nothing
-                *> optionalFieldWith' "list-of-nullable" (listCodec (maybeCodec nested)) .= const Nothing
-                *> optionalFieldWith' "list-of-lists" (listCodec (listCodec nested)) .= const Nothing
-                *> optionalField' @Text "1st" .= const Nothing
-                *> optionalField' @Recursive "recursive" .= const Nothing
-                *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing
-                $> ()
-       in pureGoldenTextFile
-            "test_resources/nix/options/unsettable-type.nix"
-            (renderNixOptionTypeVia unsettable)
+        -- Two objects, the keys of the second a subset of those of the
+        -- first, so a value of the second is an attribute set that the
+        -- first would also take.
+        eitherObjects :: JSONCodec ()
+        eitherObjects =
+          dimapCodec (const ()) (const (Left ())) $
+            eitherCodec
+              ( object "EitherObjectsA" $
+                  requiredField' @Text "a" .= const ""
+                    *> optionalField' @Text "b" .= const Nothing
+                    $> ()
+              )
+              ( object "EitherObjectsB" $
+                  requiredField' @Text "b" .= const ""
+                    $> ()
+              )
+        unsettable :: JSONCodec ()
+        unsettable =
+          object "Unsettable" $
+            requiredField' @Text "required" .= const ""
+              *> requiredField' @(Maybe Text) "nullable" .= const Nothing
+              *> optionalField' @Text "optional" .= const Nothing
+              *> optionalFieldOrNull' @Text "optional-or-null" .= const Nothing
+              *> optionalFieldWithDefault' @Text "with-default" "default" .= const "default"
+              *> optionalFieldWithDefault' @(Maybe Text) "null-default" Nothing .= const Nothing
+              *> optionalFieldWith' "nested" nested .= const Nothing
+              *> optionalFieldOrNullWith' "nested-or-null" nested .= const Nothing
+              *> optionalFieldWith' "nested-required" nestedRequired .= const Nothing
+              *> optionalFieldWith' "list" (listCodec nested) .= const Nothing
+              *> optionalFieldWith' "map" (mapCodec nested :: JSONCodec (Map Text ())) .= const Nothing
+              *> optionalFieldWith' "either" (eitherCodec (codec @Text) nested) .= const Nothing
+              *> optionalFieldWith' "either-list" (eitherCodec nested (listCodec nested)) .= const Nothing
+              *> optionalFieldWith' "value-or-list" (eitherCodec valueCodec (listCodec nested)) .= const Nothing
+              *> optionalFieldWith' "strings-or-list" (eitherCodec (listCodec (codec @Text)) (listCodec nested)) .= const Nothing
+              *> optionalFieldWith' "either-object" eitherObject .= const Nothing
+              *> optionalFieldWith' "either-objects" eitherObjects .= const Nothing
+              *> optionalField' @These "these" .= const Nothing
+              *> optionalFieldWith' "list-of-nullable" (listCodec (maybeCodec nested)) .= const Nothing
+              *> optionalFieldWith' "list-of-lists" (listCodec (listCodec nested)) .= const Nothing
+              *> optionalField' @Text "1st" .= const Nothing
+              *> optionalField' @Recursive "recursive" .= const Nothing
+              *> optionalField' @MutuallyRecursiveB "mutually-recursive" .= const Nothing
+              $> ()
+     in do
+          -- The flake's unset-options-check evaluates this file, so it holds
+          -- every kind of field whose being left out matters.
+          it "outputs the same nix type as before for every kind of field" $
+            pureGoldenTextFile
+              "test_resources/nix/options/unsettable-type.nix"
+              (renderNixOptionTypeVia unsettable)
+          -- The flake's unset-options-check asserts that these are the values
+          -- of definitions of that type.
+          it "parses every value that the nix type gives" $ do
+            values <-
+              JSON.eitherDecodeFileStrict "test_resources/nix/options/unsettable-values.json"
+                >>= either expectationFailure pure
+            M.mapMaybe
+              (either Just (const Nothing) . JSONTypes.parseEither (parseJSONVia unsettable))
+              (values :: Map Text JSON.Value)
+              `shouldBe` M.empty
 
   describe "simplifyOptionType" $ do
     it "collapses a nullOr of a nullOr" $
