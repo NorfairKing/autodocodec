@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.2.0.0] - 2026-11-14
+
+### Added
+
+* `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect` constructors
+  of `Expression`, for a function with a single argument, `let`, `if`, `//`
+  and selecting an attribute.
+
+### Changed
+
+* A function, `with`, `let` or `if` is put in parentheses wherever it is not
+  the last part of an expression, and an application of an application is no
+  longer put in parentheses.
+
+### Fixed
+
+* A function that takes up more than one line is separated from the argument
+  it is applied to by a space.
+
+## [0.1.1.1] - 2026-11-14
+
+### Fixed
+
+* Strings and quoted attribute keys are rendered as Nix string literals.
+  They used to be rendered as Haskell string literals, so Nix read a
+  non-ASCII character like `é` as its code point, `233`, and interpolated a
+  `${`.
+* A negative number in a list or as an argument is put in parentheses.
+  Nix read `[ -1 ]` as a subtraction, which it could not parse.
+* The element of a list of one element is put in parentheses when it needs
+  them, so an application in it is no longer read as two elements.
+
 ## [0.1.1.0] - 2026-10-06
 
 ### Changed
