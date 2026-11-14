@@ -56,78 +56,101 @@ data Expression
 renderExpr :: Expr -> Text
 renderExpr = renderExpression
 
+-- | Where an expression is rendered.
+--
+-- A later position admits fewer expressions without parentheses, so an
+-- expression decides whether it needs them by comparing the position to the
+-- last one it can stand in.
+data Position
+  = -- | Where an expression ends, so anything can stand there.
+    -- A function, @let@, @if@ or @with@ extends as far to the right as it
+    -- can, so it needs this position.
+    PositionEnd
+  | -- | Where an expression is followed by more of the expression around it,
+    -- like the condition of an @if@.
+    PositionInner
+  | -- | The right operand of @//@, which groups to the right.
+    PositionUpdateRight
+  | -- | The left operand of @//@.
+    PositionUpdateLeft
+  | -- | The function of an application.
+    PositionApplied
+  | -- | An argument or a list element.
+    PositionArgument
+  | -- | Where an attribute is selected from.
+    PositionSelected
+  deriving (Eq, Ord)
+
 renderExpression :: Expr -> Text
-renderExpression = T.unlines . go 0
+renderExpression = T.unlines . go PositionEnd
   where
     parensWhen b ts = if b then parens ts else ts
-    -- The precedence of the context, from low to high: anything (0), an
-    -- operand of '//' (5 and 6), a function that is applied (10), an
-    -- argument or list element (11), and something an attribute is selected
-    -- from (12).
-    -- A function, let, if, or with extends as far to the right as it can, so
-    -- it needs parentheses anywhere but where an expression ends.
-    go :: Int -> Expr -> [Text]
-    go d = \case
+    go :: Position -> Expr -> [Text]
+    go p = \case
       ExprNull -> ["null"]
       ExprLitBool b -> [if b then "true" else "false"]
       ExprLitString s -> [nixString s]
       ExprLitNumber s ->
         -- Nix reads a minus in a list or an argument as subtraction.
         parensWhen
-          (d > 10 && s < 0)
+          (p > PositionApplied && s < 0)
           [ case floatingOrInteger s of
               Left f -> T.pack $ show (f :: Double)
               Right i -> T.pack $ show (i :: Integer)
           ]
       ExprLitList es -> case es of
         [] -> ["[]"]
-        [e] -> surround "[" "]" $ go 11 e
+        [e] -> surround "[" "]" $ go PositionArgument e
         _ ->
           -- If there is more than one list element, put them on separate lines.
-          "[" : indent (concatMap (go 11) es) ++ ["]"]
+          "[" : indent (concatMap (go PositionArgument) es) ++ ["]"]
       ExprVar s -> [s]
       ExprAttrSet m | null m -> ["{ }"]
       ExprAttrSet m ->
         -- We always put "{" and "}" on separate lines.
         "{" : indent (concatMap (uncurry goBind) (M.toList m)) ++ ["}"]
       ExprAp e1 e2 ->
-        parensWhen (d > 10) $
-          go 10 e1 `apply` go 11 e2
+        parensWhen (p > PositionApplied) $
+          go PositionApplied e1 `apply` go PositionArgument e2
       ExprFun args e ->
-        parensWhen (d > 0) $
+        parensWhen (p > PositionEnd) $
           surroundWith " " "{" "}:" [T.intercalate ", " args]
-            ++ go 0 e
+            ++ go PositionEnd e
       ExprWith t e ->
-        parensWhen (d > 0) $
-          ("with " <> t <> ";") : go 0 e
+        parensWhen (p > PositionEnd) $
+          ("with " <> t <> ";") : go PositionEnd e
       ExprLam arg e ->
-        parensWhen (d > 0) $
-          prependWith " " (arg <> ":") (go 0 e)
+        parensWhen (p > PositionEnd) $
+          prependWith " " (arg <> ":") (go PositionEnd e)
       ExprLet binds e
-        | null binds -> go d e
+        | null binds -> go p e
         | otherwise ->
-            parensWhen (d > 0) $
+            parensWhen (p > PositionEnd) $
               concat
                 [ ["let"],
                   indent (concatMap (uncurry goBind) (M.toList binds)),
                   ["in"],
-                  go 0 e
+                  go PositionEnd e
                 ]
       ExprIf c t e ->
-        parensWhen (d > 0) $
+        parensWhen (p > PositionEnd) $
           joinWith
             " else "
-            (joinWith " then " (prependWith " " "if" (go 1 c)) (go 1 t))
-            (go 0 e)
+            ( joinWith
+                " then "
+                (prependWith " " "if" (go PositionInner c))
+                (go PositionInner t)
+            )
+            (go PositionEnd e)
       ExprUpdate e1 e2 ->
-        parensWhen (d > 5) $
-          joinWith " // " (go 6 e1) (go 5 e2)
+        parensWhen (p > PositionUpdateRight) $
+          joinWith " // " (go PositionUpdateLeft e1) (go PositionUpdateRight e2)
       ExprSelect e key ->
-        go 12 e `append` T.cons '.' (nixAttrKey key)
+        go PositionSelected e `append` T.cons '.' (nixAttrKey key)
     goBind key e =
       prependWith " " (nixAttrKey key <> " =") $
         (`append` ";") $
-          go 0 e
+          go PositionEnd e
 
 -- | Quote an attribute key if it is not a valid Nix identifier.
 -- Valid identifiers match @[a-zA-Z_][a-zA-Z0-9_'-]*@.
