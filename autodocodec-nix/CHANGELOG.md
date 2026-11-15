@@ -4,20 +4,27 @@
 
 ### Added
 
-* `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect` constructors
-  of `Expression`, for a function with a single argument, `let`, `if`, `//`
-  and selecting an attribute.
+* `ExprLam`, `ExprLet`, `ExprIf`, `ExprUpdate` and `ExprSelect`.
+* `optionRequirement`, `optionAlternativeDefaults` and `optionDocumentedDefault`
+  in `Option`.
 
 ### Changed
 
-* A function, `with`, `let` or `if` is put in parentheses wherever it is not
-  the last part of an expression, and an application of an application is no
-  longer put in parentheses.
+* A key that may be left out no longer defaults to `null`, and is left out of
+  the value when it is not set.
+* A generated submodule throws when a required key is not set.
+* The submodules of a choice between objects are merged into one.
+* Generated types need nixpkgs 25.11 or newer.
+
+### Removed
+
+* `renderNixOptionsVia`, `renderNixOptionsViaCodec`, `optionsExpression` and
+  `optionsExpr`.
+  Use `renderNixOptionTypeVia` instead.
 
 ### Fixed
 
-* A function that takes up more than one line is separated from the argument
-  it is applied to by a space.
+* The discriminator of a discriminated union is an enum.
 
 ## [0.1.1.1] - 2026-11-14
 

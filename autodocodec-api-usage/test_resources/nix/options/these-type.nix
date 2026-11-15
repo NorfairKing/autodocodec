@@ -1,18 +1,50 @@
 { lib }:
-lib.types.submodule {
-  options = {
-    int = lib.mkOption {
-      type = lib.types.int;
+let
+  definedSubmodule = required: declarations: definedType required (lib.types.submodule {
+    options = declarations;
+  });
+  definedType = required: submodule: submodule // {
+    emptyValue = { };
+    functor = submodule.functor // {
+      name = "definedSubmodule";
     };
-    text = lib.mkOption {
-      type = lib.types.str;
+    merge = submodule.merge // {
+      v2 = args: let
+        configValue = name: lib.getAttr name merged.value;
+        isDefined = name: (lib.getAttr name options).isDefined;
+        merged = submodule.merge.v2 args;
+        options = merged.valueMeta.configuration.options;
+        requiredValue = name: if isDefined name then configValue name else throw (lib.concatStrings [
+          "The option `"
+          (lib.showOption (lib.getAttr name options).loc)
+          "' is required but was not defined."
+        ]);
+      in
+      merged // {
+        value = lib.genAttrs required requiredValue // lib.genAttrs (lib.filter isDefined (lib.attrNames (lib.removeAttrs options ["_module"]))) configValue;
+      };
     };
-    type = lib.mkOption {
-      type = lib.types.oneOf [
-        "both"
-        "this"
-        "that"
-      ];
+    substSubModules = modules: definedType required (submodule.substSubModules modules);
+    typeMerge = _: null;
+  };
+in
+definedSubmodule ["type"] {
+  int = lib.mkOption {
+    defaultText = lib.literalMD "Unspecified";
+    type = lib.types.int;
+  };
+  text = lib.mkOption {
+    defaultText = lib.literalMD "Unspecified";
+    type = lib.types.str;
+  };
+  type = lib.mkOption {
+    defaultText = lib.literalMD "None, required" // {
+      required = true;
     };
+    type = lib.types.enum [
+      "both"
+      "that"
+      "this"
+    ];
   };
 }

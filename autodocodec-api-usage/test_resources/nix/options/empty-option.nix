@@ -1,2 +1,4 @@
 { lib }:
-lib.mkOption { }
+lib.mkOption {
+  defaultText = lib.literalMD "Unspecified";
+}

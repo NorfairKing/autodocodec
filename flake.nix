@@ -80,6 +80,7 @@
         backwardCompatibilityChecks // {
           release = haskellPackages.autodocodecRelease;
           expression-check = pkgs.callPackage ./nix/expression-check.nix { };
+          unset-options-check = pkgs.callPackage ./nix/unset-options-check.nix { };
           weeder-check = pkgs.weeder-nix.makeWeederCheck {
             weederToml = ./weeder.toml;
             inherit haskellPackages;

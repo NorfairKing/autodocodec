@@ -131,11 +131,11 @@
     "opt-env-conf": {
       "flake": false,
       "locked": {
-        "lastModified": 1790505332,
-        "narHash": "sha256-tl1tYuvmM9oMsB+t80yr5pJjFt3bGrbhzIrfjq+TiBs=",
+        "lastModified": 1794483049,
+        "narHash": "sha256-Nx9aUAqpRIu6W6RBelBciK7+gTLoxh94EoIoXXMbZnA=",
         "owner": "NorfairKing",
         "repo": "opt-env-conf",
-        "rev": "e9056ab1b3b87dc4ac7ffced7e83c1528cde51eb",
+        "rev": "b616b7815d710556f98d185e80b28eab829923bf",
         "type": "github"
       },
       "original": {
