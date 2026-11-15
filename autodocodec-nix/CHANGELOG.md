@@ -25,11 +25,6 @@
 ### Fixed
 
 * The discriminator of a discriminated union is an enum.
-
-## [0.1.1.1] - 2026-11-14
-
-### Fixed
-
 * Strings and quoted attribute keys are rendered as Nix string literals.
   They used to be rendered as Haskell string literals, so Nix read a
   non-ASCII character like `é` as its code point, `233`, and interpolated a
