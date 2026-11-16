@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+* Support for `ExtraDocsCodec`: titles, formats, examples, `multipleOf` and
+  `minItems` are added to the generated schemas, as well as descriptions.
+
+### Fixed
+
+* The documentation and default value of an object field whose type has a named
+  schema are no longer dropped.
+  Such a field's schema is a `$ref` to a definition that every use of the type
+  shares, and OpenAPI 3.0 ignores anything next to a `$ref`, so they are put on an
+  `allOf` around the `$ref` instead: `{"allOf": [{"$ref": ...}], "description": ...}`.
+  Fields without documentation or a default, and fields of types without a name,
+  are documented as before.
+
 ## [0.3.0.2] - 2026-07-14
 
 ### Changed

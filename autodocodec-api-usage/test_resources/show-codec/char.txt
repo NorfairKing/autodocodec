@@ -1,9 +1,11 @@
-BimapCodec
-  _
-  _
-  (StringCodec
-     Nothing
-     StringBounds
-       { stringBoundsMinLength = Nothing
-       , stringBoundsMaxLength = Nothing
-       })
+ExtraDocsCodec
+  (ExtraExample (String "?"))
+  (BimapCodec
+     _
+     _
+     (StringCodec
+        Nothing
+        StringBounds
+          { stringBoundsMinLength = Just 1
+          , stringBoundsMaxLength = Just 1
+          }))

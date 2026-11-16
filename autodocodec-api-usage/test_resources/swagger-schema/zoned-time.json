@@ -1,7 +1,8 @@
 {
     "definitions": {
         "ZonedTime": {
-            "description": "ZonedTime",
+            "example": "2016-07-22T07:40:00+03:00",
+            "format": "date-time",
             "type": "string"
         }
     },

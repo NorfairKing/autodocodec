@@ -1,6 +1,9 @@
 {
     "definitions": {
         "Char": {
+            "example": "?",
+            "maxLength": 1,
+            "minLength": 1,
             "type": "string"
         }
     },

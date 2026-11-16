@@ -14,6 +14,7 @@ import qualified Data.Aeson as JSON
 import Data.DList (DList)
 import Data.DList.DNonEmpty (DNonEmpty)
 import Data.Data
+import Data.Foldable (toList)
 import Data.Functor.Const (Const)
 import Data.Functor.Identity (Identity)
 import Data.GenValidity
@@ -126,6 +127,77 @@ spec = do
   swaggerSchemaSpec @(Monoid.Last Text) "monoid-last"
   swaggerSchemaSpec @(Const Text Void) "const"
   xdescribe "does not hold because of overlap" $ swaggerSchemaSpec @Overlap "overlap"
+  swaggerDocCompositionSpec
+
+-- | How documentation composes when codecs are wrapped in more than one doc.
+--
+-- "Inner" is the doc closest to the value codec, "outer" the one applied around it.
+swaggerDocCompositionSpec :: Spec
+swaggerDocCompositionSpec =
+  describe "doc composition" $ do
+    it "puts the outer description before the inner one" $
+      Swagger._schemaDescription (swaggerSchemaOf ((textCodec <?> "inner") <?> "outer"))
+        `shouldBe` Just "outer\ninner"
+    it "uses the outer title" $
+      Swagger._schemaTitle (swaggerSchemaOf (withTitle "outer" (withTitle "inner" textCodec)))
+        `shouldBe` Just "outer"
+    it "uses the outer format" $
+      Swagger._paramSchemaFormat (Swagger._schemaParamSchema (swaggerSchemaOf (withFormat "outer" (withFormat "inner" textCodec))))
+        `shouldBe` Just "outer"
+    it "uses the outer example" $
+      Swagger._schemaExample (swaggerSchemaOf (withExample "outer" (withExample "inner" textCodec)))
+        `shouldBe` Just "outer"
+    it "uses the outer multipleOf" $
+      Swagger._paramSchemaMultipleOf (Swagger._schemaParamSchema (swaggerSchemaOf (withMultipleOf 2 (withMultipleOf 3 scientificCodec))))
+        `shouldBe` Just 2
+    it "uses a larger outer minItems" $
+      Swagger._paramSchemaMinItems (Swagger._schemaParamSchema (swaggerSchemaOf (withMinItems 3 (nonEmptyCodec textCodec))))
+        `shouldBe` Just 3
+    it "keeps a larger inner minItems" $
+      Swagger._paramSchemaMinItems (Swagger._schemaParamSchema (swaggerSchemaOf (withMinItems 0 (nonEmptyCodec textCodec))))
+        `shouldBe` Just 1
+    it "puts a field's doc before the doc of its value" $
+      let c = object "Field" (requiredFieldWith "key" (textCodec <?> "value doc") "field doc")
+       in case toList (Swagger._schemaProperties (swaggerSchemaOf c)) of
+            [Swagger.Inline p] -> Swagger._schemaDescription p `shouldBe` Just "field doc\nvalue doc"
+            ps -> expectationFailure $ "Expected one inline property, got: " <> show ps
+
+    describe "field docs on named types" $ do
+      -- A named type's property is a '$ref', and Swagger 2 ignores anything
+      -- next to a '$ref', so a field's own doc goes on an 'allOf' around it.
+      let dayRef = Swagger.Ref (Swagger.Reference "Day")
+      it "puts a field's doc on an allOf around the reference" $
+        swaggerPropertiesOf (object "Field" (requiredFieldWith "key" (codec @Day) "field doc"))
+          `shouldBe` [Swagger.Inline mempty {Swagger._schemaDescription = Just "field doc", Swagger._schemaAllOf = Just [dayRef]}]
+      it "leaves the named type's definition alone" $
+        let (defs, _) = swaggerDeclarationOf (object "Field" (requiredFieldWith "key" (codec @Day) "field doc"))
+         in map (\s -> (Swagger._schemaDescription s, Swagger._paramSchemaFormat (Swagger._schemaParamSchema s))) (toList defs)
+              `shouldBe` [(Nothing, Just "date")]
+      it "keeps a field's doc for a time type" $
+        swaggerPropertiesOf (object "Field" (requiredFieldWith "key" (codec @UTCTime) "when"))
+          `shouldBe` [Swagger.Inline mempty {Swagger._schemaDescription = Just "when", Swagger._schemaAllOf = Just [Swagger.Ref (Swagger.Reference "UTCTime")]}]
+      it "leaves an undocumented field as a plain reference" $
+        swaggerPropertiesOf (object "Field" (requiredFieldWith' "key" (codec @Day)))
+          `shouldBe` [dayRef]
+      it "leaves a field with an empty doc as a plain reference" $
+        swaggerPropertiesOf (object "Field" (requiredFieldWith "key" (codec @Day) ""))
+          `shouldBe` [dayRef]
+
+-- | The properties of the object schema that a codec documents.
+swaggerPropertiesOf :: forall a. JSONCodec a -> [Swagger.Referenced Swagger.Schema]
+swaggerPropertiesOf = toList . Swagger._schemaProperties . swaggerSchemaOf
+
+-- | The definitions and schema that a codec documents.
+swaggerDeclarationOf :: forall a. JSONCodec a -> (Swagger.Definitions Swagger.Schema, Swagger.Schema)
+swaggerDeclarationOf c =
+  Swagger._namedSchemaSchema
+    <$> Swagger.runDeclare (declareNamedSchemaVia c (Proxy :: Proxy a)) mempty
+
+-- | The schema that a codec documents, without its name or definitions.
+swaggerSchemaOf :: forall a. JSONCodec a -> Swagger.Schema
+swaggerSchemaOf c =
+  Swagger._namedSchemaSchema . snd $
+    Swagger.runDeclare (declareNamedSchemaVia c (Proxy :: Proxy a)) mempty
 
 swaggerSchemaSpec :: forall a. (Show a, Typeable a, GenValid a, HasCodec a) => FilePath -> Spec
 swaggerSchemaSpec filePath =

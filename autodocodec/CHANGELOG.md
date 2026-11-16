@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+This is a breaking change: the `CommentCodec` constructor has been replaced by
+`ExtraDocsCodec`, so functions that match on every `Codec` constructor need a
+case for it.
+
+`CommentCodec` is now a pattern synonym for `ExtraDocsCodec (ExtraDescription t)`.
+Building codecs with `CommentCodec`, `<?>` and `<??>` works as before, and so does
+matching on `CommentCodec`, but that match only covers descriptions.
+An interpreter that matched on every constructor should match `ExtraDocsCodec`
+instead, so that it sees the other kinds of docs too.
+
+### Added
+
+* `ExtraDocs`, the kinds of documentation that `ExtraDocsCodec` can add to a codec:
+  a description, title, format, example, `multipleOf` or `minItems`.
+  These are documentation only.
+  When they're nested, descriptions are joined (outermost first), the larger
+  `minItems` wins, and otherwise the outermost one wins.
+* `withTitle`, `withFormat`, `withExample`, `withMultipleOf` and `withMinItems`.
+* `unsafeNamedCodecViaAesonString`, which names the string codec instead of
+  commenting it.
+
+### Changed
+
+* The codecs for `Char`, `Int32`, `Int64`, `Word32`, `Word64`, `NonEmpty`,
+  `Either`, `Day`, `LocalTime`, `UTCTime`, `TimeOfDay`, `ZonedTime` and
+  `NominalDiffTime` now produce the same OpenAPI schemas as the `openapi3`
+  library does.
+* The `Char` codec now has string bounds of exactly one character.
+  Strings of another length fail with the string bounds error message.
+* The time codecs are now named (for example `Day`) instead of commented.
+* `nonEmptyCodec` now documents `minItems: 1`.
+
 ## [0.7.0.0] - 2026-10-07
 
 ### Fixed

@@ -1,7 +1,8 @@
 {
     "definitions": {
         "Day": {
-            "description": "Day",
+            "example": "2016-07-22",
+            "format": "date",
             "type": "string"
         }
     },

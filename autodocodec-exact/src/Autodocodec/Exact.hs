@@ -240,9 +240,11 @@ goV value = \case
           (Right _, Right _) -> exactError ExactParseErrorDisjointBothSucceeded
           (Left lErr, Left rErr) ->
             exactError $ ExactParseErrorDisjointBothFailed lErr rErr
-  CommentCodec comment c ->
+  ExtraDocsCodec (ExtraDescription comment) c ->
     withContext (ExactParseContextPieceComment comment) $
       goV value c
+  -- Only descriptions are useful context for an error.
+  ExtraDocsCodec _ c -> goV value c
   ReferenceCodec ref c ->
     withContext (ExactParseContextPieceReference ref) $
       goV value c

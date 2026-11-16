@@ -2,7 +2,8 @@
     "components": {
         "schemas": {
             "LocalTime": {
-                "description": "LocalTime",
+                "example": "2016-07-22T07:40:00",
+                "format": "yyyy-mm-ddThh:MM:ss",
                 "type": "string"
             }
         }

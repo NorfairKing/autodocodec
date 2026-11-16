@@ -166,7 +166,7 @@ parseJSONContextVia codec_ context_ =
           Nothing -> fail $ "Unexpected discriminator value: " <> show discriminatorValue
           Just (_, c) ->
             go value c
-      CommentCodec _ c -> go value c
+      ExtraDocsCodec _ c -> go value c
       ReferenceCodec _ c -> go value c
       RequiredKeyCodec k c _ -> do
         valueAtKey <- (value :: JSON.Object) JSON..: Compat.toKey k

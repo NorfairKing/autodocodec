@@ -1,3 +1,4 @@
 result*
 .pre-commit-config.yaml
 dist-newstyle/
+/.direnv

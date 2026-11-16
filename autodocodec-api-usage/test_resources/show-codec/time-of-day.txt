@@ -1,11 +1,13 @@
-CommentCodec
-  "TimeOfDay"
-  (BimapCodec
-     _
-     _
-     (StringCodec
-        Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+ExtraDocsCodec
+  (ExtraFormat "hh:MM:ss")
+  (ExtraDocsCodec
+     (ExtraExample (String "12:33:15"))
+     (BimapCodec
+        _
+        _
+        (StringCodec
+           (Just "TimeOfDay")
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

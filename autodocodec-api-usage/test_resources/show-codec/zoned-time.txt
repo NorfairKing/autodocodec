@@ -1,11 +1,13 @@
-CommentCodec
-  "ZonedTime"
-  (BimapCodec
-     _
-     _
-     (StringCodec
-        Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+ExtraDocsCodec
+  (ExtraFormat "date-time")
+  (ExtraDocsCodec
+     (ExtraExample (String "2016-07-22T07:40:00+03:00"))
+     (BimapCodec
+        _
+        _
+        (StringCodec
+           (Just "ZonedTime")
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))

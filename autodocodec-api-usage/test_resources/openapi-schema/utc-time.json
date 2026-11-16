@@ -2,7 +2,8 @@
     "components": {
         "schemas": {
             "UTCTime": {
-                "description": "UTCTime",
+                "example": "2016-07-22T00:00:00Z",
+                "format": "yyyy-mm-ddThh:MM:ssZ",
                 "type": "string"
             }
         }

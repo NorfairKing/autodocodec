@@ -1,6 +1,7 @@
 {
     "definitions": {
         "NominalDiffTime": {
+            "multipleOf": 1.0e-12,
             "type": "number"
         }
     },

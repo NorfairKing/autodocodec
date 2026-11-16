@@ -2,6 +2,7 @@
     "components": {
         "schemas": {
             "Int64": {
+                "format": "int64",
                 "maximum": 9223372036854775807,
                 "minimum": -9223372036854775808,
                 "type": "integer"

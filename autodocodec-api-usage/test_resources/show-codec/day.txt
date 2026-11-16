@@ -1,11 +1,13 @@
-CommentCodec
-  "Day"
-  (BimapCodec
-     _
-     _
-     (StringCodec
-        Nothing
-        StringBounds
-          { stringBoundsMinLength = Nothing
-          , stringBoundsMaxLength = Nothing
-          }))
+ExtraDocsCodec
+  (ExtraFormat "date")
+  (ExtraDocsCodec
+     (ExtraExample (String "2016-07-22"))
+     (BimapCodec
+        _
+        _
+        (StringCodec
+           (Just "Day")
+           StringBounds
+             { stringBoundsMinLength = Nothing
+             , stringBoundsMaxLength = Nothing
+             })))
