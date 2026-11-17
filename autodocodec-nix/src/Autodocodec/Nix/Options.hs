@@ -109,7 +109,8 @@ objectCodecNixOptions =
             optionDefault = Nothing,
             optionAlternativeDefaults = [],
             optionRequirement = requirement,
-            optionDocumentedDefault = Nothing
+            optionDocumentedDefault = Nothing,
+            optionExample = Nothing
           }
       requiredByEither :: OptionRequirement -> OptionRequirement -> OptionRequirement
       requiredByEither r1 r2 = case r1 of
@@ -129,7 +130,8 @@ objectCodecNixOptions =
                       optionDefault = Nothing,
                       optionAlternativeDefaults = [],
                       optionRequirement = OptionRequired,
-                      optionDocumentedDefault = Nothing
+                      optionDocumentedDefault = Nothing,
+                      optionExample = Nothing
                     }
                 )
                 $ case map (go . snd) $ M.elems byDiscriminator of
@@ -146,7 +148,8 @@ objectCodecNixOptions =
                 optionDefault = Just $ toJSONVia c defaultValue,
                 optionAlternativeDefaults = [],
                 optionRequirement = OptionOptional,
-                optionDocumentedDefault = Nothing
+                optionDocumentedDefault = Nothing,
+                optionExample = Nothing
               }
         OptionalKeyWithOmittedDefaultCodec key c defaultValue mDesc ->
           M.singleton
@@ -157,7 +160,8 @@ objectCodecNixOptions =
                 optionDefault = Just $ toJSONVia c defaultValue,
                 optionAlternativeDefaults = [],
                 optionRequirement = OptionOptional,
-                optionDocumentedDefault = Nothing
+                optionDocumentedDefault = Nothing,
+                optionExample = Nothing
               }
         PureCodec _ -> M.empty
         ApCodec c1 c2 ->
@@ -304,7 +308,9 @@ data Option = Option
     -- | The default that whatever reads the value applies when the option is
     -- left out, for an option without a default in Nix.
     -- It is only documented, so that the value still leaves the option out.
-    optionDocumentedDefault :: !(Maybe JSON.Value)
+    optionDocumentedDefault :: !(Maybe JSON.Value),
+    -- | A value to show in the documentation of the option.
+    optionExample :: !(Maybe JSON.Value)
   }
   deriving (Show, Eq, Ord)
 
@@ -322,7 +328,8 @@ emptyOption =
       optionDefault = Nothing,
       optionAlternativeDefaults = [],
       optionRequirement = OptionOptional,
-      optionDocumentedDefault = Nothing
+      optionDocumentedDefault = Nothing,
+      optionExample = Nothing
     }
 
 simplifyOption :: Option -> Option
@@ -509,7 +516,8 @@ unboundOptionExpression Option {..} =
                         )
                       | not isUnspecifiedSubmodule
                       ]
-                    Just d -> [("default", toNixExpressionViaCodec d)]
+                    Just d -> [("default", toNixExpressionViaCodec d)],
+                  [("example", toNixExpressionViaCodec e) | e <- maybeToList optionExample]
                 ]
         )
 

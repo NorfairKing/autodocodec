@@ -187,6 +187,7 @@ extra-source-files:
     test_resources/nix/options/either-bool-text-type.nix
     test_resources/nix/options/either-either-bool-scientific-text-type.nix
     test_resources/nix/options/empty-option.nix
+    test_resources/nix/options/example-option.nix
     test_resources/nix/options/example-type.nix
     test_resources/nix/options/expression-type.nix
     test_resources/nix/options/fruit-type.nix

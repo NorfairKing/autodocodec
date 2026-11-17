@@ -228,6 +228,11 @@ spec = do
         "test_resources/nix/options/documented-default-option.nix"
         (renderOption emptyOption {optionDocumentedDefault = Just (JSON.Number 8000)})
 
+    it "renders the example of an option as before" $
+      pureGoldenTextFile
+        "test_resources/nix/options/example-option.nix"
+        (renderOption emptyOption {optionExample = Just (JSON.object ["host" JSON..= ("localhost" :: Text), "port" JSON..= (8000 :: Int)])})
+
   describe "optionExpr" $
     it "builds what optionExpression builds" $
       optionExpr emptyOption `shouldBe` optionExpression emptyOption

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0.0] - 2026-11-16
+
+### Added
+
+* `optionExample` in `Option`, rendered as the `example` of the option.
+
 ## [0.2.0.0] - 2026-11-14
 
 ### Added
